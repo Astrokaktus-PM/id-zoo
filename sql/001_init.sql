@@ -91,9 +91,12 @@ drop policy if exists profiles_update on public.profiles;
 create policy profiles_update on public.profiles for update
   using (id = auth.uid()) with check (id = auth.uid());
 
+-- owner_id проверяется напрямую, а не через членство: строку в pet_members
+-- создаёт AFTER-триггер, то есть позже, чем вычисляется RETURNING у INSERT.
+-- Без этого владелец не видит собственного питомца в момент создания.
 drop policy if exists pets_select on public.pets;
 create policy pets_select on public.pets for select
-  using (public.pet_role(id) is not null);
+  using (owner_id = auth.uid() or public.pet_role(id) is not null);
 
 drop policy if exists pets_insert on public.pets;
 create policy pets_insert on public.pets for insert
@@ -101,12 +104,12 @@ create policy pets_insert on public.pets for insert
 
 drop policy if exists pets_update on public.pets;
 create policy pets_update on public.pets for update
-  using (public.pet_role(id) in ('owner','co_owner'))
-  with check (public.pet_role(id) in ('owner','co_owner'));
+  using (owner_id = auth.uid() or public.pet_role(id) in ('owner','co_owner'))
+  with check (owner_id = auth.uid() or public.pet_role(id) in ('owner','co_owner'));
 
 drop policy if exists pets_delete on public.pets;
 create policy pets_delete on public.pets for delete
-  using (public.pet_role(id) = 'owner');
+  using (owner_id = auth.uid());
 
 drop policy if exists members_select on public.pet_members;
 create policy members_select on public.pet_members for select
@@ -170,12 +173,14 @@ create trigger on_pet_created
 -- ─────────────────────────────────────────────────────────────
 -- 7. Приглашение по логину
 -- ─────────────────────────────────────────────────────────────
-create or replace function public.invite_member(
+drop function if exists public.invite_member(uuid, text, text);
+
+create function public.invite_member(
   p_pet   uuid,
   p_login text,
   p_role  text
 )
-returns table (user_id uuid, login text, role text)
+returns table (member_id uuid, member_login text, member_role text)
 language plpgsql
 security definer
 set search_path = public
@@ -183,7 +188,9 @@ as $$
 declare
   v_target uuid;
 begin
-  if public.pet_role(p_pet) <> 'owner' then
+  -- IS DISTINCT FROM, а не <>: для постороннего pet_role возвращает NULL,
+  -- обычное сравнение дало бы NULL вместо TRUE и пропустило бы вызов.
+  if public.pet_role(p_pet) is distinct from 'owner' then
     raise exception 'Приглашать участников может только владелец';
   end if;
 
@@ -191,8 +198,8 @@ begin
     raise exception 'Недопустимая роль';
   end if;
 
-  select p.id into v_target from public.profiles p
-  where lower(p.login) = lower(trim(p_login));
+  select pr.id into v_target from public.profiles pr
+  where lower(pr.login) = lower(trim(p_login));
 
   if v_target is null then
     raise exception 'Пользователь с логином % не найден', p_login;
@@ -207,9 +214,9 @@ begin
   on conflict (pet_id, user_id) do update set role = excluded.role;
 
   return query
-    select m.user_id, p.login, m.role
+    select m.user_id, pr.login, m.role
     from public.pet_members m
-    join public.profiles p on p.id = m.user_id
+    join public.profiles pr on pr.id = m.user_id
     where m.pet_id = p_pet and m.user_id = v_target;
 end
 $$;

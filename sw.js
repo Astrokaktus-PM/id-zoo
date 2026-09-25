@@ -1,6 +1,6 @@
 // Сеть первична, кэш — запасной путь. Иначе обновления макета не доезжают
 // до людей, у которых приложение добавлено на домашний экран.
-const V = 'petid-v1';
+const V = 'petid-v2';
 const SHELL = ['./', 'index.html', 'app.css', 'js/app.js', 'js/db.js', 'js/config.js', 'manifest.webmanifest'];
 
 self.addEventListener('install', e => {

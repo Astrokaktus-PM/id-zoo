@@ -202,7 +202,7 @@ $('#inv-go').onclick = async () => {
     const r = await db.inviteMember(state.pet.id, login, $('#inv-role').value);
     $('#inv-login').value = '';
     await openPet(state.pet);
-    say('#pet-ok', `@${(r && r[0] && r[0].login) || login} добавлен`, 'ok');
+    say('#pet-ok', `@${(r && r[0] && r[0].member_login) || login} добавлен`, 'ok');
   } catch (err) { say('#pet-msg', humanError(err)); }
   finally { btn.disabled = false; }
 };
