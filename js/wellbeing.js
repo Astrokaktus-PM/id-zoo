@@ -12,7 +12,7 @@ const fmt = x => String(x).replace('.', ',');
 let ui = null;          // { show, say }
 const S = {
   pet: null, role: null, me: null, members: {}, day: null,
-  entries: [], gates: [], modes: [], skip: new Set(), answering: null,
+  entries: [], gates: [], modes: [], walks: {}, skip: new Set(), answering: null,
 };
 
 export function init(api) { ui = api; }
@@ -94,12 +94,15 @@ async function reload() {
   const to = todayIso() > S.day ? todayIso() : S.day;
   const from = addDays(S.day, -13);
   S.me = await db.myId();
-  const [entries, gates, modes] = await Promise.all([
+  const [entries, gates, modes, walks] = await Promise.all([
     db.entriesRange(S.pet.id, from, to),
     db.gateMarks(S.pet.id, to),
     db.modesRange(S.pet.id, from, to),
+    // Прогулки нужны только чтобы подписать отметки «из прогулки 19:40».
+    db.walksRange(S.pet.id, from, to).catch(() => []),
   ]);
   S.entries = entries; S.gates = gates; S.modes = modes;
+  S.walks = Object.fromEntries(walks.map(w => [w.id, w]));
 }
 
 async function act(fn) {
@@ -192,6 +195,11 @@ function renderDay() {
   box.append(el('div', 'sec', 'Что ставит потолок'));
   box.append(renderGates(r));
 
+  if (sp === 'dog' && ui.openWalks) {
+    const wb = el('button', 'btn ghost', canWrite() ? 'Записать прогулку' : 'Прогулки');
+    wb.onclick = () => ui.openWalks();
+    box.append(wb);
+  }
   const how = el('button', 'btn ghost', 'Как это посчитано');
   how.onclick = openCalc;
   const why = el('button', 'linkbtn', 'Четыре правила модели');
@@ -411,7 +419,7 @@ function renderMarks(r) {
       } else {
         // Отменить можно только свою последнюю ручную отметку за этот день.
         const last = [...S.entries].reverse().find(e => e.day === X && e.channel === row.key
-          && e.created_by === S.me && !e.plan_item);
+          && e.created_by === S.me && !e.plan_item && !e.walk_id);
         if (last) {
           const u = el('button', 'chip ghost', `отменить +${fmt(last.value)}`);
           u.onclick = () => act(() => db.deleteEntries([last.id]));
@@ -502,10 +510,14 @@ function openCalc() {
     const ch = CH[sp].find(x => x[0] === e.channel);
     const line = el('div', 'src');
     const who = S.members[e.created_by];
-    const how = e.source === 'plan' ? 'пункт режима' : e.source === 'answer' ? 'ответ на вопрос' : 'отметка';
+    const wk = e.walk_id && S.walks[e.walk_id];
+    const how = e.walk_id ? `из прогулки${wk && wk.started_at ? ' ' + hhmm(wk.started_at) : ''}, записано`
+      : e.source === 'plan' ? 'пункт режима' : e.source === 'answer' ? 'ответ на вопрос' : 'отметка';
     line.append(el('span', null, `${ch ? ch[1] : e.channel}: ${e.value === 0 ? 'не было' : fmt(e.value) + ' ' + (ch && ch[4] === 'week' ? 'раз' : 'мин')}`));
     line.append(el('em', null, `${how} ${e.day !== X ? e.day.slice(8) + '.' + e.day.slice(5, 7) + ' ' : ''}в ${hhmm(e.created_at)}${who ? ' · @' + who.login : ' · бывший участник'}`));
-    if ((e.created_by === S.me && canWrite()) || canManage()) {
+    // Отметка из прогулки удаляется только вместе с прогулкой — иначе прогулка
+    // и её вклад в каналы разойдутся.
+    if (!e.walk_id && ((e.created_by === S.me && canWrite()) || canManage())) {
       const x = el('button', 'del', '✕'); x.title = 'Удалить отметку';
       x.onclick = async () => {
         try { await db.deleteEntries([e.id]); await reload(); openCalc(); }

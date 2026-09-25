@@ -19,8 +19,8 @@ export function humanError(e) {
     [/email address .* is invalid/i, 'Логин содержит недопустимые символы'],
     [/for security purposes/i, 'Слишком часто. Подождите несколько секунд'],
     [/failed to fetch|networkerror/i, 'Нет связи с сервером'],
-    [/row-level security/i, 'Нет прав на это действие: у вашей роли только просмотр'],
-    [/(does not exist|schema cache).*|could not find the (table|function)/i,'База не обновлена: выполните sql/003_domains.sql в Supabase'],
+    [/row-level security/i, 'Нет прав на это действие: у вашей роли только просмотр, или дата старше 30 дней'],
+    [/(does not exist|schema cache).*|could not find the (table|function)/i,'База не обновлена: выполните в Supabase недостающие скрипты из папки sql/'],
   ];
   for (const [re, ru] of map) if (re.test(m)) return ru;
   return m;
@@ -118,7 +118,7 @@ export async function myId() {
 
 export async function entriesRange(petId, from, to) {
   const { data, error } = await sb.from('domain_entries')
-    .select('id, day, channel, value, source, plan_item, created_by, created_at')
+    .select('id, day, channel, value, source, plan_item, walk_id, created_by, created_at')
     .eq('pet_id', petId).gte('day', from).lte('day', to)
     .order('created_at', { ascending: true });
   if (error) throw error;
@@ -165,4 +165,64 @@ export async function modesRange(petId, from, to) {
 export async function setMode(petId, day, mode) {
   const { error } = await sb.from('day_modes').insert({ pet_id: petId, day, mode });
   if (error) throw error;
+}
+
+/* ── П5: прогулки ─────────────────────────────────────────
+ * Схема — sql/005_walks.sql. Приватная зона вырезается в браузере (js/track.js)
+ * до отправки: сервер точки внутри зоны не получает вообще. */
+
+export async function walksRange(petId, from, to) {
+  const { data, error } = await sb.from('walks')
+    .select('id, day, started_at, ended_at, duration_min, distance_m, source, track_broken, note, created_by, created_at')
+    .eq('pet_id', petId).gte('day', from).lte('day', to)
+    .order('day', { ascending: false }).order('created_at', { ascending: false });
+  if (error) throw error;
+  return data.map(w => ({ ...w, duration_min: Number(w.duration_min),
+    distance_m: w.distance_m == null ? null : Number(w.distance_m) }));
+}
+
+export async function walkPoints(walkId) {
+  const { data, error } = await sb.from('walk_points')
+    .select('t, lat, lon, acc_m').eq('walk_id', walkId).order('t', { ascending: true });
+  if (error) throw error;
+  return data.map(p => ({ t: Date.parse(p.t), lat: Number(p.lat), lon: Number(p.lon), acc_m: p.acc_m == null ? null : Number(p.acc_m) }));
+}
+
+/** Прогулка целиком: сама прогулка, точки, отметки в каналы.
+ *  Если что-то после создания прогулки упало — прогулка удаляется,
+ *  каскад уносит уже записанные точки. Полузаписанных прогулок не остаётся. */
+export async function saveWalk(walk, points, entries) {
+  const { data, error } = await sb.from('walks').insert(walk).select('id').single();
+  if (error) throw error;
+  const id = data.id;
+  try {
+    for (let i = 0; i < points.length; i += 500) {
+      const chunk = points.slice(i, i + 500).map(p => ({ walk_id: id, t: new Date(p.t).toISOString(),
+        lat: +p.lat.toFixed(6), lon: +p.lon.toFixed(6), acc_m: p.acc_m }));
+      const { error: e } = await sb.from('walk_points').insert(chunk);
+      if (e) throw e;
+    }
+    if (entries.length) {
+      const { error: e } = await sb.from('domain_entries').insert(entries.map(x => ({ ...x, walk_id: id })));
+      if (e) throw e;
+    }
+  } catch (e) {
+    await sb.from('walks').delete().eq('id', id);
+    throw e;
+  }
+  return id;
+}
+
+export async function deleteWalk(id) {
+  const { data, error } = await sb.from('walks').delete().eq('id', id).select('id');
+  if (error) throw error;
+  if (!data.length) throw new Error('Удалить не получилось: удалять может автор прогулки или владелец');
+  return data;
+}
+
+export async function walkEntries(walkId) {
+  const { data, error } = await sb.from('domain_entries')
+    .select('id, channel, value, created_by, created_at').eq('walk_id', walkId);
+  if (error) throw error;
+  return data.map(r => ({ ...r, value: Number(r.value) }));
 }

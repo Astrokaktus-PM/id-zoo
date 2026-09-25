@@ -1,7 +1,7 @@
 // Сеть первична, кэш — запасной путь. Иначе обновления макета не доезжают
 // до людей, у которых приложение добавлено на домашний экран.
-const V = 'petid-v3';
-const SHELL = ['./', 'index.html', 'app.css', 'js/app.js', 'js/db.js', 'js/config.js', 'js/d5.js', 'js/modes.js', 'js/wellbeing.js', 'manifest.webmanifest'];
+const V = 'petid-v4';
+const SHELL = ['./', 'index.html', 'app.css', 'js/app.js', 'js/db.js', 'js/config.js', 'js/d5.js', 'js/modes.js', 'js/wellbeing.js', 'js/walks.js', 'js/track.js', 'js/map.js', 'manifest.webmanifest'];
 
 self.addEventListener('install', e => {
   self.skipWaiting();

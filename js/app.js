@@ -2,6 +2,7 @@ import * as db from './db.js';
 import { LOGIN_RE, humanError } from './db.js';
 import { APP_VERSION } from './config.js';
 import * as wb from './wellbeing.js';
+import * as wk from './walks.js';
 
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
@@ -9,9 +10,12 @@ const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.classN
 const TITLES = {
   'v-boot': 'Pet ID', 'v-auth': 'Pet ID', 'v-onb': 'Ваш профиль',
   'v-pets': 'Мои питомцы', 'v-newpet': 'Новый питомец', 'v-pet': 'Питомец',
-  'v-day': 'Благополучие', 'v-calc': 'Как это посчитано', 'v-how': 'Как мы считаем'
+  'v-day': 'Благополучие', 'v-calc': 'Как это посчитано', 'v-how': 'Как мы считаем',
+  'v-walks': 'Прогулки', 'v-wstart': 'Начать прогулку', 'v-rec': 'Прогулка идёт', 'v-wend': 'Итог прогулки',
+  'v-wreport': 'Отчёт о прогулке', 'v-walk': 'Прогулка', 'v-map': 'Рядом'
 };
-const BACK = { 'v-newpet': 'v-pets', 'v-pet': 'v-pets', 'v-day': 'v-pet', 'v-calc': 'v-day', 'v-how': 'v-day' };
+const BACK = { 'v-newpet': 'v-pets', 'v-pet': 'v-pets', 'v-day': 'v-pet', 'v-calc': 'v-day', 'v-how': 'v-day',
+  'v-walks': 'v-pet', 'v-wstart': 'v-walks', 'v-walk': 'v-walks', 'v-map': 'v-walks' };
 
 const state = { view: 'v-boot', profile: null, pet: null, mode: 'in', members: [], role: null };
 
@@ -20,7 +24,8 @@ function show(id) {
   state.view = id;
   $('#title').textContent = TITLES[id] || 'Pet ID';
   $('#back').hidden = !BACK[id];
-  $('#logout').hidden = !(state.profile && id !== 'v-boot' && id !== 'v-auth');
+  // Во время записи прогулки выхода нет: он потерял бы трек.
+  $('#logout').hidden = !(state.profile && id !== 'v-boot' && id !== 'v-auth' && id !== 'v-rec');
   document.querySelectorAll('.msg').forEach(m => m.classList.remove('on'));
   window.scrollTo(0, 0);
 }
@@ -157,6 +162,7 @@ $('#form-pet').onsubmit = async e => {
 
 async function openPet(pet) {
   state.pet = pet; state.members = []; state.role = null;
+  $('#open-walks').hidden = pet.species !== 'dog';
   show('v-pet');
   $('#title').textContent = pet.name;
 
@@ -212,6 +218,19 @@ $('#inv-go').onclick = async () => {
   finally { btn.disabled = false; }
 };
 
+async function ensureRole() {
+  if (state.members.length) return true;
+  try {
+    state.members = await db.petMembers(state.pet.id);
+    const mine = state.members.find(m => state.profile && m.user_id === state.profile.id);
+    state.role = mine ? mine.role : null;
+    return true;
+  } catch (err) { say('#pet-msg', humanError(err)); return false; }
+}
+
+const openWalks = async () => { if (await ensureRole()) wk.openWalks(state.pet, state.role, state.members, state.profile); };
+$('#open-walks').onclick = openWalks;
+
 $('#open-day').onclick = async () => {
   // Роль нужна до открытия: гостю показываем только просмотр.
   if (!state.members.length) {
@@ -226,11 +245,13 @@ $('#open-day').onclick = async () => {
 
 $('#back').onclick = () => {
   if (wb.back(state.view)) return;
+  if (wk.back(state.view)) return;
   const b = BACK[state.view];
   if (b === 'v-pets') openPets(); else if (b === 'v-pet') openPet(state.pet); else if (b) show(b);
 };
 
-wb.init({ show, say });
+wb.init({ show, say, openWalks });
+wk.init({ show, say });
 
 /* ── старт ─────────────────────────────────────────────── */
 

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>Pet ID</title>
-<meta name="description" content="Веб-макет Pet ID: профиль владельца, питомцы, совместный уход, пять доменов благополучия.">
+<meta name="description" content="Веб-макет Pet ID: профиль владельца, питомцы, совместный уход, пять доменов благополучия, прогулки.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#F5F6F3" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0D1417" media="(prefers-color-scheme: dark)">
@@ -147,6 +147,12 @@
         <span class="chev">›</span>
       </button>
 
+      <button class="entry" id="open-walks" hidden>
+        <span class="ic">⌇</span>
+        <span><b>Прогулки</b><em>Записать прогулку, трек по GPS, «Рядом»</em></span>
+        <span class="chev">›</span>
+      </button>
+
       <div class="card" id="pet-card"></div>
 
       <div class="sec">Кто ухаживает</div>
@@ -183,6 +189,41 @@
     <section class="view" id="v-calc">
       <div class="msg err" id="calc-msg"></div>
       <div id="calc-body"></div>
+    </section>
+
+    <!-- ── прогулки ──────────────────────────────────────── -->
+    <section class="view" id="v-walks">
+      <div class="msg err" id="walks-msg"></div>
+      <div class="msg ok" id="walks-ok"></div>
+      <div id="walks-body"></div>
+    </section>
+
+    <section class="view" id="v-wstart">
+      <div class="msg err" id="wstart-msg"></div>
+      <div id="wstart-body"></div>
+    </section>
+
+    <section class="view" id="v-rec">
+      <div id="rec-body"></div>
+    </section>
+
+    <section class="view" id="v-wend">
+      <div class="msg err" id="wend-msg"></div>
+      <div id="wend-body"></div>
+    </section>
+
+    <section class="view" id="v-wreport">
+      <div class="msg err" id="wreport-msg"></div>
+      <div id="wreport-body"></div>
+    </section>
+
+    <section class="view" id="v-walk">
+      <div class="msg err" id="walk-msg"></div>
+      <div id="walk-body"></div>
+    </section>
+
+    <section class="view" id="v-map">
+      <div id="map-body"></div>
     </section>
 
     <!-- ── четыре фразы модели ───────────────────────────── -->
