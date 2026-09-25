@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Pet ID</title>
+<meta name="description" content="Веб-макет Pet ID: профиль владельца, питомцы, совместный уход.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F5F6F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D1417" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pet ID">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div id="app">
+
+  <div class="bar">
+    <button class="back" id="back" hidden aria-label="Назад">←</button>
+    <h1 id="title">Pet ID</h1>
+    <button class="act" id="logout" hidden>Выйти</button>
+  </div>
+
+  <main>
+
+    <!-- ── загрузка ──────────────────────────────────────── -->
+    <section class="view on" id="v-boot">
+      <div class="load">Загрузка…</div>
+    </section>
+
+    <!-- ── вход и регистрация ────────────────────────────── -->
+    <section class="view" id="v-auth">
+      <div class="tabs">
+        <button id="tab-in" class="on">Вход</button>
+        <button id="tab-up">Регистрация</button>
+      </div>
+
+      <div class="msg err" id="auth-msg"></div>
+
+      <form id="form-auth" autocomplete="off">
+        <div class="f">
+          <label for="login">Логин</label>
+          <input type="text" id="login" name="login" inputmode="latin"
+                 autocapitalize="none" autocorrect="off" spellcheck="false"
+                 placeholder="nikita" required>
+          <p class="hint">Латиница, цифры и подчёркивание, от 3 до 20 символов.</p>
+        </div>
+        <div class="f">
+          <label for="pass">Пароль</label>
+          <input type="password" id="pass" name="pass" placeholder="не меньше 6 символов" required>
+        </div>
+        <div class="f" id="f-name" hidden>
+          <label for="dname">Как к вам обращаться</label>
+          <input type="text" id="dname" placeholder="Никита">
+        </div>
+        <button class="btn" id="auth-go" type="submit">Войти</button>
+      </form>
+
+      <p class="hint" style="margin-top:18px" id="auth-note">
+        Почта не требуется и не проверяется. Из этого прямо следует:
+        восстановить забытый пароль будет нельзя — записывайте.
+      </p>
+    </section>
+
+    <!-- ── профиль владельца при первом входе ────────────── -->
+    <section class="view" id="v-onb">
+      <p class="lede">Город и район нужны не для анкеты: от них зависит вся география —
+        карта, статусы, поиск. Без них половина продукта не работает.</p>
+      <div class="msg err" id="onb-msg"></div>
+      <form id="form-onb">
+        <div class="f">
+          <label for="onb-name">Как к вам обращаться</label>
+          <input type="text" id="onb-name" required>
+        </div>
+        <div class="f">
+          <label for="onb-city">Город</label>
+          <input type="text" id="onb-city" placeholder="Москва" required>
+        </div>
+        <div class="f">
+          <label for="onb-dist">Район</label>
+          <input type="text" id="onb-dist" placeholder="Хамовники" required>
+        </div>
+        <button class="btn" type="submit">Сохранить</button>
+      </form>
+    </section>
+
+    <!-- ── список питомцев ───────────────────────────────── -->
+    <section class="view" id="v-pets">
+      <div class="msg err" id="pets-msg"></div>
+      <div id="pets-list"></div>
+      <button class="btn ghost" id="pet-add">Добавить питомца</button>
+      <div class="foot" id="me-line"></div>
+    </section>
+
+    <!-- ── новый питомец ─────────────────────────────────── -->
+    <section class="view" id="v-newpet">
+      <div class="msg err" id="newpet-msg"></div>
+      <form id="form-pet">
+        <div class="f">
+          <label for="p-name">Кличка</label>
+          <input type="text" id="p-name" required>
+        </div>
+        <div class="f">
+          <label for="p-species">Вид</label>
+          <select id="p-species">
+            <option value="dog">Собака</option>
+            <option value="cat">Кошка</option>
+          </select>
+        </div>
+        <div class="row">
+          <div class="f">
+            <label for="p-sex">Пол</label>
+            <select id="p-sex">
+              <option value="">не указан</option>
+              <option value="m">самец</option>
+              <option value="f">самка</option>
+            </select>
+          </div>
+          <div class="f">
+            <label for="p-bd">Дата рождения</label>
+            <input type="date" id="p-bd">
+          </div>
+        </div>
+        <div class="f">
+          <label for="p-breed">Порода</label>
+          <input type="text" id="p-breed" placeholder="не обязательно">
+        </div>
+        <button class="btn" type="submit">Завести профиль</button>
+      </form>
+    </section>
+
+    <!-- ── карточка питомца ──────────────────────────────── -->
+    <section class="view" id="v-pet">
+      <div class="msg err" id="pet-msg"></div>
+      <div class="msg ok" id="pet-ok"></div>
+
+      <div class="card" id="pet-card"></div>
+
+      <div class="sec">Кто ухаживает</div>
+      <div class="card" id="pet-members"></div>
+
+      <div id="invite-block" hidden>
+        <div class="sec">Пригласить по логину</div>
+        <div class="card">
+          <div class="f">
+            <label for="inv-login">Логин участника</label>
+            <input type="text" id="inv-login" inputmode="latin"
+                   autocapitalize="none" autocorrect="off" spellcheck="false">
+          </div>
+          <div class="f">
+            <label for="inv-role">Роль</label>
+            <select id="inv-role">
+              <option value="co_owner">Совладелец — может всё, кроме удаления</option>
+              <option value="helper">Помощник — отмечает и вносит данные</option>
+              <option value="guest">Гость — только смотрит</option>
+            </select>
+          </div>
+          <button class="btn sm" id="inv-go">Пригласить</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
