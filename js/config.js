@@ -7,4 +7,4 @@ export const SUPABASE_KEY = 'sb_publishable_rA1BJ6bGoHlbCkaHbA8wxw_HZlj0erW';
 // Цена решения: восстановить пароль невозможно.
 export const LOGIN_DOMAIN = 'users.petid.local';
 
-export const APP_VERSION = '0.1.1';
+export const APP_VERSION = '0.2.0';

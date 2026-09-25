@@ -1,17 +1,19 @@
 import * as db from './db.js';
 import { LOGIN_RE, humanError } from './db.js';
 import { APP_VERSION } from './config.js';
+import * as wb from './wellbeing.js';
 
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
 
 const TITLES = {
   'v-boot': 'Pet ID', 'v-auth': 'Pet ID', 'v-onb': 'Ваш профиль',
-  'v-pets': 'Мои питомцы', 'v-newpet': 'Новый питомец', 'v-pet': 'Питомец'
+  'v-pets': 'Мои питомцы', 'v-newpet': 'Новый питомец', 'v-pet': 'Питомец',
+  'v-day': 'Благополучие', 'v-calc': 'Как это посчитано', 'v-how': 'Как мы считаем'
 };
-const BACK = { 'v-newpet': 'v-pets', 'v-pet': 'v-pets' };
+const BACK = { 'v-newpet': 'v-pets', 'v-pet': 'v-pets', 'v-day': 'v-pet', 'v-calc': 'v-day', 'v-how': 'v-day' };
 
-const state = { view: 'v-boot', profile: null, pet: null, mode: 'in' };
+const state = { view: 'v-boot', profile: null, pet: null, mode: 'in', members: [], role: null };
 
 function show(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === id));
@@ -154,7 +156,7 @@ $('#form-pet').onsubmit = async e => {
 };
 
 async function openPet(pet) {
-  state.pet = pet;
+  state.pet = pet; state.members = []; state.role = null;
   show('v-pet');
   $('#title').textContent = pet.name;
 
@@ -174,6 +176,7 @@ async function openPet(pet) {
   box.replaceChildren(el('div', 'load', 'Загрузка…'));
   try {
     const mem = await db.petMembers(pet.id);
+    state.members = mem;
     box.replaceChildren();
     for (const m of mem) {
       const r = el('div', 'mem');
@@ -190,6 +193,8 @@ async function openPet(pet) {
     }
     const me = state.profile && state.profile.id;
     const iAmOwner = mem.some(m => m.user_id === me && m.role === 'owner');
+    const mine = mem.find(m => m.user_id === me);
+    state.role = mine ? mine.role : null;
     $('#invite-block').hidden = !iAmOwner;
   } catch (err) { say('#pet-msg', humanError(err)); box.replaceChildren(); }
 }
@@ -207,7 +212,25 @@ $('#inv-go').onclick = async () => {
   finally { btn.disabled = false; }
 };
 
-$('#back').onclick = () => { const b = BACK[state.view]; if (b === 'v-pets') openPets(); else if (b) show(b); };
+$('#open-day').onclick = async () => {
+  // Роль нужна до открытия: гостю показываем только просмотр.
+  if (!state.members.length) {
+    try {
+      state.members = await db.petMembers(state.pet.id);
+      const mine = state.members.find(m => state.profile && m.user_id === state.profile.id);
+      state.role = mine ? mine.role : null;
+    } catch (err) { return say('#pet-msg', humanError(err)); }
+  }
+  wb.openDay(state.pet, state.role, state.members);
+};
+
+$('#back').onclick = () => {
+  if (wb.back(state.view)) return;
+  const b = BACK[state.view];
+  if (b === 'v-pets') openPets(); else if (b === 'v-pet') openPet(state.pet); else if (b) show(b);
+};
+
+wb.init({ show, say });
 
 /* ── старт ─────────────────────────────────────────────── */
 

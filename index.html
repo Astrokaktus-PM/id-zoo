@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>Pet ID</title>
-<meta name="description" content="Веб-макет Pet ID: профиль владельца, питомцы, совместный уход.">
+<meta name="description" content="Веб-макет Pet ID: профиль владельца, питомцы, совместный уход, пять доменов благополучия.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#F5F6F3" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0D1417" media="(prefers-color-scheme: dark)">
@@ -141,6 +141,12 @@
       <div class="msg err" id="pet-msg"></div>
       <div class="msg ok" id="pet-ok"></div>
 
+      <button class="entry" id="open-day">
+        <span class="ic">◐</span>
+        <span><b>Благополучие</b><em>Сегодня было достаточно? Отметки, неделя, режим дня</em></span>
+        <span class="chev">›</span>
+      </button>
+
       <div class="card" id="pet-card"></div>
 
       <div class="sec">Кто ухаживает</div>
@@ -165,6 +171,36 @@
           <button class="btn sm" id="inv-go">Пригласить</button>
         </div>
       </div>
+    </section>
+
+    <!-- ── благополучие: день и неделя ───────────────────── -->
+    <section class="view" id="v-day">
+      <div class="msg err" id="day-msg"></div>
+      <div id="day-body"></div>
+    </section>
+
+    <!-- ── как это посчитано ─────────────────────────────── -->
+    <section class="view" id="v-calc">
+      <div class="msg err" id="calc-msg"></div>
+      <div id="calc-body"></div>
+    </section>
+
+    <!-- ── четыре фразы модели ───────────────────────────── -->
+    <section class="view" id="v-how">
+      <ol class="rules">
+        <li><b>Четыре вещи — источники. Пятая — то, что из них получается.</b>
+          <span>Еда, среда, здоровье и то, чем питомец занят, — причины. Как ему на самом деле живётся — следствие. Мы считаем следствие.</span></li>
+        <li><b>Еда, здоровье и безопасность не добавляют баллов. Они снимают потолок.</b>
+          <span>Больная собака не станет счастливее от лишней прогулки. Пока лапа болит, до неё доходит только часть того, что вы даёте.</span></li>
+        <li><b>Каждое дело можно закрыть, но нельзя перезакрыть. Поэтому важно разное, а не много.</b>
+          <span>Три часа ходьбы засчитываются ровно как час. Сто набирается только разнообразием.</span></li>
+        <li><b>Восемьдесят — это хорошая жизнь. Сто не нужно.</b>
+          <span>Крупная цифра — среднее за неделю. У отдельного дня нет приговора, есть только «чего не хватило».</span></li>
+      </ol>
+      <div class="card">
+        <p class="hint" style="margin:0">Не отметили — значит «не знаем», а не «не было». Если мы знаем меньше чем про половину дня, оценку не ставим. Не сравниваем с другими владельцами, не ставим диагнозов, не наказываем за пропуски.</p>
+      </div>
+      <button class="btn" id="how-ok">Понятно</button>
     </section>
 
   </main>
