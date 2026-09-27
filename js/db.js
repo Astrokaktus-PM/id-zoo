@@ -226,3 +226,121 @@ export async function walkEntries(walkId) {
   if (error) throw error;
   return data.map(r => ({ ...r, value: Number(r.value) }));
 }
+
+/* ── П6: здоровье, документы, календарь ───────────────────
+ * Схема — sql/006_health_docs_calendar.sql. Файлы — закрытый бакет pet-docs,
+ * путь «<pet_id>/<document_id>/<n>.<ext>», отдаются по подписанной ссылке. */
+
+const BUCKET = 'pet-docs';
+
+export async function healthRecords(petId) {
+  const { data, error } = await sb.from('health_records')
+    .select('id, kind, title, product, done_on, valid_until, repeat_days, clinic, weight_kg, note, source, document_id, created_by, created_at')
+    .eq('pet_id', petId).order('done_on', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function addHealthRecord(r) {
+  const { data, error } = await sb.from('health_records').insert(r).select('id').single();
+  if (error) throw error;
+  return data.id;
+}
+
+export async function deleteHealthRecord(id) {
+  const { data, error } = await sb.from('health_records').delete().eq('id', id).select('id');
+  if (error) throw error;
+  if (!data.length) throw new Error('Удалить не получилось: удалять может автор записи или владелец');
+}
+
+export async function documentsList(petId) {
+  const { data, error } = await sb.from('documents')
+    .select('id, category, title, doc_date, clinic, note, created_by, created_at, document_pages(id, page_no, path, bytes, mime)')
+    .eq('pet_id', petId).order('created_at', { ascending: false });
+  if (error) throw error;
+  return data.map(d => ({ ...d, pages: (d.document_pages || []).sort((a, b) => a.page_no - b.page_no) }));
+}
+
+/** Документ и его листы. Если что-то упало после создания документа —
+ *  удаляем уже загруженные файлы и сам документ: полузаписанных не остаётся. */
+export async function saveDocument(petId, meta, files) {
+  const { data, error } = await sb.from('documents').insert({ pet_id: petId, ...meta }).select('id').single();
+  if (error) throw error;
+  const id = data.id, uploaded = [];
+  try {
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i], ext = f.type === 'application/pdf' ? 'pdf' : f.type === 'image/png' ? 'png' : 'jpg';
+      const path = `${petId}/${id}/${i + 1}.${ext}`;
+      const up = await sb.storage.from(BUCKET).upload(path, f, { contentType: f.type, upsert: false });
+      if (up.error) throw up.error;
+      uploaded.push(path);
+      const { error: e } = await sb.from('document_pages').insert({ document_id: id, page_no: i + 1, path, bytes: f.size, mime: f.type });
+      if (e) throw e;
+    }
+  } catch (e) {
+    if (uploaded.length) await sb.storage.from(BUCKET).remove(uploaded);
+    await sb.from('documents').delete().eq('id', id);
+    throw e;
+  }
+  return id;
+}
+
+export async function deleteDocument(doc) {
+  const paths = doc.pages.map(p => p.path);
+  // Сначала строка: если прав нет, файлы не трогаем.
+  const { data, error } = await sb.from('documents').delete().eq('id', doc.id).select('id');
+  if (error) throw error;
+  if (!data.length) throw new Error('Удалить не получилось: удалять может автор документа или владелец');
+  if (paths.length) {
+    const { error: e } = await sb.storage.from(BUCKET).remove(paths);
+    if (e) throw new Error('Документ удалён, но файлы листов остались в хранилище: ' + e.message);
+  }
+}
+
+export async function signedUrl(path) {
+  const { data, error } = await sb.storage.from(BUCKET).createSignedUrl(path, 600);
+  if (error) throw error;
+  return data.signedUrl;
+}
+
+export async function calendarEvents(petIds, from, to) {
+  const { data, error } = await sb.from('calendar_events')
+    .select('id, pet_id, kind, title, starts_on, ends_on, at_time, note, created_by, created_at')
+    .in('pet_id', petIds).lte('starts_on', to)
+    .order('starts_on', { ascending: true });
+  if (error) throw error;
+  // Длинные события (течка) начинаются раньше окна — отбираем по пересечению.
+  return data.filter(e => (e.ends_on || e.starts_on) >= from);
+}
+
+export async function addCalendarEvent(ev) {
+  const { error } = await sb.from('calendar_events').insert(ev);
+  if (error) throw error;
+}
+
+export async function deleteCalendarEvent(id) {
+  const { data, error } = await sb.from('calendar_events').delete().eq('id', id).select('id');
+  if (error) throw error;
+  if (!data.length) throw new Error('Удалить не получилось: удалять может автор события или владелец');
+}
+
+export async function healthRecordsMany(petIds) {
+  const { data, error } = await sb.from('health_records')
+    .select('id, pet_id, kind, title, product, done_on, valid_until, repeat_days, clinic, created_at')
+    .in('pet_id', petIds);
+  if (error) throw error;
+  return data;
+}
+
+export async function reminderRules(petIds) {
+  const { data, error } = await sb.from('reminder_rules').select('pet_id, kind, offsets').in('pet_id', petIds);
+  if (error) throw error;
+  return data;
+}
+
+export async function setReminderRule(petId, kind, offsets) {
+  const me = await myId();
+  const { error } = await sb.from('reminder_rules')
+    .upsert({ pet_id: petId, kind, offsets, updated_by: me, updated_at: new Date().toISOString() }, { onConflict: 'pet_id,kind' });
+  if (error) throw error;
+}

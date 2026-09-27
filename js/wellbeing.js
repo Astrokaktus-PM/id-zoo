@@ -4,6 +4,7 @@ import * as db from './db.js';
 import { humanError } from './db.js';
 import { CH, GATES, GRADE, d5, dayCard, pyRound, weekText } from './d5.js';
 import { MODES, defaultMode, findMode } from './modes.js';
+import { autoHealth, worse, dueOf } from './hstatus.js';
 
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
@@ -12,7 +13,7 @@ const fmt = x => String(x).replace('.', ',');
 let ui = null;          // { show, say }
 const S = {
   pet: null, role: null, me: null, members: {}, day: null,
-  entries: [], gates: [], modes: [], walks: {}, skip: new Set(), answering: null,
+  entries: [], gates: [], modes: [], walks: {}, health: [], skip: new Set(), answering: null,
 };
 
 export function init(api) { ui = api; }
@@ -45,9 +46,21 @@ function inputsFor(X) {
 }
 
 /** Степень действует со своего дня до следующей отметки по тому же ограничителю. */
-function gatesFor(X) {
+/** Степени, отмеченные людьми: действуют до следующей отметки. */
+function manualGates(X) {
   const g = {};
   for (const m of S.gates) if (m.day <= X) g[m.gate] = m.grade;   // отсортировано по дню и времени
+  return g;
+}
+
+/** Степени для расчёта: к ручным добавляется системная степень здоровья по
+ *  просроченной прививке или обработке (спецификация, раздел 04: «B — просрочена
+ *  обработка от паразитов»). Берётся худшая из двух: человек не может «отменить»
+ *  просрочку, пока не внесёт новую запись в карту здоровья. */
+function gatesFor(X) {
+  const g = manualGates(X);
+  const a = autoHealth(S.health, X);
+  if (a) g.health = worse(g.health, a.grade);
   return g;
 }
 function gateSource(X, gate) {
@@ -94,15 +107,18 @@ async function reload() {
   const to = todayIso() > S.day ? todayIso() : S.day;
   const from = addDays(S.day, -13);
   S.me = await db.myId();
-  const [entries, gates, modes, walks] = await Promise.all([
+  const [entries, gates, modes, walks, health] = await Promise.all([
     db.entriesRange(S.pet.id, from, to),
     db.gateMarks(S.pet.id, to),
     db.modesRange(S.pet.id, from, to),
     // Прогулки нужны только чтобы подписать отметки «из прогулки 19:40».
     db.walksRange(S.pet.id, from, to).catch(() => []),
+    // Карта здоровья — для системной степени домена 3. Нет таблицы (006 не выполнен) — без неё.
+    db.healthRecords(S.pet.id).catch(() => []),
   ]);
   S.entries = entries; S.gates = gates; S.modes = modes;
   S.walks = Object.fromEntries(walks.map(w => [w.id, w]));
+  S.health = health;
 }
 
 async function act(fn) {
@@ -438,22 +454,29 @@ function renderGates(r) {
   const c = el('div', 'card');
   c.append(el('p', 'hint', 'Еда, среда, здоровье и страх не добавляют баллов — они снимают потолок. ' +
     'Степень действует до следующей отметки.'));
+  const man = manualGates(X), auto = autoHealth(S.health, X);
   for (const g of r.gates) {
     const line = el('div', 'gate');
     const src = gateSource(X, g.key);
+    const mine = man[g.key] || 'A';
     const top = el('div', 'mk-top');
     top.append(el('b', null, `${g.name} · ${g.dom}`));
     top.append(el('span', null, g.grade === 'A' ? 'в порядке' : `${g.label} · потолок ${g.k}%`));
     line.append(top);
     const seg = el('div', 'seg');
     for (const G of 'ABCDE') {
-      const b = el('button', G === g.grade ? 'on g' + G : null, G);
+      const b = el('button', G === mine ? 'on g' + G : null, G);
       b.title = `${GRADE[G][1]} · ${pyRound(GRADE[G][0] * 100)}%`;
       b.disabled = !canWrite();
-      b.onclick = () => { if (G !== g.grade) act(() => db.addGate(S.pet.id, X, g.key, G)); };
+      b.onclick = () => { if (G !== mine) act(() => db.addGate(S.pet.id, X, g.key, G)); };
       seg.append(b);
     }
     line.append(seg);
+    if (g.key === 'health' && auto) {
+      const r0 = auto.because[0], due = dueOf(r0);
+      line.append(el('p', 'ceil', `По карте здоровья: просрочено «${r0.title}${r0.product ? ' · ' + r0.product : ''}» с ${due.slice(8)}.${due.slice(5, 7)}` +
+        `${auto.because.length > 1 ? ` и ещё ${auto.because.length - 1}` : ''} — степень ${auto.grade}, пока не внесена новая запись.`));
+    }
     if (src && src.grade !== 'A') {
       const who = S.members[src.created_by];
       line.append(el('p', 'hint', `Отмечено ${src.day === X ? 'сегодня' : src.day.slice(8) + '.' + src.day.slice(5, 7)} в ${hhmm(src.created_at)}${who ? ' · @' + who.login : ''}`));

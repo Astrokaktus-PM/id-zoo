@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>Pet ID</title>
-<meta name="description" content="Веб-макет Pet ID: профиль владельца, питомцы, совместный уход, пять доменов благополучия, прогулки.">
+<meta name="description" content="Веб-макет Pet ID: профиль владельца, питомцы, совместный уход, пять доменов благополучия, прогулки, здоровье, документы, календарь.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#F5F6F3" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0D1417" media="(prefers-color-scheme: dark)">
@@ -153,6 +153,11 @@
         <span class="chev">›</span>
       </button>
 
+      <div class="row entries">
+        <button class="entry sm" id="open-health"><span class="ic">✚</span><span><b>Здоровье</b><em>Прививки, обработки, документы</em></span></button>
+        <button class="entry sm" id="open-cal"><span class="ic">▦</span><span><b>Календарь</b><em>Сроки и события</em></span></button>
+      </div>
+
       <div class="card" id="pet-card"></div>
 
       <div class="sec">Кто ухаживает</div>
@@ -224,6 +229,55 @@
 
     <section class="view" id="v-map">
       <div id="map-body"></div>
+    </section>
+
+    <!-- ── П6: здоровье, документы, календарь ─────────────── -->
+    <section class="view" id="v-health">
+      <div class="msg err" id="health-msg"></div>
+      <div class="msg ok" id="health-ok"></div>
+      <div id="health-body"></div>
+    </section>
+
+    <section class="view" id="v-hrec">
+      <div class="msg err" id="hrec-msg"></div>
+      <div id="hrec-body"></div>
+    </section>
+
+    <section class="view" id="v-hform">
+      <div class="msg err" id="hform-msg"></div>
+      <div id="hform-body"></div>
+    </section>
+
+    <section class="view" id="v-docs">
+      <div class="msg err" id="docs-msg"></div>
+      <div class="msg ok" id="docs-ok"></div>
+      <div id="docs-body"></div>
+    </section>
+
+    <section class="view" id="v-doc">
+      <div class="msg err" id="doc-msg"></div>
+      <div class="msg ok" id="doc-ok"></div>
+      <div id="doc-body"></div>
+    </section>
+
+    <section class="view" id="v-docscan">
+      <div class="msg err" id="docscan-msg"></div>
+      <div id="docscan-body"></div>
+    </section>
+
+    <section class="view" id="v-cal">
+      <div class="msg err" id="cal-msg"></div>
+      <div id="cal-body"></div>
+    </section>
+
+    <section class="view" id="v-evform">
+      <div class="msg err" id="evform-msg"></div>
+      <div id="evform-body"></div>
+    </section>
+
+    <section class="view" id="v-calset">
+      <div class="msg err" id="calset-msg"></div>
+      <div id="calset-body"></div>
     </section>
 
     <!-- ── четыре фразы модели ───────────────────────────── -->

@@ -3,6 +3,7 @@ import { LOGIN_RE, humanError } from './db.js';
 import { APP_VERSION } from './config.js';
 import * as wb from './wellbeing.js';
 import * as wk from './walks.js';
+import * as hl from './health.js';
 
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
@@ -12,10 +13,14 @@ const TITLES = {
   'v-pets': 'Мои питомцы', 'v-newpet': 'Новый питомец', 'v-pet': 'Питомец',
   'v-day': 'Благополучие', 'v-calc': 'Как это посчитано', 'v-how': 'Как мы считаем',
   'v-walks': 'Прогулки', 'v-wstart': 'Начать прогулку', 'v-rec': 'Прогулка идёт', 'v-wend': 'Итог прогулки',
-  'v-wreport': 'Отчёт о прогулке', 'v-walk': 'Прогулка', 'v-map': 'Рядом'
+  'v-wreport': 'Отчёт о прогулке', 'v-walk': 'Прогулка', 'v-map': 'Рядом',
+  'v-health': 'Карта здоровья', 'v-hrec': 'Запись', 'v-hform': 'Новая запись', 'v-docs': 'Документы', 'v-doc': 'Документ',
+  'v-docscan': 'Новый документ', 'v-cal': 'Календарь', 'v-evform': 'Новое событие', 'v-calset': 'Правила напоминаний'
 };
 const BACK = { 'v-newpet': 'v-pets', 'v-pet': 'v-pets', 'v-day': 'v-pet', 'v-calc': 'v-day', 'v-how': 'v-day',
-  'v-walks': 'v-pet', 'v-wstart': 'v-walks', 'v-walk': 'v-walks', 'v-map': 'v-walks' };
+  'v-walks': 'v-pet', 'v-wstart': 'v-walks', 'v-walk': 'v-walks', 'v-map': 'v-walks',
+  'v-health': 'v-pet', 'v-cal': 'v-pet', 'v-docs': 'v-pet', 'v-hrec': 'x', 'v-hform': 'x', 'v-doc': 'x', 'v-docscan': 'x',
+  'v-evform': 'x', 'v-calset': 'x' };
 
 const state = { view: 'v-boot', profile: null, pet: null, mode: 'in', members: [], role: null };
 
@@ -230,6 +235,8 @@ async function ensureRole() {
 
 const openWalks = async () => { if (await ensureRole()) wk.openWalks(state.pet, state.role, state.members, state.profile); };
 $('#open-walks').onclick = openWalks;
+$('#open-health').onclick = async () => { if (await ensureRole()) hl.openHealth(state.pet, state.role, state.members); };
+$('#open-cal').onclick = async () => { if (await ensureRole()) hl.openCal(state.pet, state.role, state.members); };
 
 $('#open-day').onclick = async () => {
   // Роль нужна до открытия: гостю показываем только просмотр.
@@ -246,12 +253,14 @@ $('#open-day').onclick = async () => {
 $('#back').onclick = () => {
   if (wb.back(state.view)) return;
   if (wk.back(state.view)) return;
+  if (hl.back(state.view)) return;
   const b = BACK[state.view];
   if (b === 'v-pets') openPets(); else if (b === 'v-pet') openPet(state.pet); else if (b) show(b);
 };
 
 wb.init({ show, say, openWalks });
 wk.init({ show, say });
+hl.init({ show, say });
 
 /* ── старт ─────────────────────────────────────────────── */
 
