@@ -344,3 +344,82 @@ export async function setReminderRule(petId, kind, offsets) {
     .upsert({ pet_id: petId, kind, offsets, updated_by: me, updated_at: new Date().toISOString() }, { onConflict: 'pet_id,kind' });
   if (error) throw error;
 }
+
+/* ── П7: расходы и жетон ──────────────────────────────────
+ * Схема — sql/007_money_found.sql. Анонимный посетитель страницы находки
+ * ходит только через public_pet_card() и report_found(). */
+
+export async function expenses(petId) {
+  const { data, error } = await sb.from('expenses')
+    .select('id, spent_on, category, amount_rub, note, document_id, created_by, created_at')
+    .eq('pet_id', petId).order('spent_on', { ascending: false }).order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function addExpense(e) {
+  const { error } = await sb.from('expenses').insert(e);
+  if (error) throw error;
+}
+
+export async function deleteExpense(id) {
+  const { data, error } = await sb.from('expenses').delete().eq('id', id).select('id');
+  if (error) throw error;
+  if (!data.length) throw new Error('Удалить не получилось: удалять может автор записи или владелец');
+}
+
+export async function petTag(petId) {
+  const { data, error } = await sb.from('pet_tags').select('token, message, notes, active, updated_at').eq('pet_id', petId).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function ensureTag(petId, fresh = false) {
+  const { data, error } = await sb.rpc('ensure_pet_tag', { p_pet: petId, p_new: fresh });
+  if (error) throw error;
+  return data;
+}
+
+export async function saveTag(petId, patch) {
+  const me = await myId();
+  const { data, error } = await sb.from('pet_tags').update({ ...patch, updated_by: me, updated_at: new Date().toISOString() })
+    .eq('pet_id', petId).select('pet_id');
+  if (error) throw error;
+  if (!data.length) throw new Error('Менять жетон может владелец или совладелец');
+}
+
+export async function foundReports(petId) {
+  const { data, error } = await sb.from('found_reports')
+    .select('id, message, contact, lat, lon, acc_m, seen_at, created_at').eq('pet_id', petId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function unseenFound(petIds) {
+  if (!petIds.length) return {};
+  // Значок не должен ронять список питомцев: любая ошибка — просто без значка.
+  try {
+    const { data, error } = await sb.from('found_reports').select('pet_id').in('pet_id', petIds).is('seen_at', null);
+    if (error) return {};
+    const n = {}; for (const r of data) n[r.pet_id] = (n[r.pet_id] || 0) + 1;
+    return n;
+  } catch (_) { return {}; }
+}
+
+export async function markFoundSeen(petId) {
+  const { error } = await sb.from('found_reports').update({ seen_at: new Date().toISOString() }).eq('pet_id', petId).is('seen_at', null);
+  if (error) throw error;
+}
+
+export async function publicCard(token) {
+  const { data, error } = await sb.rpc('public_pet_card', { p_token: token });
+  if (error) throw error;
+  return data && data[0] || null;
+}
+
+export async function reportFound(token, r) {
+  const { error } = await sb.rpc('report_found', { p_token: token, p_message: r.message || null, p_contact: r.contact || null,
+    p_lat: r.lat ?? null, p_lon: r.lon ?? null, p_acc: r.acc ?? null });
+  if (error) throw error;
+}

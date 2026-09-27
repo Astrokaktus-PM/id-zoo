@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>Pet ID</title>
-<meta name="description" content="Веб-макет Pet ID: профиль владельца, питомцы, совместный уход, пять доменов благополучия, прогулки, здоровье, документы, календарь.">
+<meta name="description" content="Веб-макет Pet ID: профиль владельца, питомцы, совместный уход, пять доменов благополучия, прогулки, здоровье, документы, календарь, расходы, жетон.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#F5F6F3" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0D1417" media="(prefers-color-scheme: dark)">
@@ -157,6 +157,10 @@
         <button class="entry sm" id="open-health"><span class="ic">✚</span><span><b>Здоровье</b><em>Прививки, обработки, документы</em></span></button>
         <button class="entry sm" id="open-cal"><span class="ic">▦</span><span><b>Календарь</b><em>Сроки и события</em></span></button>
       </div>
+      <div class="row entries">
+        <button class="entry sm" id="open-money"><span class="ic">₽</span><span><b>Расходы</b><em>Месяц, год, стоимость</em></span></button>
+        <button class="entry sm" id="open-qr"><span class="ic">⌗</span><span><b>Жетон</b><em>QR и страница находки</em></span></button>
+      </div>
 
       <div class="card" id="pet-card"></div>
 
@@ -278,6 +282,29 @@
     <section class="view" id="v-calset">
       <div class="msg err" id="calset-msg"></div>
       <div id="calset-body"></div>
+    </section>
+
+    <!-- ── П7: расходы и жетон ──────────────────────────── -->
+    <section class="view" id="v-money">
+      <div class="msg err" id="money-msg"></div>
+      <div class="msg ok" id="money-ok"></div>
+      <div id="money-body"></div>
+    </section>
+
+    <section class="view" id="v-moneyadd">
+      <div class="msg err" id="moneyadd-msg"></div>
+      <div id="moneyadd-body"></div>
+    </section>
+
+    <section class="view" id="v-tco">
+      <div class="msg err" id="tco-msg"></div>
+      <div id="tco-body"></div>
+    </section>
+
+    <section class="view" id="v-qr">
+      <div class="msg err" id="qr-msg"></div>
+      <div class="msg ok" id="qr-ok"></div>
+      <div id="qr-body"></div>
     </section>
 
     <!-- ── четыре фразы модели ───────────────────────────── -->

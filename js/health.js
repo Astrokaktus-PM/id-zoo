@@ -367,7 +367,7 @@ const MAX_SIDE = 1600, JPEG_Q = 0.8, MAX_BYTES = 5 * 1024 * 1024;
 
 /** Сжатие снимка: длинная сторона до 1600 px, JPEG 0,8. Ориентацию по EXIF
  *  браузеры применяют к <img> сами (image-orientation: from-image по умолчанию). */
-async function compress(file) {
+export async function compress(file) {
   if (file.type === 'application/pdf') {
     if (file.size > MAX_BYTES) throw new Error(`PDF больше 5 МБ: ${file.name}`);
     return file;

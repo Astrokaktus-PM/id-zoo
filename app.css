@@ -408,3 +408,40 @@ textarea{width:100%}
 .act{border:1px solid var(--line); background:var(--card2); color:var(--ink2); border-radius:9px;
   padding:6px 11px; font-size:13px; cursor:pointer}
 .cal-h .act{min-width:40px; font-size:16px; padding:4px 10px}
+
+/* ── П7: расходы и жетон ─────────────────────────────────── */
+.mhero{text-align:left}
+.mhero .wk-num b{font-size:36px}
+.mrow{padding:9px 0; border-bottom:1px solid var(--line)}
+.mrow:last-child{border-bottom:0}
+.mrow em{font-style:normal; font-size:11.5px; color:var(--sub)}
+.mbar{height:8px; border-radius:4px; background:var(--card2); overflow:hidden; margin:2px 0 4px}
+.mbar i{display:block; height:100%; background:var(--a); border-radius:0 4px 4px 0}
+.ybars{display:flex; align-items:flex-end; gap:4px; height:120px; padding-bottom:18px}
+.ybar{flex:1; height:100%; border:0; background:transparent; padding:0; position:relative; cursor:pointer;
+  display:flex; flex-direction:column; justify-content:flex-end; align-items:center}
+.ybar i{display:block; width:100%; max-width:22px; background:var(--a-b); border-radius:4px 4px 0 0}
+.ybar.cur i{background:var(--a)}
+.ybar em{position:absolute; bottom:-17px; font-style:normal; font-size:10px; color:var(--sub)}
+.ybar.cur em{color:var(--ink); font-weight:600}
+.ybar:hover i{outline:2px solid var(--a); outline-offset:1px}
+.st-grid.two{grid-template-columns:1fr 1fr}
+.del.armed{width:auto; padding:0 8px; color:var(--bad); border-color:var(--bad-b)}
+.hrow .del{margin-left:auto; flex:none; border:1px solid var(--line); background:var(--card2); color:var(--sub);
+  border-radius:7px; min-width:30px; height:28px; cursor:pointer}
+
+textarea{width:100%; padding:11px 13px; border-radius:11px; border:1px solid var(--line); background:var(--card);
+  color:var(--ink); outline:none; font:inherit; font-size:16px; resize:vertical}
+textarea:focus{border-color:var(--a-b); box-shadow:0 0 0 3px var(--a-s)}
+.qrcard{text-align:center}
+.qr{width:220px; height:220px; margin:0 auto 10px; background:#fff; border-radius:12px; padding:6px}
+.qr svg{width:100%; height:100%; display:block}
+.qrlink{display:block; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12.5px;
+  color:var(--a); word-break:break-all; margin-bottom:6px}
+.qrcard .row{justify-content:center}
+.map.small{height:180px; margin:8px 0 4px}
+.card.found.new{border-color:var(--bad-b); box-shadow:0 0 0 3px var(--bad-s)}
+.found-badge{display:block; font-style:normal; font-size:12px; font-weight:600; color:var(--bad); margin-top:2px}
+.check{display:flex; gap:10px; align-items:flex-start; font-size:14px; color:var(--ink2); cursor:pointer}
+.check input{margin-top:3px; width:18px; height:18px; flex:none}
+a.btn{text-decoration:none; text-align:center}
