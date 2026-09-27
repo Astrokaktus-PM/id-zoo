@@ -22,6 +22,8 @@
 
 <div id="app">
 
+  <div class="demobar" id="demobar" hidden>Демо: данные вымышленные, ничего не сохраняется · <a href="./">Выйти</a></div>
+
   <div class="bar">
     <button class="back" id="back" hidden aria-label="Назад">←</button>
     <h1 id="title">Pet ID</h1>
@@ -63,6 +65,8 @@
         <button class="btn" id="auth-go" type="submit">Войти</button>
       </form>
 
+      <button class="btn ghost" id="demo-open" type="button" style="margin-top:14px">Посмотреть демо без регистрации</button>
+
       <p class="hint" style="margin-top:18px" id="auth-note">
         Почта не требуется и не проверяется. Из этого прямо следует:
         восстановить забытый пароль будет нельзя — записывайте.
@@ -94,8 +98,25 @@
     <!-- ── список питомцев ───────────────────────────────── -->
     <section class="view" id="v-pets">
       <div class="msg err" id="pets-msg"></div>
+      <div class="msg ok" id="pets-ok"></div>
       <div id="pets-list"></div>
       <button class="btn ghost" id="pet-add">Добавить питомца</button>
+
+      <div class="sec">Разделы</div>
+      <div class="grid" id="sections">
+        <button data-go="feed"><span>💬</span>Сообщество</button>
+        <button data-go="expert"><span>🎓</span>Экспертный совет</button>
+        <button data-go="heroes"><span>🦸</span>Команда Героев</button>
+        <button data-go="ai"><span>✦</span>Помощник</button>
+        <button data-go="kb"><span>📚</span>База знаний</button>
+        <button data-go="course"><span>🎯</span>Курс новичка</button>
+        <button data-go="referral"><span>🎁</span>Пригласить друга</button>
+        <button data-go="paywall"><span>★</span>Premium</button>
+        <button data-go="support"><span>🛟</span>Поддержка</button>
+        <button data-go="notracker"><span>📡</span>Без трекера</button>
+        <button data-go="partners"><span>🤝</span>Партнёры · демо</button>
+        <button data-go="demotour"><span>▶</span>Демо-режим</button>
+      </div>
       <div class="foot" id="me-line"></div>
     </section>
 
@@ -160,6 +181,10 @@
       <div class="row entries">
         <button class="entry sm" id="open-money"><span class="ic">₽</span><span><b>Расходы</b><em>Месяц, год, стоимость</em></span></button>
         <button class="entry sm" id="open-qr"><span class="ic">⌗</span><span><b>Жетон</b><em>QR и страница находки</em></span></button>
+      </div>
+      <div class="row entries">
+        <button class="entry sm" id="open-status"><span class="ic">🙂</span><span><b>Статусы</b><em>Дружелюбен, агрессия, течка</em></span></button>
+        <button class="entry sm" id="open-ai"><span class="ic">✦</span><span><b>Помощник</b><em>Срочность, разбор недели</em></span></button>
       </div>
 
       <div class="card" id="pet-card"></div>
@@ -305,6 +330,98 @@
       <div class="msg err" id="qr-msg"></div>
       <div class="msg ok" id="qr-ok"></div>
       <div id="qr-body"></div>
+    </section>
+
+    <!-- ── П8: уровень B ──────────────────────────────────── -->
+    <section class="view" id="v-feed">
+      <div class="msg err" id="feed-msg"></div>
+      <div id="feed-body"></div>
+    </section>
+
+    <section class="view" id="v-expert">
+      <div class="msg err" id="expert-msg"></div>
+      <div id="expert-body"></div>
+    </section>
+
+    <section class="view" id="v-question">
+      <div class="msg err" id="question-msg"></div>
+      <div id="question-body"></div>
+    </section>
+
+    <section class="view" id="v-heroes">
+      <div class="msg err" id="heroes-msg"></div>
+      <div id="heroes-body"></div>
+    </section>
+
+    <section class="view" id="v-alertform">
+      <div class="msg err" id="alertform-msg"></div>
+      <div id="alertform-body"></div>
+    </section>
+
+    <section class="view" id="v-ai">
+      <div class="msg err" id="ai-msg"></div>
+      <div id="ai-body"></div>
+    </section>
+
+    <section class="view" id="v-aichat">
+      <div class="msg err" id="aichat-msg"></div>
+      <div id="aichat-body"></div>
+    </section>
+
+    <section class="view" id="v-kb">
+      <div class="msg err" id="kb-msg"></div>
+      <div id="kb-body"></div>
+    </section>
+
+    <section class="view" id="v-kbdomains">
+      <div class="msg err" id="kbdomains-msg"></div>
+      <div id="kbdomains-body"></div>
+    </section>
+
+    <section class="view" id="v-status">
+      <div class="msg err" id="status-msg"></div>
+      <div id="status-body"></div>
+    </section>
+
+    <section class="view" id="v-course">
+      <div class="msg err" id="course-msg"></div>
+      <div id="course-body"></div>
+    </section>
+
+    <section class="view" id="v-support">
+      <div class="msg err" id="support-msg"></div>
+      <div class="msg ok" id="support-ok"></div>
+      <div id="support-body"></div>
+    </section>
+
+    <section class="view" id="v-referral">
+      <div class="msg err" id="referral-msg"></div>
+      <div class="msg ok" id="referral-ok"></div>
+      <div id="referral-body"></div>
+    </section>
+
+    <section class="view" id="v-paywall">
+      <div class="msg err" id="paywall-msg"></div>
+      <div id="paywall-body"></div>
+    </section>
+
+    <section class="view" id="v-notracker">
+      <div class="msg err" id="notracker-msg"></div>
+      <div id="notracker-body"></div>
+    </section>
+
+    <section class="view" id="v-partners">
+      <div class="msg err" id="partners-msg"></div>
+      <div id="partners-body"></div>
+    </section>
+
+    <section class="view" id="v-demo">
+      <div class="msg err" id="demo-msg"></div>
+      <div id="demo-body"></div>
+    </section>
+
+    <section class="view" id="v-demotour">
+      <div id="demotour-body"></div>
     </section>
 
     <!-- ── четыре фразы модели ───────────────────────────── -->

@@ -1,11 +1,14 @@
 import * as db from './db.js';
-import { LOGIN_RE, humanError } from './db.js';
+import { LOGIN_RE, humanError, IS_DEMO } from './db.js';
 import { APP_VERSION } from './config.js';
 import * as wb from './wellbeing.js';
 import * as wk from './walks.js';
 import * as hl from './health.js';
 import * as mn from './money.js';
 import * as tg from './tag.js';
+import * as cm from './community.js';
+import * as ai from './ai.js';
+import * as ex from './extras.js';
 
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
@@ -18,12 +21,19 @@ const TITLES = {
   'v-wreport': 'Отчёт о прогулке', 'v-walk': 'Прогулка', 'v-map': 'Рядом',
   'v-health': 'Карта здоровья', 'v-hrec': 'Запись', 'v-hform': 'Новая запись', 'v-docs': 'Документы', 'v-doc': 'Документ',
   'v-docscan': 'Новый документ', 'v-cal': 'Календарь', 'v-evform': 'Новое событие', 'v-calset': 'Правила напоминаний',
-  'v-money': 'Расходы', 'v-moneyadd': 'Новый расход', 'v-tco': 'Стоимость содержания', 'v-qr': 'Жетон'
+  'v-money': 'Расходы', 'v-moneyadd': 'Новый расход', 'v-tco': 'Стоимость содержания', 'v-qr': 'Жетон',
+  'v-feed': 'Сообщество', 'v-expert': 'Экспертный совет', 'v-question': 'Вопрос', 'v-heroes': 'Команда Героев', 'v-alertform': 'Питомец пропал',
+  'v-ai': 'Помощник', 'v-aichat': 'Помощник', 'v-kb': 'База знаний', 'v-kbdomains': 'Пять доменов', 'v-status': 'Статусы', 'v-course': 'Курс новичка',
+  'v-support': 'Поддержка', 'v-referral': 'Пригласить друга', 'v-paywall': 'Premium', 'v-notracker': 'Без трекера', 'v-partners': 'Партнёры', 'v-demo': 'Демо',
+  'v-demotour': 'Демо-режим'
 };
 const BACK = { 'v-newpet': 'v-pets', 'v-pet': 'v-pets', 'v-day': 'v-pet', 'v-calc': 'v-day', 'v-how': 'v-day',
   'v-walks': 'v-pet', 'v-wstart': 'v-walks', 'v-walk': 'v-walks', 'v-map': 'v-walks',
   'v-health': 'v-pet', 'v-cal': 'v-pet', 'v-docs': 'v-pet', 'v-hrec': 'x', 'v-hform': 'x', 'v-doc': 'x', 'v-docscan': 'x',
-  'v-evform': 'x', 'v-calset': 'x', 'v-money': 'v-pet', 'v-qr': 'v-pet', 'v-moneyadd': 'x', 'v-tco': 'x' };
+  'v-evform': 'x', 'v-calset': 'x', 'v-money': 'v-pet', 'v-qr': 'v-pet', 'v-moneyadd': 'x', 'v-tco': 'x',
+  'v-feed': 'v-pets', 'v-expert': 'v-pets', 'v-question': 'x', 'v-heroes': 'v-pets', 'v-alertform': 'x', 'v-ai': 'v-back', 'v-aichat': 'x',
+  'v-kb': 'v-pets', 'v-kbdomains': 'x', 'v-status': 'v-pet', 'v-course': 'v-pets', 'v-support': 'v-pets', 'v-referral': 'v-pets',
+  'v-paywall': 'v-pets', 'v-notracker': 'v-pets', 'v-partners': 'v-pets', 'v-demo': 'x', 'v-demotour': 'v-pets' };
 
 const state = { view: 'v-boot', profile: null, pet: null, mode: 'in', members: [], role: null };
 
@@ -147,7 +157,7 @@ async function openPets() {
       const a = ageText(pet.birth_date); if (a) bits.push(a);
       if (pet.sex) bits.push(SEX[pet.sex]);
       mid.append(el('span', null, bits.join(' · ')));
-      if (unseen[pet.id]) mid.append(el('em', 'found-badge', `Нашли: ${unseen[pet.id]} ${unseen[pet.id] === 1 ? 'новое сообщение' : 'новых сообщения'} — откройте жетон`));
+      if (unseen[pet.id]) mid.append(el('em', 'found-badge', `Нашли: ${unseen[pet.id]} ${(n => { const a = n % 10, b = n % 100; return b > 4 && b < 21 ? 'новых сообщений' : a === 1 ? 'новое сообщение' : a > 1 && a < 5 ? 'новых сообщения' : 'новых сообщений'; })(unseen[pet.id])} — откройте жетон`));
       b.append(av, mid, el('div', 'chev', '›'));
       b.onclick = () => openPet(pet);
       box.append(b);
@@ -258,12 +268,72 @@ $('#open-day').onclick = async () => {
   wb.openDay(state.pet, state.role, state.members);
 };
 
+/* ── разделы и переходы по имени ───────────────────────── */
+
+// Питомец для разделов, которым он нужен, когда вход не из карточки: текущий или первый.
+async function anyPet() {
+  if (state.pet) return state.pet;
+  const pets = await db.listPets().catch(() => []);
+  if (!pets.length) { say('#pets-msg', 'Сначала заведите питомца'); return null; }
+  state.pet = pets[0]; state.members = [];
+  return state.pet;
+}
+
+async function go(where) {
+  const petScreens = { day: () => wb.openDay(state.pet, state.role, state.members), walks: () => wk.openWalks(state.pet, state.role, state.members, state.profile),
+    health: () => hl.openHealth(state.pet, state.role, state.members), qr: () => tg.openTag(state.pet, state.role),
+    ai: () => ai.openAi(state.pet, state.role), status: () => ex.openStatus(state.pet, state.role) };
+  if (petScreens[where]) {
+    if (!(await anyPet()) || !(await ensureRole())) return;
+    if (where === 'walks' && state.pet.species !== 'dog') return say('#pets-msg', 'Прогулки — только для собак');
+    return petScreens[where]();
+  }
+  const plain = { feed: () => cm.openFeed(state.profile), expert: () => cm.openExpert(state.profile), heroes: () => cm.openHeroes(state.profile),
+    kb: () => ex.openKb(), course: () => ex.openCourse(), referral: () => ex.openReferral(state.profile), paywall: () => ex.openPaywall(),
+    support: () => ex.openSupport(), notracker: () => ex.openNotracker(), partners: () => ex.openPartners(), pets: () => openPets(),
+    demotour: () => openDemoTour(),
+    urgent: () => ex.openUrgent() };
+  if (where === 'v-how') return show('v-how');
+  if (plain[where]) return plain[where]();
+}
+
+/* ── демо-режим ─────────────────────────────────────────── */
+
+$('#demo-open').onclick = () => { location.href = 'index.html?demo'; };
+if (IS_DEMO) { $('#demobar').hidden = false; document.body.classList.add('demo'); }
+
+function openDemoTour() {
+  show('v-demotour');
+  const box = $('#demotour-body'); box.replaceChildren();
+  if (!IS_DEMO) {
+    box.append(el('p', 'lede', 'Демо открывает приложение, заполненное примером: собака Рекс, кошка Муся, две недели отметок, прогулки, карта здоровья, расходы. Ничего не сохраняется и не отправляется — ваш профиль не затрагивается.'));
+    const b = el('a', 'btn', 'Открыть демо в новой вкладке'); b.href = 'index.html?demo'; b.target = '_blank'; b.rel = 'noopener'; box.append(b);
+    return;
+  }
+  box.append(el('p', 'lede', 'Демо включено: данные вымышленные. Пройдите по шагам — каждый открывает настоящий экран.'));
+  const steps = [['Как считается благополучие', 'Пять доменов и почему пятый главный', 'day'], ['Прогулка', 'Трек, приватная зона, вклад в каналы', 'walks'],
+    ['Карта здоровья и документы', 'Сроки, просрочка ставит потолок', 'health'], ['Статусы', 'Дружелюбен, агрессия, течка', 'status'], ['Если трекера нет', 'Что работает без устройства', 'notracker']];
+  steps.forEach(([t, s2, g], i) => {
+    const r = el('button', 'entry'); r.append(el('span', 'ic', String(i + 1))); const x = el('span'); x.append(el('b', null, t), el('em', null, s2)); r.append(x, el('span', 'chev', '›'));
+    r.onclick = async () => { state.pet = null; await go(g); }; box.append(r);
+  });
+  const own = el('a', 'btn ghost', 'Завести свой профиль'); own.href = './'; box.append(own);
+}
+
+document.querySelectorAll('#sections [data-go]').forEach(b => b.onclick = () => { state.aiFrom = 'pets'; cm.fromSections(); go(b.dataset.go); });
+$('#open-status').onclick = () => go('status');
+$('#open-ai').onclick = () => { state.aiFrom = 'pet'; go('ai'); };
+
 $('#back').onclick = () => {
   if (wb.back(state.view)) return;
   if (wk.back(state.view)) return;
   if (hl.back(state.view)) return;
   if (mn.back(state.view)) return;
+  if (cm.back(state.view)) return;
+  if (ai.back(state.view)) return;
+  if (ex.back(state.view)) return;
   const b = BACK[state.view];
+  if (b === 'v-back') { if (state.aiFrom === 'pet') openPet(state.pet); else openPets(); return; }
   if (b === 'v-pets') openPets(); else if (b === 'v-pet') openPet(state.pet); else if (b) show(b);
 };
 
@@ -272,6 +342,9 @@ wk.init({ show, say });
 hl.init({ show, say });
 mn.init({ show, say });
 tg.init({ show, say });
+cm.init({ show, say });
+ai.init({ show, say });
+ex.init({ show, say, go });
 
 /* ── старт ─────────────────────────────────────────────── */
 
@@ -288,6 +361,17 @@ async function afterAuth() {
     return;
   }
   await openPets();
+  claimStoredRef();
+}
+
+// ?ref=логин — код приглашения из ссылки. Запоминаем до входа, вводим после.
+try { const r = new URLSearchParams(location.search).get('ref'); if (r) localStorage.setItem('petid.ref', r.toLowerCase()); } catch (_) { /* нет хранилища */ }
+
+async function claimStoredRef() {
+  let r = null; try { r = localStorage.getItem('petid.ref'); } catch (_) { return; }
+  if (!r || (state.profile && r === state.profile.login)) return;
+  try { const who = await db.claimReferral(r); say('#pets-ok', `Вы пришли по приглашению @${who}`, 'ok'); } catch (_) { /* уже введён, истёк или 008 нет */ }
+  try { localStorage.removeItem('petid.ref'); } catch (_) { /* нет хранилища */ }
 }
 
 (async function boot() {

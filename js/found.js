@@ -41,7 +41,7 @@ function renderCard() {
 
 function renderForm() {
   const box = $('#f-body'); box.replaceChildren();
-  box.append(el('p', 'lede', `Сообщение для владельца ${card.name}. Все поля необязательны, но без контакта владелец не сможет с вами связаться.`));
+  box.append(el('p', 'lede', `Сообщение владельцу — питомец ${card.name}. Все поля необязательны, но без контакта владелец не сможет с вами связаться.`));
   const c = el('div', 'card');
   const f = (lab, node, hint) => { const w = el('div', 'f'); const l = el('label', null, lab); l.htmlFor = node.id; w.append(l, node); if (hint) w.append(el('p', 'hint', hint)); return w; };
   const msg = el('textarea'); msg.id = 'fd-msg'; msg.rows = 3; msg.maxLength = 500; msg.placeholder = 'Где нашли, в каком состоянии, где ждёте';

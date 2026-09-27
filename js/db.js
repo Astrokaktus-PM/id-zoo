@@ -1,5 +1,11 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import { SUPABASE_URL, SUPABASE_KEY, LOGIN_DOMAIN } from './config.js';
+
+// Демо-режим (index.html?demo): вместо Supabase — данные в памяти вкладки,
+// ничего не сохраняется и не уходит в сеть. См. js/demo-client.js.
+export const IS_DEMO = (() => { try { return new URLSearchParams(location.search).has('demo'); } catch (_) { return false; } })();
+const { createClient } = IS_DEMO
+  ? await import('./demo-client.js')
+  : await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
 
 export const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
@@ -421,5 +427,130 @@ export async function publicCard(token) {
 export async function reportFound(token, r) {
   const { error } = await sb.rpc('report_found', { p_token: token, p_message: r.message || null, p_contact: r.contact || null,
     p_lat: r.lat ?? null, p_lon: r.lon ?? null, p_acc: r.acc ?? null });
+  if (error) throw error;
+}
+
+/* ── П8: соцслой, статусы, интерес к оплате, приглашения ──
+ * Схема — sql/008_community.sql. Автор, логин и скрытие ставит сервер. */
+
+export async function posts(limit = 50) {
+  const { data, error } = await sb.from('posts').select('id, author_id, author_login, pet_name, body, hidden, created_at')
+    .order('created_at', { ascending: false }).limit(limit);
+  if (error) throw error;
+  return data;
+}
+export async function addPost(body, petId) {
+  const { error } = await sb.from('posts').insert({ body, pet_id: petId || null });
+  if (error) throw error;
+}
+export async function deletePost(id) {
+  const { data, error } = await sb.from('posts').delete().eq('id', id).select('id');
+  if (error) throw error; if (!data.length) throw new Error('Удалить можно только свою публикацию');
+}
+export async function likes(postIds) {
+  if (!postIds.length) return [];
+  const { data, error } = await sb.from('post_likes').select('post_id, user_id').in('post_id', postIds);
+  if (error) throw error; return data;
+}
+export async function like(postId, on) {
+  const q = on ? sb.from('post_likes').insert({ post_id: postId }) : sb.from('post_likes').delete().eq('post_id', postId).eq('user_id', await myId());
+  const { error } = await q; if (error) throw error;
+}
+export async function follows() {
+  const { data, error } = await sb.from('follows').select('followee_id'); if (error) throw error; return data.map(x => x.followee_id);
+}
+export async function follow(userId, on) {
+  const q = on ? sb.from('follows').insert({ followee_id: userId }) : sb.from('follows').delete().eq('followee_id', userId).eq('follower_id', await myId());
+  const { error } = await q; if (error) throw error;
+}
+export async function reportContent(type, id, reason) {
+  const { error } = await sb.from('content_reports').insert({ target_type: type, target_id: id, reason: reason || null });
+  if (error) { if (/duplicate|unique/i.test(error.message)) throw new Error('Вы уже пожаловались на это'); throw error; }
+}
+
+export async function questions(limit = 50) {
+  const { data, error } = await sb.from('questions').select('id, author_id, author_login, breed, city, scope, title, body, hidden, created_at')
+    .order('created_at', { ascending: false }).limit(limit);
+  if (error) throw error;
+  if (!data.length) return data;
+  const { data: n } = await sb.rpc('answer_counts', { p_ids: data.map(q => q.id) });
+  const m = Object.fromEntries((n || []).map(x => [x.question_id, x.n]));
+  return data.map(q => ({ ...q, answers: m[q.id] || 0 }));
+}
+export async function askQuestion(q) { const { error } = await sb.from('questions').insert(q); if (error) throw error; }
+export async function deleteQuestion(id) {
+  const { data, error } = await sb.from('questions').delete().eq('id', id).select('id');
+  if (error) throw error; if (!data.length) throw new Error('Удалить можно только свой вопрос');
+}
+export async function answersFor(qid) {
+  const { data, error } = await sb.from('answers').select('id, author_id, author_login, body, created_at').eq('question_id', qid).order('created_at');
+  if (error) throw error; return data;
+}
+export async function answer(qid, body) { const { error } = await sb.from('answers').insert({ question_id: qid, body }); if (error) throw error; }
+export async function expertOptin() {
+  const { data, error } = await sb.from('expert_optin').select('active').maybeSingle(); if (error) throw error; return !!(data && data.active);
+}
+export async function setExpert(active) {
+  const { error } = await sb.from('expert_optin').upsert({ user_id: await myId(), active, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  if (error) throw error;
+}
+
+export async function lostAlerts() {
+  const { data, error } = await sb.from('lost_alerts').select('id, pet_id, author_id, pet_name, species, description, lat, lon, hidden, resolved_at, created_at')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  if (!data.length) return data;
+  const { data: n } = await sb.rpc('response_counts', { p_ids: data.map(a => a.id) });
+  const m = Object.fromEntries((n || []).map(x => [x.alert_id, x.n]));
+  return data.map(a => ({ ...a, lat: Number(a.lat), lon: Number(a.lon), responses: m[a.id] || 0 }));
+}
+export async function addAlert(a) { const { error } = await sb.from('lost_alerts').insert(a); if (error) throw error; }
+export async function resolveAlert(id) {
+  const { data, error } = await sb.from('lost_alerts').update({ resolved_at: new Date().toISOString() }).eq('id', id).select('id');
+  if (error) throw error; if (!data.length) throw new Error('Закрыть может только автор объявления');
+}
+export async function responsesFor(alertId) {
+  const { data, error } = await sb.from('hero_responses').select('user_id, user_login, note, created_at').eq('alert_id', alertId).order('created_at');
+  if (error) throw error; return data;
+}
+export async function respond(alertId, note) { const { error } = await sb.from('hero_responses').insert({ alert_id: alertId, note: note || null }); if (error) throw error; }
+export async function heroSettings() {
+  const { data, error } = await sb.from('hero_settings').select('active, radius_km').maybeSingle(); if (error) throw error; return data;
+}
+export async function setHero(active, radius) {
+  const { error } = await sb.from('hero_settings').upsert({ user_id: await myId(), active, radius_km: radius, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  if (error) throw error;
+}
+
+export async function petStatus(petId) {
+  const { data, error } = await sb.from('pet_statuses').select('friendly, aggressive, updated_at').eq('pet_id', petId).maybeSingle();
+  if (error) throw error; return data || { friendly: false, aggressive: false };
+}
+export async function setPetStatus(petId, s) {
+  const { error } = await sb.from('pet_statuses').upsert({ pet_id: petId, ...s, updated_by: await myId(), updated_at: new Date().toISOString() }, { onConflict: 'pet_id' });
+  if (error) throw error;
+}
+
+export async function interest(kind, plan) {
+  // Сигнал интереса — не должен ломать экран: ошибка записи молча пропускается.
+  try { await sb.from('interest_events').insert({ kind, plan: plan || null }); } catch (_) { /* нет сети */ }
+}
+export async function claimReferral(code) {
+  const { data, error } = await sb.rpc('claim_referral', { p_code: code }); if (error) throw error; return data;
+}
+export async function myReferrals() { const { data, error } = await sb.rpc('my_referrals'); if (error) throw error; return data; }
+export async function myInviter() {
+  const { data, error } = await sb.from('referrals').select('inviter_id, claimed_at').maybeSingle(); if (error) throw error; return data;
+}
+export async function support(topic, body) { const { error } = await sb.from('support_requests').insert({ topic, body }); if (error) throw error; }
+export async function mySupport() {
+  const { data, error } = await sb.from('support_requests').select('topic, body, created_at').order('created_at', { ascending: false });
+  if (error) throw error; return data;
+}
+export async function courseDone() {
+  const { data, error } = await sb.from('course_progress').select('lesson_id, done_at'); if (error) throw error; return data;
+}
+export async function markLesson(id) {
+  const { error } = await sb.from('course_progress').upsert({ user_id: await myId(), lesson_id: id }, { onConflict: 'user_id,lesson_id' });
   if (error) throw error;
 }

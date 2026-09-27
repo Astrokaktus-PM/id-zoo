@@ -24,7 +24,9 @@ export function loadLeaflet() {
 export async function makeMap(node, center, zoom = 15) {
   const L = await loadLeaflet();
   node.replaceChildren();
-  const map = L.map(node, { zoomControl: true, attributionControl: true }).setView(center, zoom);
+  // Без анимаций: карты снимаются при уходе с экрана, и снятие посреди анимации
+  // зума роняет Leaflet («_leaflet_pos of undefined») — найдено проверкой демо.
+  const map = L.map(node, { zoomControl: true, attributionControl: true, zoomAnimation: false, fadeAnimation: false, markerZoomAnimation: false }).setView(center, zoom);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">участники OpenStreetMap</a>',
