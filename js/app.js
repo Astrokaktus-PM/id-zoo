@@ -9,6 +9,7 @@ import * as tg from './tag.js';
 import * as cm from './community.js';
 import * as ai from './ai.js';
 import * as ex from './extras.js';
+import * as pr from './proto.js';
 
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
@@ -25,7 +26,7 @@ const TITLES = {
   'v-feed': 'Сообщество', 'v-expert': 'Экспертный совет', 'v-question': 'Вопрос', 'v-heroes': 'Команда Героев', 'v-alertform': 'Питомец пропал',
   'v-ai': 'Помощник', 'v-aichat': 'Помощник', 'v-kb': 'База знаний', 'v-kbdomains': 'Пять доменов', 'v-status': 'Статусы', 'v-course': 'Курс новичка',
   'v-support': 'Поддержка', 'v-referral': 'Пригласить друга', 'v-paywall': 'Premium', 'v-notracker': 'Без трекера', 'v-partners': 'Партнёры', 'v-demo': 'Демо',
-  'v-demotour': 'Демо-режим'
+  'v-demotour': 'Демо-режим', 'v-proto': 'Прототип'
 };
 const BACK = { 'v-newpet': 'v-pets', 'v-pet': 'v-pets', 'v-day': 'v-pet', 'v-calc': 'v-day', 'v-how': 'v-day',
   'v-walks': 'v-pet', 'v-wstart': 'v-walks', 'v-walk': 'v-walks', 'v-map': 'v-walks',
@@ -33,7 +34,7 @@ const BACK = { 'v-newpet': 'v-pets', 'v-pet': 'v-pets', 'v-day': 'v-pet', 'v-cal
   'v-evform': 'x', 'v-calset': 'x', 'v-money': 'v-pet', 'v-qr': 'v-pet', 'v-moneyadd': 'x', 'v-tco': 'x',
   'v-feed': 'v-pets', 'v-expert': 'v-pets', 'v-question': 'x', 'v-heroes': 'v-pets', 'v-alertform': 'x', 'v-ai': 'v-back', 'v-aichat': 'x',
   'v-kb': 'v-pets', 'v-kbdomains': 'x', 'v-status': 'v-pet', 'v-course': 'v-pets', 'v-support': 'v-pets', 'v-referral': 'v-pets',
-  'v-paywall': 'v-pets', 'v-notracker': 'v-pets', 'v-partners': 'v-pets', 'v-demo': 'x', 'v-demotour': 'v-pets' };
+  'v-paywall': 'v-pets', 'v-notracker': 'v-pets', 'v-partners': 'v-pets', 'v-demo': 'x', 'v-demotour': 'v-pets', 'v-proto': 'x' };
 
 const state = { view: 'v-boot', profile: null, pet: null, mode: 'in', members: [], role: null };
 
@@ -292,6 +293,8 @@ async function go(where) {
     kb: () => ex.openKb(), course: () => ex.openCourse(), referral: () => ex.openReferral(state.profile), paywall: () => ex.openPaywall(),
     support: () => ex.openSupport(), notracker: () => ex.openNotracker(), partners: () => ex.openPartners(), pets: () => openPets(),
     demotour: () => openDemoTour(),
+    tracker: () => pr.open('tracker', { pet: state.pet, profile: state.profile, from: () => ex.openNotracker() }),
+    protos: async () => pr.openHub({ pet: state.pet || (await db.listPets().catch(() => []))[0] || null, profile: state.profile, from: openPets }),
     urgent: () => ex.openUrgent() };
   if (where === 'v-how') return show('v-how');
   if (plain[where]) return plain[where]();
@@ -332,19 +335,23 @@ $('#back').onclick = () => {
   if (cm.back(state.view)) return;
   if (ai.back(state.view)) return;
   if (ex.back(state.view)) return;
+  if (pr.back(state.view)) return;
   const b = BACK[state.view];
   if (b === 'v-back') { if (state.aiFrom === 'pet') openPet(state.pet); else openPets(); return; }
   if (b === 'v-pets') openPets(); else if (b === 'v-pet') openPet(state.pet); else if (b) show(b);
 };
 
 wb.init({ show, say, openWalks });
-wk.init({ show, say });
-hl.init({ show, say });
+// Прототипы уровня C из живых разделов: возврат — в тот же раздел.
+const protoFrom = (back) => name => pr.open(name, { pet: state.pet, profile: state.profile, from: back });
+wk.init({ show, say, proto: protoFrom(() => wk.openWalks()) });
+hl.init({ show, say, proto: protoFrom(() => hl.openHealth(state.pet, state.role, state.members)) });
 mn.init({ show, say });
 tg.init({ show, say });
 cm.init({ show, say });
 ai.init({ show, say });
 ex.init({ show, say, go });
+pr.init({ show, say, go });
 
 /* ── старт ─────────────────────────────────────────────── */
 

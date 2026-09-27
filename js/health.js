@@ -143,6 +143,11 @@ function renderHealth() {
   const d = el('button', 'btn ghost', 'Банк документов'); d.onclick = () => openDocs();
   const c = el('button', 'btn ghost', 'Правила напоминаний'); c.onclick = () => openRules();
   links.append(d, c); box.append(links);
+  if (ui.proto) {
+    const t = el('button', 'entry'); t.append(el('span', 'ic', '👩‍⚕️'));
+    const x = el('span'); x.append(el('b', null, 'Онлайн-консультация'), el('em', null, 'Прототип на выдуманных данных')); t.append(x, el('span', 'chev', '›'));
+    t.onclick = () => ui.proto('telemed'); box.append(t);
+  }
   if (!canWrite()) box.append(el('p', 'hint center', 'У вас роль «гость»: смотреть можно, вносить нельзя.'));
 }
 

@@ -288,6 +288,7 @@ export function openNotracker() {
     for (const [ic, t, s] of list) { const r = el('div', 'hrow static'); const m = el('div'); m.append(el('b', null, t), el('span', null, s)); r.append(el('span', 'hic', ic), m); c.append(r); }
     box.append(c);
   }
+  box.append(entry('📡', 'Как выглядело бы с трекером', 'Прототип на выдуманных данных', () => ui.go('tracker')));
 }
 
 /* ── демонстрационные партнёрские экраны ───────────────── */

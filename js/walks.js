@@ -87,6 +87,13 @@ function renderList() {
   near.append(t, el('span', 'chev', '›'));
   near.onclick = openMap;
   box.append(near);
+  if (ui.proto) {
+    for (const [ic, t, s, k] of [['👋', 'Снюхаться', 'Прототип: кто рядом и взаимное согласие', 'sniff'], ['🗺️', 'Маршруты', 'Прототип: тишина или больше встреч', 'routes']]) {
+      const b = el('button', 'entry'); b.append(el('span', 'ic', ic));
+      const x = el('span'); x.append(el('b', null, t), el('em', null, s)); b.append(x, el('span', 'chev', '›'));
+      b.onclick = () => { dropMaps(); ui.proto(k); }; box.append(b);
+    }
+  }
 
   box.append(el('div', 'sec', 'За 30 дней'));
   if (!S.walks.length) {

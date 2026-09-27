@@ -480,3 +480,22 @@ select{width:100%}
 .demobar{position:sticky; top:0; z-index:30; background:var(--key); color:#fff; font-size:12.5px; text-align:center; padding:6px 10px}
 .demobar a{color:#fff; font-weight:600}
 body.demo .bar{top:30px}
+
+/* ── П9: прототипы уровня C ──────────────────────────────── */
+.seg.one{margin-bottom:8px}
+.seg.one button.on{background:var(--a)}
+button.near-i{width:100%; text-align:left; cursor:pointer; font:inherit; color:inherit}
+.grid.cams{grid-template-columns:repeat(2,1fr); margin-bottom:12px}
+.cam{display:flex; flex-direction:column; align-items:flex-start; gap:3px; text-align:left}
+.cam b{font-size:13.5px} .cam em{font-style:normal; font-size:12px; color:var(--sub)}
+.beh{display:grid; grid-template-columns:70px 1fr 56px; gap:8px; align-items:center; padding:5px 0; font-size:12.5px}
+.bl{color:var(--sub)} .bv{text-align:right; font-variant-numeric:tabular-nums}
+.bt{position:relative; height:12px; background:var(--card2); border-radius:6px; overflow:hidden}
+.bt i{position:absolute; top:0; bottom:0; border-radius:6px}
+.route svg.rmap{width:100%; height:auto; display:block; border-radius:10px; margin-bottom:8px}
+.rbg{fill:var(--card2)}
+.call{display:flex; flex-direction:column; align-items:center; gap:4px; background:var(--card2); border:1px solid var(--line);
+  border-radius:var(--r); padding:26px 12px; margin-bottom:10px; font-variant-numeric:tabular-nums}
+.call-ic{font-size:44px}
+.call span{color:var(--sub); font-size:13px}
+.row .btn.sm{flex:1}
