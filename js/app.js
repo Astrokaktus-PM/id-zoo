@@ -26,7 +26,7 @@ const TITLES = {
   'v-feed': 'Сообщество', 'v-expert': 'Экспертный совет', 'v-question': 'Вопрос', 'v-heroes': 'Команда Героев', 'v-alertform': 'Питомец пропал',
   'v-ai': 'Помощник', 'v-aichat': 'Помощник', 'v-kb': 'База знаний', 'v-kbdomains': 'Пять доменов', 'v-status': 'Статусы', 'v-course': 'Курс новичка',
   'v-support': 'Поддержка', 'v-referral': 'Пригласить друга', 'v-paywall': 'Premium', 'v-notracker': 'Без трекера', 'v-partners': 'Партнёры', 'v-demo': 'Демо',
-  'v-demotour': 'Демо-режим', 'v-proto': 'Прототип'
+  'v-demotour': 'Демо-режим', 'v-proto': 'Прототип', 'v-owner': 'Профиль'
 };
 const BACK = { 'v-newpet': 'v-pets', 'v-pet': 'v-pets', 'v-day': 'v-pet', 'v-calc': 'v-day', 'v-how': 'v-day',
   'v-walks': 'v-pet', 'v-wstart': 'v-walks', 'v-walk': 'v-walks', 'v-map': 'v-walks',
@@ -34,7 +34,7 @@ const BACK = { 'v-newpet': 'v-pets', 'v-pet': 'v-pets', 'v-day': 'v-pet', 'v-cal
   'v-evform': 'x', 'v-calset': 'x', 'v-money': 'v-pet', 'v-qr': 'v-pet', 'v-moneyadd': 'x', 'v-tco': 'x',
   'v-feed': 'v-pets', 'v-expert': 'v-pets', 'v-question': 'x', 'v-heroes': 'v-pets', 'v-alertform': 'x', 'v-ai': 'v-back', 'v-aichat': 'x',
   'v-kb': 'v-pets', 'v-kbdomains': 'x', 'v-status': 'v-pet', 'v-course': 'v-pets', 'v-support': 'v-pets', 'v-referral': 'v-pets',
-  'v-paywall': 'v-pets', 'v-notracker': 'v-pets', 'v-partners': 'v-pets', 'v-demo': 'x', 'v-demotour': 'v-pets', 'v-proto': 'x' };
+  'v-paywall': 'v-pets', 'v-notracker': 'v-pets', 'v-partners': 'v-pets', 'v-demo': 'x', 'v-demotour': 'v-pets', 'v-proto': 'x', 'v-owner': 'v-pets' };
 
 const state = { view: 'v-boot', profile: null, pet: null, mode: 'in', members: [], role: null };
 
@@ -126,6 +126,52 @@ $('#form-onb').onsubmit = async e => {
   } catch (err) { say('#onb-msg', humanError(err)); }
 };
 
+/* ── правка питомца ─────────────────────────────────────── */
+
+$('#pet-edit-open').onclick = () => {
+  const p = state.pet;
+  $('#pe-name').value = p.name; $('#pe-breed').value = p.breed || ''; $('#pe-sex').value = p.sex || ''; $('#pe-birth').value = p.birth_date || '';
+  $('#pet-edit').hidden = false; $('#pet-edit-open').hidden = true; $('#pe-name').focus();
+};
+$('#pe-cancel').onclick = () => { $('#pet-edit').hidden = true; $('#pet-edit-open').hidden = false; };
+$('#pet-edit').onsubmit = async e => {
+  e.preventDefault();
+  const name = $('#pe-name').value.trim();
+  if (!name) return say('#pet-msg', 'Кличка не может быть пустой');
+  const bd = $('#pe-birth').value;
+  if (bd && bd > new Date().toISOString().slice(0, 10)) return say('#pet-msg', 'Дата рождения не может быть в будущем');
+  try {
+    const p = await db.updatePet(state.pet.id, { name, breed: $('#pe-breed').value.trim(), sex: $('#pe-sex').value, birth_date: bd });
+    state.pet = p; renderPetCard(p); $('#title').textContent = p.name;
+    $('#pet-edit').hidden = true; $('#pet-edit-open').hidden = false;
+    say('#pet-ok', 'Сохранено', 'ok');
+  } catch (err) { say('#pet-msg', humanError(err)); }
+};
+
+/* ── профиль владельца ─────────────────────────────────── */
+
+function openOwner() {
+  show('v-owner');
+  const p = state.profile || {};
+  $('#ow-login').textContent = '@' + (p.login || '');
+  $('#ow-name').value = p.display_name || ''; $('#ow-city').value = p.city || ''; $('#ow-dist').value = p.district || '';
+  const box = $('#owner-links'); box.replaceChildren();
+  const links = [['★', 'Premium', 'Что будет в подписке', 'paywall'], ['🎁', 'Пригласить друга', 'Код приглашения и статусы', 'referral'],
+    ['🎓', 'Экспертный совет', 'Я эксперт по породе', 'expert'], ['🦸', 'Команда Героев', 'Помогать искать пропавших рядом', 'heroes'],
+    ['🛟', 'Поддержка', 'Частые вопросы и обращение', 'support'], ['🛡️', 'Страхование', 'Демо партнёра', 'partners'],
+    ['👩‍⚕️', 'Онлайн-консультации', 'Прототип', 'telemed']];
+  for (const [ic, t, sub, g] of links) {
+    const r = el('button', 'entry'); r.append(el('span', 'ic', ic)); const x = el('span'); x.append(el('b', null, t), el('em', null, sub)); r.append(x, el('span', 'chev', '›'));
+    r.onclick = () => go(g); box.append(r);
+  }
+}
+$('#form-owner').onsubmit = async e => {
+  e.preventDefault();
+  const patch = { display_name: $('#ow-name').value.trim(), city: $('#ow-city').value.trim(), district: $('#ow-dist').value.trim() };
+  if (!patch.display_name || !patch.city || !patch.district) return say('#owner-msg', 'Заполните все три поля');
+  try { state.profile = await db.saveProfile(patch); say('#owner-ok', 'Сохранено', 'ok'); } catch (err) { say('#owner-msg', humanError(err)); }
+};
+
 /* ── питомцы ───────────────────────────────────────────── */
 
 async function openPets() {
@@ -182,12 +228,7 @@ $('#form-pet').onsubmit = async e => {
   } catch (err) { say('#newpet-msg', humanError(err)); }
 };
 
-async function openPet(pet) {
-  state.pet = pet; state.members = []; state.role = null;
-  $('#open-walks').hidden = pet.species !== 'dog';
-  show('v-pet');
-  $('#title').textContent = pet.name;
-
+function renderPetCard(pet) {
   const card = $('#pet-card');
   card.replaceChildren();
   const rows = [
@@ -200,6 +241,16 @@ async function openPet(pet) {
     const r = el('div', 'kv'); r.append(el('span', null, k), el('b', null, v)); card.append(r);
   }
 
+}
+
+async function openPet(pet) {
+  state.pet = pet; state.members = []; state.role = null;
+  $('#open-walks').hidden = pet.species !== 'dog';
+  show('v-pet');
+  $('#title').textContent = pet.name;
+
+  renderPetCard(pet);
+  $('#pet-edit').hidden = true; $('#pet-edit-open').hidden = true;
   const box = $('#pet-members');
   box.replaceChildren(el('div', 'load', 'Загрузка…'));
   try {
@@ -224,6 +275,7 @@ async function openPet(pet) {
     const mine = mem.find(m => m.user_id === me);
     state.role = mine ? mine.role : null;
     $('#invite-block').hidden = !iAmOwner;
+    $('#pet-edit-open').hidden = !['owner', 'co_owner'].includes(state.role);
   } catch (err) { say('#pet-msg', humanError(err)); box.replaceChildren(); }
 }
 
@@ -293,10 +345,16 @@ async function go(where) {
     kb: () => ex.openKb(), course: () => ex.openCourse(), referral: () => ex.openReferral(state.profile), paywall: () => ex.openPaywall(),
     support: () => ex.openSupport(), notracker: () => ex.openNotracker(), partners: () => ex.openPartners(), pets: () => openPets(),
     demotour: () => openDemoTour(),
+    owner: () => openOwner(),
+    telemed: () => pr.open('telemed', { pet: state.pet, profile: state.profile, from: openOwner }),
     tracker: () => pr.open('tracker', { pet: state.pet, profile: state.profile, from: () => ex.openNotracker() }),
     protos: async () => pr.openHub({ pet: state.pet || (await db.listPets().catch(() => []))[0] || null, profile: state.profile, from: openPets }),
     urgent: () => ex.openUrgent() };
-  if (where === 'v-how') return show('v-how');
+  if (where === 'v-how') {
+    state.howFrom = 'kb'; show('v-how');
+    $('#how-ok').onclick = () => { state.howFrom = null; ex.openKb(); };
+    return;
+  }
   if (plain[where]) return plain[where]();
 }
 
@@ -328,6 +386,7 @@ $('#open-status').onclick = () => go('status');
 $('#open-ai').onclick = () => { state.aiFrom = 'pet'; go('ai'); };
 
 $('#back').onclick = () => {
+  if (state.view === 'v-how' && state.howFrom === 'kb') { state.howFrom = null; return ex.openKb(); }
   if (wb.back(state.view)) return;
   if (wk.back(state.view)) return;
   if (hl.back(state.view)) return;

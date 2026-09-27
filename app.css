@@ -1,3 +1,4 @@
+[hidden]{display:none !important}
 :root{
   --bg:#F5F6F3; --card:#FFFFFF; --card2:#ECEEE9; --line:#D8DCD3; --line2:#BFC5B9;
   --ink:#18242A; --ink2:#3D4B52; --sub:#69787D;
@@ -499,3 +500,13 @@ button.near-i{width:100%; text-align:left; cursor:pointer; font:inherit; color:i
 .call-ic{font-size:44px}
 .call span{color:var(--sub); font-size:13px}
 .row .btn.sm{flex:1}
+
+/* ── П10: узкие экраны (320 px) ──────────────────────────── */
+.row > .f{flex:1 1 0; min-width:0}
+input[type=date],input[type=time]{min-width:0; max-width:100%}
+.hrow > div{min-width:0; flex:1}
+.tabs{flex-wrap:wrap}
+@media (max-width:359px){
+  .lesson{flex-wrap:wrap}
+  .lesson > div{flex-basis:calc(100% - 50px)}
+}

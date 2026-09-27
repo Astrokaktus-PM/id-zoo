@@ -78,6 +78,15 @@ export async function saveProfile(patch) {
   return data;
 }
 
+// Правятся только эти поля: owner_id и species закрыты правами на колонки (sql/009).
+export async function updatePet(id, p) {
+  const { data, error } = await sb.from('pets')
+    .update({ name: p.name, breed: p.breed || null, sex: p.sex || null, birth_date: p.birth_date || null })
+    .eq('id', id).select('id, name, species, breed, sex, birth_date, owner_id').single();
+  if (error) throw error;
+  return data;
+}
+
 export async function listPets() {
   const { data, error } = await sb.from('pets')
     .select('id, name, species, breed, sex, birth_date, owner_id')

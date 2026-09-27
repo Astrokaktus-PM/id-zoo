@@ -580,6 +580,8 @@ function openHow() {
 }
 
 export function back(view) {
-  if (view === 'v-calc' || view === 'v-how') { openDay(); return true; }
+  // «Назад» со вступления равно «Понятно»: иначе openDay снова показывает вступление.
+  if (view === 'v-how') { try { localStorage.setItem(HOW_KEY, '1'); } catch (_) { /* приватный режим */ } openDay(); return true; }
+  if (view === 'v-calc') { openDay(); return true; }
   return false;
 }

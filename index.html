@@ -95,6 +95,23 @@
       </form>
     </section>
 
+    <!-- ── профиль владельца ─────────────────────────────── -->
+    <section class="view" id="v-owner">
+      <div class="msg err" id="owner-msg"></div>
+      <div class="msg ok" id="owner-ok"></div>
+      <form id="form-owner" class="card">
+        <div class="kv"><span>Логин</span><b id="ow-login"></b></div>
+        <p class="hint">Логин не меняется: по нему вас приглашают и по нему вы входите.</p>
+        <div class="f"><label for="ow-name">Как к вам обращаться</label><input type="text" id="ow-name" required></div>
+        <div class="f"><label for="ow-city">Город</label><input type="text" id="ow-city" required></div>
+        <div class="f"><label for="ow-dist">Район</label><input type="text" id="ow-dist" required></div>
+        <button class="btn" type="submit">Сохранить</button>
+      </form>
+      <div class="sec">Сервисы</div>
+      <div id="owner-links"></div>
+      <div class="card"><p class="hint" style="margin:0">Здесь — аккаунт. Данные питомцев — в карточке питомца. Профиль владельца в оценке благополучия не участвует.</p></div>
+    </section>
+
     <!-- ── список питомцев ───────────────────────────────── -->
     <section class="view" id="v-pets">
       <div class="msg err" id="pets-msg"></div>
@@ -116,6 +133,7 @@
         <button data-go="notracker"><span>📡</span>Без трекера</button>
         <button data-go="partners"><span>🤝</span>Партнёры · демо</button>
         <button data-go="protos"><span>🧪</span>Прототипы</button>
+        <button data-go="owner"><span>👤</span>Профиль</button>
         <button data-go="demotour"><span>▶</span>Демо-режим</button>
       </div>
       <div class="foot" id="me-line"></div>
@@ -189,6 +207,15 @@
       </div>
 
       <div class="card" id="pet-card"></div>
+      <form class="card" id="pet-edit" hidden>
+        <div class="f"><label for="pe-name">Кличка</label><input type="text" id="pe-name" required maxlength="40"></div>
+        <div class="f"><label for="pe-breed">Порода</label><input type="text" id="pe-breed" maxlength="60"></div>
+        <div class="f"><label for="pe-sex">Пол</label><select id="pe-sex"><option value="">не указан</option><option value="m">самец</option><option value="f">самка</option></select></div>
+        <div class="f"><label for="pe-birth">Дата рождения</label><input type="date" id="pe-birth"></div>
+        <p class="hint">Вид не меняется: от него зависят каналы и вся история отметок.</p>
+        <div class="row"><button class="btn" type="submit">Сохранить</button><button class="btn ghost" type="button" id="pe-cancel">Отмена</button></div>
+      </form>
+      <button class="linkbtn" id="pet-edit-open" hidden>Изменить данные питомца</button>
 
       <div class="sec">Кто ухаживает</div>
       <div class="card" id="pet-members"></div>
