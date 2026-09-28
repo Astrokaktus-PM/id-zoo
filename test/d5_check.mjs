@@ -6,7 +6,9 @@ const file = process.argv[2] || new URL('./d5_fixture.json', import.meta.url);
 const cases = JSON.parse(readFileSync(file, 'utf8'));
 // В Python у строк d5 нет поля key у ограничителей, в JS оно добавлено для интерфейса.
 const strip = o => JSON.parse(JSON.stringify(o, (k, v) => (k === 'key' && v && typeof v === 'string' && ['food','env','health','fear'].includes(v)) ? undefined : v));
-const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+// П13: подпись канала social в интерфейсе — «Общение с вами», в d5_model.py — «Общение».
+// Сверяем числа и строки модели, подпись приводим к питоновской.
+const eq = (a, b) => JSON.stringify(a).replaceAll('Общение с вами', 'Общение').replaceAll('общение с вами', 'общение') === JSON.stringify(b);
 let bad = 0;
 cases.forEach((c, i) => {
   const r = strip(J.d5(c.sp, c.today, c.week, c.gates));

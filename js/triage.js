@@ -1,3 +1,4 @@
+import { modeMinutes, findMode } from './modes.js';
 // Правила «помощника» для веб-макета. Это НЕ ИИ: дерево вопросов с ответами,
 // каждое правило с источником. Проверка — test/triage_check.mjs.
 //
@@ -83,11 +84,12 @@ export const LEVEL_TEXT = {
  *  Потолок C и хуже — «После болезни»: спецификация велит лечить, а не гулять больше. */
 export function suggestMode({ healthGrade = 'A', minutes, weekend }) {
   if ('CDE'.includes(healthGrade)) return { mode: 'recovery', why: 'Потолок по здоровью — нагрузку не наращиваем' };
-  // Порог — минуты участия самого режима (js/modes.js): завал 47, из дома 80,
-  // выходной 180. Режим не должен требовать больше, чем у человека есть.
-  if (minutes != null && minutes >= 180) return { mode: 'weekend', why: 'Есть 3 часа и больше' };
-  if (minutes != null && minutes >= 80) return { mode: 'home', why: 'От 80 минут до трёх часов' };
-  if (minutes != null && minutes >= 47) return { mode: 'busy', why: 'Меньше 80 минут' };
-  if (minutes != null) return { mode: 'busy', partial: true, why: 'Даже «Сегодня завал» требует 47 минут — сделайте пункты, которые успеете' };
+  // Порог — минуты участия самого режима (js/modes.js), считаются из пунктов:
+  // режим не должен требовать больше, чем у человека есть.
+  const [we, home, busy] = ['weekend', 'home', 'busy'].map(id => modeMinutes(findMode('dog', id)));
+  if (minutes != null && minutes >= we) return { mode: 'weekend', why: `Есть ${we} минут и больше` };
+  if (minutes != null && minutes >= home) return { mode: 'home', why: `От ${home} минут` };
+  if (minutes != null && minutes >= busy) return { mode: 'busy', why: `Меньше ${home} минут` };
+  if (minutes != null) return { mode: 'busy', partial: true, why: `Даже «Сегодня завал» требует ${busy} минут — сделайте пункты, которые успеете` };
   return { mode: weekend ? 'weekend' : 'home', why: weekend ? 'Выходной' : 'Будний день' };
 }

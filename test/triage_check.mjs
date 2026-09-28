@@ -21,7 +21,7 @@ ok('D и E никогда не «наблюдать»', ['limp', 'gi', 'appetite
 const ids = new Set(MODES.dog.map(m => m.id));
 ok('режимы существуют', ['recovery', 'busy', 'weekend', 'home'].every(m => ids.has(m)));
 ok('режим: потолок C → после болезни', suggestMode({ healthGrade: 'C', minutes: 300 }).mode === 'recovery');
-ok('режим: 40 → завал (частично); 60 → завал; 90 → из дома; 200 → выходной', suggestMode({ minutes: 40 }).partial && suggestMode({ minutes: 60 }).mode === 'busy' && suggestMode({ minutes: 90 }).mode === 'home' && suggestMode({ minutes: 200 }).mode === 'weekend');
-ok('режим: минуты режима не больше доступных (кроме помеченных «частично»)', [10, 40, 47, 59, 60, 79, 80, 90, 179, 180, 300].every(m => { const r = suggestMode({ minutes: m }); const md = MODES.dog.find(x => x.id === r.mode); return r.partial || md.items.reduce((a, i) => a + i.min, 0) <= m; }));
+ok('режим: 40 → завал (частично); 60 → завал; 120 → из дома; 200 → выходной', suggestMode({ minutes: 40 }).partial && suggestMode({ minutes: 60 }).mode === 'busy' && suggestMode({ minutes: 120 }).mode === 'home' && suggestMode({ minutes: 200 }).mode === 'weekend');
+ok('режим: минуты режима не больше доступных (кроме помеченных «частично»)', [10, 40, 47, 56, 57, 60, 79, 80, 90, 109, 110, 120, 179, 180, 300].every(m => { const r = suggestMode({ minutes: m }); const md = MODES.dog.find(x => x.id === r.mode); return r.partial || md.items.reduce((a, i) => a + i.min, 0) <= m; }));
 console.log(bad ? `расхождений: ${bad}` : 'всё сходится');
 process.exit(bad ? 1 : 0);

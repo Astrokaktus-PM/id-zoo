@@ -12,6 +12,7 @@ import * as ex from './extras.js';
 import * as pr from './proto.js';
 import * as cr from './care.js';
 import { weekCoverage, addDays as gAdd } from './gstat.js';
+import { attachCities, cityGeo, attachBreeds } from './dicts.js';
 
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
@@ -119,10 +120,12 @@ $('#logout').onclick = async () => {
 $('#form-onb').onsubmit = async e => {
   e.preventDefault();
   try {
+    const geo = await cityGeo($('#onb-city').value);
     state.profile = await db.saveProfile({
       display_name: $('#onb-name').value.trim(),
       city: $('#onb-city').value.trim(),
-      district: $('#onb-dist').value.trim()
+      district: $('#onb-dist').value.trim(),
+      ...(geo || {})
     });
     await openPets();
   } catch (err) { say('#onb-msg', humanError(err)); }
@@ -131,7 +134,7 @@ $('#form-onb').onsubmit = async e => {
 /* ── правка питомца ─────────────────────────────────────── */
 
 $('#pet-edit-open').onclick = () => {
-  const p = state.pet;
+  const p = state.pet; attachBreeds($('#pe-breed'), p.species);
   $('#pe-name').value = p.name; $('#pe-breed').value = p.breed || ''; $('#pe-sex').value = p.sex || ''; $('#pe-birth').value = p.birth_date || '';
   $('#pet-edit').hidden = false; $('#pet-edit-open').hidden = true; $('#pe-name').focus();
 };
@@ -153,7 +156,7 @@ $('#pet-edit').onsubmit = async e => {
 /* ── профиль владельца ─────────────────────────────────── */
 
 function openOwner() {
-  show('v-owner');
+  show('v-owner'); attachCities($('#ow-city'));
   const p = state.profile || {};
   $('#ow-login').textContent = '@' + (p.login || '');
   $('#ow-name').value = p.display_name || ''; $('#ow-city').value = p.city || ''; $('#ow-dist').value = p.district || '';
@@ -170,6 +173,8 @@ function openOwner() {
 $('#form-owner').onsubmit = async e => {
   e.preventDefault();
   const patch = { display_name: $('#ow-name').value.trim(), city: $('#ow-city').value.trim(), district: $('#ow-dist').value.trim() };
+  // Город из справочника — координаты сразу, геокодер не нужен (П13).
+  const geo = await cityGeo(patch.city); if (geo) Object.assign(patch, geo);
   if (!patch.display_name || !patch.city || !patch.district) return say('#owner-msg', 'Заполните все три поля');
   try { state.profile = await db.saveProfile(patch); say('#owner-ok', 'Сохранено', 'ok'); } catch (err) { say('#owner-msg', humanError(err)); }
 };
@@ -189,16 +194,18 @@ async function openPets() {
     box.replaceChildren();
     if (!pets.length) {
       const e0 = el('div', 'empty');
-      e0.append(el('div', 'big', '🐾'), el('div', null, 'Пока ни одного питомца.'),
-        el('div', null, 'Заведите профиль — с него начинается всё остальное.'));
+      e0.append(el('div', 'big', '🐾'), el('div', null, 'Питомца пока нет — это нормально.'),
+        el('div', null, 'Выбираете, кого завести, — разделы ниже работают и без питомца. Помогаете ухаживать — владелец добавит вас по логину' + (p ? ` @${p.login}` : '') + ', и питомец появится здесь.'));
       box.append(e0);
       return;
     }
     // Значок «нашли»: непрочитанные сообщения со страницы находки (007).
     const unseen = await db.unseenFound(pets.map(p => p.id));
+    const avatars = await db.avatarUrls(pets).catch(() => ({}));
     for (const pet of pets) {
       const b = el('button', 'pet');
       const av = el('div', 'ava', EMOJI[pet.species] || '🐾');
+      if (avatars[pet.id]) { const im = el('img'); im.src = avatars[pet.id]; im.alt = ''; av.replaceChildren(im); av.classList.add('photo'); }
       const mid = el('div');
       mid.append(el('b', null, pet.name));
       const bits = [SPECIES[pet.species]];
@@ -220,7 +227,8 @@ async function openPets() {
   } catch (err) { say('#pets-msg', humanError(err)); box.replaceChildren(); }
 }
 
-$('#pet-add').onclick = () => { $('#form-pet').reset(); show('v-newpet'); };
+$('#pet-add').onclick = () => { $('#form-pet').reset(); show('v-newpet'); attachBreeds($('#p-breed'), $('#p-species').value); };
+$('#p-species').onchange = () => attachBreeds($('#p-breed'), $('#p-species').value);
 
 $('#form-pet').onsubmit = async e => {
   e.preventDefault();
@@ -240,6 +248,11 @@ $('#form-pet').onsubmit = async e => {
 function renderPetCard(pet) {
   const card = $('#pet-card');
   card.replaceChildren();
+  // Главное фото (013): из альбома питомца; нет — карточка без картинки, как раньше.
+  if (pet.avatar_photo_id) {
+    const box = el('div', 'pet-hero'); card.append(box);
+    db.avatarUrls([pet]).then(u => { if (u[pet.id]) { const im = el('img'); im.src = u[pet.id]; im.alt = pet.name; box.append(im); } else box.remove(); }).catch(() => box.remove());
+  }
   const rows = [
     ['Вид', SPECIES[pet.species]],
     ['Порода', pet.breed || '—'],
@@ -439,7 +452,7 @@ async function afterAuth() {
     $('#onb-name').value = p.display_name || p.login;
     $('#onb-city').value = p.city || '';
     $('#onb-dist').value = p.district || '';
-    show('v-onb');
+    show('v-onb'); attachCities($('#onb-city'));
     return;
   }
   await openPets();

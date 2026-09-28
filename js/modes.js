@@ -53,6 +53,7 @@ export const MODES = {
         { id: 'walk',  when: { k: 'morning' }, text: 'Утренняя прогулка с обнюхиванием, маршрут выбирает собака', min: 30, ch: { move: 30, nose: 10, choice: 30 } },
         { id: 'mat',   when: { between: ['morning', 'midday'] }, text: 'Нюхательный коврик', min: 10, ch: { nose: 10 } },
         { id: 'out',   when: { k: 'midday' }, text: 'Дневной выход', min: 20, ch: { move: 20, choice: 10 } },
+        { id: 'eve',   when: { k: 'evening' }, text: 'Вечерняя прогулка', min: 30, ch: { move: 20, nose: 10, choice: 15 } },
         { id: 'play',  when: { after: 'evening', min: 90 }, text: 'Вечерняя игра дома', min: 20, ch: { social: 20 } },
       ] },
     { id: 'busy', icon: '🔥', name: 'Сегодня завал',
@@ -60,8 +61,9 @@ export const MODES = {
       items: [
         { id: 'walk',   when: { k: 'morning' }, text: 'Прогулка с обнюхиванием. Не тяните поводок — дайте выбрать, куда идти', min: 20, ch: { move: 20, nose: 10, choice: 20 } },
         { id: 'feeder', when: { k: 'feed', i: 0 }, text: 'Кормушка-головоломка вместо миски', min: 0, ch: { nose: 10 } },
-        { id: 'train',  when: { after: 'evening', min: 30 }, text: 'Короткий тренировочный блок: «ищи» по квартире', min: 12, ch: { social: 12 } },
-        { id: 'play',   when: { after: 'evening', min: 120 }, text: 'Игра: перетягивание или мяч', min: 15, ch: { social: 15 } },
+        { id: 'eve',    when: { k: 'evening' }, text: 'Короткий вечерний выход', min: 10, ch: { move: 10, choice: 10 } },
+        { id: 'train',  when: { after: 'evening', min: 60 }, text: 'Короткий тренировочный блок: «ищи» по квартире', min: 12, ch: { social: 12 } },
+        { id: 'play',   when: { after: 'evening', min: 150 }, text: 'Игра: перетягивание или мяч', min: 15, ch: { social: 15 } },
       ] },
     { id: 'rain', icon: '🌧️', name: 'Плохая погода',
       about: 'Всё переносится в квартиру, нагрузка носом',
@@ -69,7 +71,8 @@ export const MODES = {
         { id: 'walk',   when: { k: 'morning' }, text: 'Короткий выход, маршрут выбирает собака', min: 20, ch: { move: 20, choice: 20 } },
         { id: 'search', when: { between: ['morning', 'midday'] }, text: 'Поиск лакомств по квартире', min: 15, ch: { nose: 15 } },
         { id: 'feeder', when: { k: 'feed', i: 'last' }, text: 'Кормушка-головоломка', min: 0, ch: { nose: 10 } },
-        { id: 'tug',    when: { after: 'evening', min: 30 }, text: 'Перетягивание', min: 20, ch: { social: 20, move: 10 } },
+        { id: 'eve',    when: { k: 'evening' }, text: 'Короткий вечерний выход', min: 10, ch: { move: 10, choice: 10 } },
+        { id: 'tug',    when: { after: 'evening', min: 60 }, text: 'Перетягивание', min: 20, ch: { social: 20, move: 10 } },
       ] },
     { id: 'recovery', icon: '🩹', name: 'После болезни',
       about: 'Ограничение нагрузки, короткие выходы',
@@ -95,6 +98,9 @@ export function defaultMode(species, isoDay, sched) {
   if (wd === 0 || wd === 6) return 'weekend';
   return (sched && sched.weekday_mode) === 'someone' ? 'someone' : 'alone';
 }
+
+/** Минуты вашего участия в режиме (без распорядка — все пункты). */
+export const modeMinutes = m => m.items.reduce((a, it) => a + it.min, 0);
 
 export const findMode = (species, id) => (MODES[species] || []).find(m => m.id === id) || null;
 

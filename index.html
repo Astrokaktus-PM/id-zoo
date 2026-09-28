@@ -86,6 +86,7 @@
         <div class="f">
           <label for="onb-city">Город</label>
           <input type="text" id="onb-city" placeholder="Москва" required>
+          <p class="hint">Начните вводить — подскажем из справочника городов России. Другой город можно вписать.</p>
         </div>
         <div class="f">
           <label for="onb-dist">Район</label>
@@ -170,7 +171,8 @@
         </div>
         <div class="f">
           <label for="p-breed">Порода</label>
-          <input type="text" id="p-breed" placeholder="не обязательно">
+          <input type="text" id="p-breed" placeholder="начните вводить или впишите свою">
+          <p class="hint">Есть «Беспородная» и «Метис». Порода на расчёт не влияет.</p>
         </div>
         <button class="btn" type="submit">Завести профиль</button>
       </form>
@@ -229,10 +231,11 @@
       <div class="card" id="pet-members"></div>
 
       <div id="invite-block" hidden>
-        <div class="sec">Пригласить по логину</div>
+        <div class="sec">Пригласить того, кто тоже ухаживает</div>
         <div class="card">
+          <p class="hint" style="margin-top:0">Семья, выгульщик, ситтер. Ему понадобится логин в приложении — пусть зарегистрируется, питомец для этого не нужен.</p>
           <div class="f">
-            <label for="inv-login">Логин участника</label>
+            <label for="inv-login">Его логин</label>
             <input type="text" id="inv-login" inputmode="latin"
                    autocapitalize="none" autocorrect="off" spellcheck="false">
           </div>
@@ -484,6 +487,7 @@
 
     <section class="view" id="v-photo">
       <div class="msg err" id="photo-msg"></div>
+      <div class="msg ok" id="photo-ok"></div>
       <div id="photo-body"></div>
     </section>
 

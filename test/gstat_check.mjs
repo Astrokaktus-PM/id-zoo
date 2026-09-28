@@ -1,6 +1,6 @@
 // П12, раздел 5: полнота недели, неотнимаемые достижения, факт недели.
 // Запуск: node test/gstat_check.mjs
-import { weekCoverage, hasFullWeek, achievementsDue, weekFact, dayInputs, addDays } from '../js/gstat.js';
+import { weekCoverage, hasFullWeek, achievementsDue, weekFact, dayInputs, addDays, weekRole, placeCells } from '../js/gstat.js';
 import { d5 } from '../js/d5.js';
 let bad = 0;
 const eq = (n, got, want) => { const ok = JSON.stringify(got) === JSON.stringify(want); if (!ok) { bad++; console.log('FAIL', n, 'got', JSON.stringify(got), 'want', JSON.stringify(want)); } };
@@ -28,5 +28,16 @@ eq('30 прогулок только у собак', achievementsDue({ species: 
 eq('за балл ничего не даётся: пусто без полноты', achievementsDue({ species: 'dog', entries: [], absences: [], T, firstDay: null, walksTotal: 0, have: [] }), []);
 eq('факт недели', weekFact({ name: 'Ника', species: 'dog' }, [{ day: T, channel: 'novel', value: 2 }, { day: T, channel: 'nose', value: 40 }], 5, T), 'Ника · эта неделя: 2 новых места, 5 прогулок, 40 мин работы носом.');
 eq('нет фактов — молчим', weekFact({ name: 'Ника', species: 'dog' }, [], 0, T), null);
+// П13: роли-наблюдения.
+const rex = { name: 'Рекс', species: 'dog' };
+const W = []; for (let i = 0; i < 7; i++) { const d = addDays(T, -i); W.push({ day: d, channel: 'choice', value: 10 }, { day: d, channel: 'nose', value: 25 }, { day: d, channel: 'social', value: 10 }, { day: d, channel: 'move', value: 10 }); }
+eq('роль по лучшему каналу — нюх', weekRole(rex, W, [], T).name, 'Нюхач');
+eq('формулировка от факта', weekRole(rex, W, [], T).text, 'На этой неделе Рекс — Нюхач: 175 мин работы носом.');
+const Calm = W.map(e => ({ ...e, value: 5 }));
+eq('спокойная неделя — своя роль', weekRole(rex, Calm, [], T).name, 'Хранитель покоя');
+eq('мало данных — ярлыка нет', weekRole(rex, [{ day: T, channel: 'move', value: 60 }], [], T), null);
+eq('новые места: 3 клетки', placeCells([{ lat: 59.9386, lon: 30.3141 }, { lat: 59.9387, lon: 30.3142 }, { lat: 59.95, lon: 30.3141 }, { lat: 59.9386, lon: 30.40 }]), 3);
+eq('10 ч прогулок', achievementsDue({ species: 'dog', entries: [], absences: [], T, firstDay: null, walksTotal: 5, walkMinutes: 600, places: 2, have: [] }).map(a => a.code), ['hours_10']);
+eq('10 мест', achievementsDue({ species: 'dog', entries: [], absences: [], T, firstDay: null, walksTotal: 5, walkMinutes: 10, places: 10, have: [] }).map(a => a.code), ['places_10']);
 console.log(bad ? `расхождений: ${bad}` : 'всё сходится');
 process.exit(bad ? 1 : 0);

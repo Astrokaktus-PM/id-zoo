@@ -1,5 +1,5 @@
 // П12, разделы 1 и 6: анкета ограничителей. Запуск: node test/survey_check.mjs
-import { gradesFrom, adviceFrom, weekdayFrom, surveyDue, QUESTIONS } from '../js/surveyq.js';
+import { gradesFrom, adviceFrom, weekdayFrom, surveyDue, QUESTIONS, questionsFor, usualWalk } from '../js/surveyq.js';
 import { d5 } from '../js/d5.js';
 let bad = 0;
 const eq = (n, got, want) => { const ok = JSON.stringify(got) === JSON.stringify(want); if (!ok) { bad++; console.log('FAIL', n, 'got', JSON.stringify(got), 'want', JSON.stringify(want)); } };
@@ -30,5 +30,13 @@ eq('ответ 10 дней назад', surveyDue([{ answered_on: '2026-09-18', 
 eq('ответ 14 дней назад', surveyDue([{ answered_on: '2026-09-14', skipped: false }], '2026-09-28').due, true);
 eq('«потом» вчера — не спрашивать', surveyDue([{ answered_on: '2026-09-27', skipped: true }], '2026-09-28').due, false);
 eq('«потом» — анкета ни разу не заполнена', surveyDue([{ answered_on: '2026-09-27', skipped: true }], '2026-09-28').never, true);
+// П13: добавки — в здоровье; «нет» не ставит степень; прогулка — только подсказка.
+eq('добавки не назначены — степени нет', g({ supp: 'none' }), {});
+eq('добавки нерегулярно → здоровье B', g({ supp: 'irregular' }), { health: 'B' });
+eq('боль сильнее добавок', g({ supp: 'irregular', pain: 'clear' }), { health: 'C' });
+eq('обычная прогулка степень не ставит', g({ walk_usual: '60' }), {});
+eq('обычная прогулка — число для подсказки', usualWalk({ walk_usual: '40' }), 40);
+eq('у кошки нет вопроса про прогулку', questionsFor('cat').some(q => q.id === 'walk_usual'), false);
+eq('у собаки есть', questionsFor('dog').some(q => q.id === 'walk_usual'), true);
 console.log(bad ? `расхождений: ${bad}` : 'всё сходится');
 process.exit(bad ? 1 : 0);

@@ -23,6 +23,10 @@ export const QUESTIONS = [
     opts: [['lt4', 'До 4', null], ['4to8', '4–8', null], ['8to10', '8–10', null], ['gt10', 'Больше 10', null]] },
   { id: 'pain', gate: 'health', text: 'Есть сейчас что-то, что болит или мешает двигаться?',
     opts: [['no', 'Нет', 'A'], ['sometimes', 'Иногда прихрамывает или бережёт лапу', 'B'], ['clear', 'Явно мешает', 'C'], ['strong', 'Сильно мешает', 'D']] },
+  { id: 'supp', gate: 'health', text: 'Врач назначил витамины или добавки?', note: '«Даю не всегда» → B — ориентир команды, не данные. Витамины баллов не приносят.',
+    opts: [['none', 'Нет', null], ['regular', 'Назначены, даю регулярно', 'A'], ['irregular', 'Назначены, даю не всегда', 'B']] },
+  { id: 'walk_usual', gate: null, species: 'dog', text: 'Сколько обычно длится самая длинная прогулка за день?', note: 'Подскажем это число, когда будете отмечать движение. Отметка остаётся вашей — сами мы ничего не подставляем.',
+    opts: [['20', 'До 20 минут', null], ['40', 'Около 40 минут', null], ['60', 'Около часа', null], ['90', 'Полтора часа и больше', null]] },
   { id: 'fear', gate: 'fear', text: 'Есть что-то, чего питомец боится регулярно?',
     opts: [['no', 'Нет', 'A'], ['rare', 'Боится, но сталкивается редко', 'B'], ['daily', 'Сталкивается почти каждый день', 'C'], ['blocks', 'Боится настолько, что это мешает выходить', 'D']] },
 ];
@@ -34,6 +38,7 @@ const REASON = {
   table: { few: 'еда со стола 2–4 раза в неделю', daily: 'еда со стола почти каждый день', constant: 'ест со стола постоянно' },
   place: { disturbed: 'в своём месте беспокоят', no: 'нет места, где не трогают' },
   pain: { sometimes: 'иногда прихрамывает', clear: 'боль явно мешает', strong: 'боль сильно мешает' },
+  supp: { irregular: 'добавки назначены, даются не всегда' },
   fear: { rare: 'страх, редко', daily: 'страх почти каждый день', blocks: 'страх мешает выходить' },
 };
 
@@ -45,6 +50,7 @@ export function gradesFrom(answers) {
     if (!q.gate || !answers[q.id]) continue;
     const o = q.opts.find(x => x[0] === answers[q.id]); if (!o) continue;
     const g = o[2], why = REASON[q.id] && REASON[q.id][answers[q.id]];
+    if (!g) continue;
     const cur = out[q.gate];
     if (!cur) out[q.gate] = { gate: q.gate, grade: g, reasons: why ? [why] : [] };
     else { cur.grade = worse(cur.grade, g); if (why) cur.reasons.push(why); }
@@ -61,6 +67,12 @@ export function adviceFrom(answers) {
   if (answers.fear === 'blocks') a.push('Если страх мешает выходить, это повод для специалиста по поведению, а не для лишних прогулок.');
   return a;
 }
+
+/** Вопросы для вида: у кошки нет вопроса про прогулку. */
+export const questionsFor = species => QUESTIONS.filter(q => !q.species || q.species === species);
+
+/** Обычная длительность прогулки из анкеты — только подсказка к отметке, не подстановка (П13, п. 11). */
+export const usualWalk = answers => (answers && answers.walk_usual ? Number(answers.walk_usual) : null);
 
 /** Будний режим по умолчанию из ответа про часы одиночества. */
 export const weekdayFrom = alone => (alone === 'lt4' ? 'someone' : alone ? 'alone' : null);

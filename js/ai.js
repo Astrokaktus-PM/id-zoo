@@ -183,7 +183,7 @@ async function startMode() {
   try { const inp = await loadInputs(T); grade = inp(T).gates.health || 'A'; } catch (_) { /* без потолка */ }
   S.sched = await db.schedule(S.pet.id).catch(() => null);
   bot('Сколько у вас сегодня времени на питомца — вашего участия, не считая кормушки-головоломки?');
-  ask([{ id: 30, text: 'до 45 минут' }, { id: 50, text: 'около часа' }, { id: 90, text: '1,5–2 часа' }, { id: 200, text: '3 часа и больше' }], minutes => {
+  ask([{ id: 30, text: 'до 45 минут' }, { id: 60, text: 'около часа' }, { id: 120, text: '2 часа' }, { id: 200, text: '3 часа и больше' }], minutes => {
     const wd = new Date().getDay();
     const s = suggestMode({ healthGrade: grade, minutes, weekend: wd === 0 || wd === 6 });
     const m = findMode('dog', s.mode);

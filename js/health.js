@@ -193,6 +193,16 @@ const TITLES_HINT = {
   visit: ['Плановый осмотр'], other: [],
 };
 
+// П13: шаблоны ухода с периодичностью. Норму пишем только со ссылкой на источник;
+// у остальных — «ориентир команды», человек подбирает период под питомца.
+const CARE_TEMPLATES = [
+  ['Чистка зубов', 1, { name: 'AAHA Dental Care Guidelines for Dogs and Cats, 2019: «Brushing needs to be done daily to be of benefit»', url: 'https://www.aaha.org/wp-content/uploads/globalassets/02-guidelines/dental/aaha_dental_guidelines.pdf' }],
+  ['Стрижка когтей', 30, null],
+  ['Осмотр и чистка ушей', 14, null],
+  ['Купание', 60, null],
+  ['Груминг или тримминг', 60, null],
+];
+
 function openRecForm(prefill) {
   S.draft = { kind: 'vaccine', title: '', product: '', done_on: todayIso(), valid_until: '', repeat_days: '',
     clinic: '', weight_kg: '', note: '', source: 'manual', document_id: null, ...(prefill || {}) };
@@ -225,6 +235,19 @@ function renderRecForm() {
     kinds.append(b);
   }
   box.append(kinds);
+  if (d.kind === 'care') {
+    const tc = el('div', 'chips');
+    for (const [t, rep, src] of CARE_TEMPLATES) {
+      const b = el('button', 'chip' + (d.title === t ? '' : ' ghost'), t); b.type = 'button';
+      b.onclick = () => { d.title = t; d.repeat_days = String(rep); d.tpl = src ? 'src:' + src.name + '|' + src.url : 'guide'; renderRecForm(); };
+      tc.append(b);
+    }
+    box.append(tc);
+    if (d.tpl) {
+      if (d.tpl.startsWith('src:')) { const [n, u] = d.tpl.slice(4).split('|'); const p = el('p', 'src-line'); const a = el('a', null, n); a.href = u; a.target = '_blank'; a.rel = 'noopener'; p.append('Период — по источнику: ', a, '.'); box.append(p); }
+      else box.append(el('p', 'hint', 'Период подставлен как ориентир команды, не норма: проверенного источника нет. Поменяйте под своего питомца.'));
+    }
+  }
   const c = el('div', 'card');
   const dl = el('datalist'); dl.id = 'hr-titles';
   for (const t of TITLES_HINT[d.kind]) { const o = el('option'); o.value = t; dl.append(o); }

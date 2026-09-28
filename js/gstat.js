@@ -48,17 +48,21 @@ export function hasFullWeek(species, entries, absences, T, span = 14) {
 }
 
 export const ACH = {
+  hours_10: ['🏃', 'Выносливый Хвостик', '10 часов прогулок, записанных в приложении'],
+  places_10: ['🗺️', 'Покоритель Троп', '10 новых мест на прогулках — клетки около 300 м'],
   first_full_week: ['📅', 'Первая полная неделя', 'Семь дней подряд, про каждый известно больше половины'],
   first_month: ['🗓️', 'Первый месяц наблюдений', 'Тридцать дней с первой отметки'],
   walks_30: ['🐾', '30 отмеченных прогулок', 'Все прогулки, записанные в приложении'],
 };
 
 /** Какие достижения положены сейчас. Только полнота и количество наблюдений — не балл. */
-export function achievementsDue({ species, entries, absences, T, firstDay, walksTotal, have }) {
+export function achievementsDue({ species, entries, absences, T, firstDay, walksTotal, walkMinutes, places, have }) {
   const got = new Set((have || []).map(a => a.code)), out = [];
   if (!got.has('first_full_week')) { const d = hasFullWeek(species, entries, absences, T); if (d) out.push({ code: 'first_full_week', earned_on: d }); }
   if (!got.has('first_month') && firstDay && addDays(firstDay, 30) <= T) out.push({ code: 'first_month', earned_on: addDays(firstDay, 30) });
   if (!got.has('walks_30') && species === 'dog' && walksTotal >= 30) out.push({ code: 'walks_30', earned_on: T });
+  if (!got.has('hours_10') && species === 'dog' && (walkMinutes || 0) >= 600) out.push({ code: 'hours_10', earned_on: T });
+  if (!got.has('places_10') && species === 'dog' && (places || 0) >= 10) out.push({ code: 'places_10', earned_on: T });
   return out;
 }
 
@@ -75,3 +79,49 @@ export function weekFact(pet, entries, walksWeek, T) {
 }
 
 function plural(n, w) { const a = n % 10, b = n % 100; return b > 4 && b < 21 ? w[2] : a === 1 ? w[0] : a > 1 && a < 5 ? w[1] : w[2]; }
+
+/* ── П13: роли-наблюдения ───────────────────────────────── */
+// «Кто ваш питомец на этой неделе»: не соревнование и не серия, а ярлык по факту недели,
+// который меняется сам. Роль есть у каждого канала опыта, и отдельная — для спокойной
+// недели: владелец пожилого или спокойного питомца тоже её получает. Уровней нет.
+// Выбор: канал с наибольшей закрытостью нормы за неделю (дни — среднее по дням с отметками).
+const ROLES = {
+  dog: { move: ['🏃', 'Выносливый Хвостик', v => `${fmtH(v)} активного движения`], nose: ['👃', 'Нюхач', v => `${Math.round(v)} мин работы носом`],
+    choice: ['🧭', 'Сам себе штурман', v => `${Math.round(v)} мин свободного выбора`], social: ['🤝', 'Компаньон', v => `${Math.round(v)} мин вместе с вами`],
+    novel: ['🗺️', 'Покоритель Троп', v => `${v} ${plural(v, ['новое место', 'новых места', 'новых мест'])}`] },
+  cat: { hunt: ['🎯', 'Охотник', v => `${Math.round(v)} мин охоты и игры`], terr: ['🏔️', 'Смотритель высот', v => `${Math.round(v)} мин на высоте и в укрытиях`],
+    choice: ['🧭', 'Сам себе хозяин', v => `${Math.round(v)} мин свободы выбора`], social: ['🤝', 'Компаньон', v => `${Math.round(v)} мин вместе с вами`],
+    novel: ['✨', 'Исследователь', v => `${v} ${plural(v, ['новая задача', 'новые задачи', 'новых задач'])}`] },
+};
+export const CALM = ['🛋️', 'Хранитель покоя'];
+function fmtH(min) { const h = Math.floor(min / 60), m = Math.round(min % 60); return h ? `${h} ч${m ? ' ' + m + ' мин' : ''}` : `${m} мин`; }
+
+/** Роль недели или null (про неделю известно меньше половины — ярлык не ставим). */
+export function weekRole(pet, entries, absences, T) {
+  const sp = pet.species, cov = weekCoverage(sp, entries, absences, T);
+  if (cov == null || cov < 50) return null;
+  const from = addDays(T, -6), wk = entries.filter(e => e.day >= from && e.day <= T && !away(absences, e.day));
+  let best = null;
+  for (const [key, , , norm, per] of CH[sp]) {
+    const rows = wk.filter(e => e.channel === key); if (!rows.length) continue;
+    const total = rows.reduce((a, e) => a + Number(e.value), 0);
+    const days = new Set(rows.map(e => e.day)).size;
+    const fill = per === 'week' ? total / norm : (total / days) / norm;
+    if (!best || fill > best.fill) best = { key, total, fill };
+  }
+  if (!best || best.fill < 0.6) return { icon: CALM[0], name: CALM[1], text: `На этой неделе ${pet.name} — ${CALM[1]}: неделя спокойных дней.` };
+  const [icon, name, fact] = ROLES[sp][best.key];
+  return { icon, name, text: `На этой неделе ${pet.name} — ${name}: ${fact(best.total)}.` };
+}
+
+/** Новые места: число клеток ~300 м, где были точки треков. Точки внутри приватной
+ *  зоны дома на сервер не попадают (П5), поэтому дом в счёт не входит. */
+export function placeCells(points) {
+  const cells = new Set();
+  for (const p of points) {
+    const lat = Number(p.lat), lon = Number(p.lon);
+    const dy = 300 / 111320, dx = 300 / (111320 * Math.cos(lat * Math.PI / 180));
+    cells.add(Math.floor(lat / dy) + ':' + Math.floor(lon / dx));
+  }
+  return cells.size;
+}

@@ -1,7 +1,7 @@
 // Сеть первична, кэш — запасной путь. Иначе обновления макета не доезжают
 // до людей, у которых приложение добавлено на домашний экран.
-const V = 'petid-v11';
-const SHELL = ['./', 'index.html', 'app.css', 'js/app.js', 'js/db.js', 'js/config.js', 'js/d5.js', 'js/modes.js', 'js/wellbeing.js', 'js/walks.js', 'js/track.js', 'js/map.js', 'js/health.js', 'js/hstatus.js', 'js/money.js', 'js/mstat.js', 'js/tag.js', 'js/found.js', 'found.html', 'js/community.js', 'js/ai.js', 'js/extras.js', 'js/triage.js', 'js/why.js', 'js/proto.js', 'js/care.js', 'js/carestat.js', 'js/surveyq.js', 'js/gstat.js', 'js/demo-client.js', 'manifest.webmanifest'];
+const V = 'petid-v12';
+const SHELL = ['./', 'index.html', 'app.css', 'js/app.js', 'js/db.js', 'js/config.js', 'js/d5.js', 'js/modes.js', 'js/wellbeing.js', 'js/walks.js', 'js/track.js', 'js/map.js', 'js/health.js', 'js/hstatus.js', 'js/money.js', 'js/mstat.js', 'js/tag.js', 'js/found.js', 'found.html', 'js/community.js', 'js/ai.js', 'js/extras.js', 'js/triage.js', 'js/why.js', 'js/proto.js', 'js/care.js', 'js/carestat.js', 'js/surveyq.js', 'js/gstat.js', 'js/dicts.js', 'js/ics.js', 'data/cities.json', 'data/breeds-dog.json', 'js/demo-client.js', 'manifest.webmanifest'];
 
 self.addEventListener('install', e => {
   self.skipWaiting();

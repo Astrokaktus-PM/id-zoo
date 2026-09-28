@@ -6,9 +6,9 @@ import { CH, GATES, GRADE, d5, dayCard, pyRound, weekText } from './d5.js';
 import { MODES, defaultMode, findMode, resolveItems, anchors } from './modes.js';
 import { autoHealth, worse, dueOf } from './hstatus.js';
 import { openModeEdit, openSchedule, openSurvey } from './care.js';
-import { surveyDue } from './surveyq.js';
+import { surveyDue, usualWalk, questionsFor } from './surveyq.js';
 import { saveSurvey } from './db.js';
-import { weekCoverage, achievementsDue, weekFact, ACH } from './gstat.js';
+import { weekCoverage, achievementsDue, weekFact, ACH, weekRole, placeCells } from './gstat.js';
 
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
@@ -284,8 +284,12 @@ async function loadAchievements(walks) {
   try {
     const have = await db.achievements(S.pet.id);
     const T = todayIso();
-    const [firstDay, walksTotal] = await Promise.all([db.firstEntryDay(S.pet.id), S.pet.species === 'dog' ? db.walksCount(S.pet.id).catch(() => 0) : 0]);
-    const due = canWrite() ? achievementsDue({ species: S.pet.species, entries: S.entries, absences: S.absences, T, firstDay, walksTotal, have }) : [];
+    const dog = S.pet.species === 'dog';
+    const [firstDay, wt] = await Promise.all([db.firstEntryDay(S.pet.id), dog ? db.walksTotals(S.pet.id).catch(() => null) : null]);
+    // Новые места считаем, только пока достижение не получено: точки треков — не на каждый экран.
+    let places = 0;
+    if (dog && wt && canWrite() && !have.some(a => a.code === 'places_10')) places = placeCells(await db.trackPoints(wt.ids).catch(() => []));
+    const due = canWrite() ? achievementsDue({ species: S.pet.species, entries: S.entries, absences: S.absences, T, firstDay, walksTotal: wt ? wt.count : 0, walkMinutes: wt ? wt.minutes : 0, places, have }) : [];
     if (due.length) { await db.addAchievements(S.pet.id, due); have.push(...due); }
     S.ach = have;
     S.walksWeek = walks.filter(w => w.day >= addDays(T, -6)).length;
@@ -294,8 +298,11 @@ async function loadAchievements(walks) {
 
 function renderObservations(X) {
   const c = el('div', 'card');
+  // Роль недели — наблюдение, не оценка и не соревнование (П13).
+  const role = weekRole(S.pet, S.entries.filter(e => e.day <= X), S.absences, X);
+  if (role) { const r = el('div', 'role-line'); r.append(el('span', 'hic', role.icon), el('b', null, role.text)); c.append(r); }
   const fact = weekFact(S.pet, S.entries.filter(e => e.day <= X), S.walksWeek || 0, X);
-  if (fact) c.append(el('p', 'lead', fact));
+  if (fact) c.append(el('p', 'hint', fact));
   if (S.ach.length) {
     c.append(el('div', 'mini', 'Наблюдения'));
     for (const a of S.ach) {
@@ -304,7 +311,7 @@ function renderObservations(X) {
       r.append(el('span', 'hic', m[0]), x); c.append(r);
     }
   }
-  if (!fact && !S.ach.length) return el('div');
+  if (!role && !fact && !S.ach.length) return el('div');
   return c;
 }
 
@@ -312,11 +319,11 @@ function renderSurveyAsk(st) {
   const c = el('div', 'attn');
   const h = el('div', 'attn-h');
   const row = el('div', 'row');
-  const open = el('button', 'btn sm', st.never ? 'Ответить на 6 вопросов' : 'Открыть анкету');
+  const open = el('button', 'btn sm', st.never ? `Ответить на ${questionsFor(S.pet.species).length} вопросов` : 'Открыть анкету');
   open.onclick = () => openSurvey(S.pet, S.role, () => openDay());
   if (st.never) {
     h.append(el('span', null, 'Что сейчас ограничивает её день?')); c.append(h);
-    c.append(el('p', null, 'Анкета не заполнена, поэтому все ограничители — A, пока вы их не отметите. Шесть вопросов обычными словами.'));
+    c.append(el('p', null, `Анкета не заполнена, поэтому все ограничители — A, пока вы их не отметите. ${questionsFor(S.pet.species).length} вопросов обычными словами.`));
     const later = el('button', 'btn ghost sm', 'Потом');
     later.onclick = () => act(() => saveSurvey(S.pet.id, todayIso(), {}, [], true));
     row.append(open, later);
@@ -446,9 +453,12 @@ function renderQuestion(q) {
   if (S.answering === q.key) {
     w.append(el('p', 'hint', q.per === 'week' ? 'Сколько раз за неделю?' : 'Сколько примерно минут?'));
     const chips = el('div', 'chips');
-    const opts = q.per === 'week' ? [1, 2, 3] : [5, 10, 20, 30, 45, 60].filter(v => v <= q.norm * 2);
+    let opts = q.per === 'week' ? [1, 2, 3] : [5, 10, 20, 30, 45, 60].filter(v => v <= q.norm * 2);
+    // Преднастройка из анкеты: «обычно вы гуляете N минут» — подсказка, выбирает человек.
+    const usual = q.key === 'move' && S.surveys ? usualWalk((S.surveys.find(x => !x.skipped) || {}).answers) : null;
+    if (usual) { w.append(el('p', 'hint', `Обычно у вас около ${usual} минут.`)); if (!opts.includes(usual)) opts = [...opts, usual].sort((a, b) => a - b); }
     for (const v of opts) {
-      const b = el('button', 'chip', String(v));
+      const b = el('button', 'chip' + (v === usual ? ' usual' : ''), String(v));
       b.onclick = () => { S.answering = null; act(() => db.addEntries([{ pet_id: S.pet.id, day: X, channel: q.key, value: v, source: 'answer' }])); };
       chips.append(b);
     }

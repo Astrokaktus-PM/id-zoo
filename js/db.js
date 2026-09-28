@@ -84,8 +84,12 @@ export async function saveCityGeo(lat, lon, city) {
 
 export async function saveProfile(patch) {
   const { data: u } = await sb.auth.getUser();
-  const { data, error } = await sb.from('profiles')
-    .update(patch).eq('id', u.user.id).select().single();
+  const q = p => sb.from('profiles').update(p).eq('id', u.user.id).select().single();
+  let { data, error } = await q(patch);
+  // 012 не выполнен — без координат города.
+  if (error && 'city_lat' in patch && /city_lat|city_geo_for|column|permission/i.test(error.message || '')) {
+    const { city_lat, city_lon, city_geo_for, ...rest } = patch; ({ data, error } = await q(rest));
+  }
   if (error) throw error;
   return data;
 }
@@ -94,17 +98,35 @@ export async function saveProfile(patch) {
 export async function updatePet(id, p) {
   const { data, error } = await sb.from('pets')
     .update({ name: p.name, breed: p.breed || null, sex: p.sex || null, birth_date: p.birth_date || null })
-    .eq('id', id).select('id, name, species, breed, sex, birth_date, owner_id').single();
+    .eq('id', id).select('*').single();
   if (error) throw error;
   return data;
 }
 
 export async function listPets() {
-  const { data, error } = await sb.from('pets')
-    .select('id, name, species, breed, sex, birth_date, owner_id')
-    .order('created_at', { ascending: true });
+  const q = cols => sb.from('pets').select(cols).order('created_at', { ascending: true });
+  let { data, error } = await q('id, name, species, breed, sex, birth_date, owner_id, avatar_photo_id');
+  // 013 не выполнен — колонки главного фото нет.
+  if (error && /avatar_photo_id|column/i.test(error.message || '')) ({ data, error } = await q('id, name, species, breed, sex, birth_date, owner_id'));
   if (error) throw error;
   return data;
+}
+
+/** Ссылки на главные фото: {pet_id: signedUrl}. Ошибки — без фото, не ломая список. */
+export async function avatarUrls(pets) {
+  const ids = pets.map(p => p.avatar_photo_id).filter(Boolean);
+  if (!ids.length) return {};
+  const { data, error } = await sb.from('pet_photos').select('id, pet_id, path').in('id', ids);
+  if (error) return {};
+  const out = {};
+  await Promise.all(data.map(async r => { try { out[r.pet_id] = await signedUrl(r.path); } catch (_) { /* без фото */ } }));
+  return out;
+}
+
+export async function setAvatar(petId, photoId) {
+  const { data, error } = await sb.from('pets').update({ avatar_photo_id: photoId }).eq('id', petId).select('id');
+  if (error) throw error;
+  if (!data.length) throw new Error('Главное фото ставят владелец и совладелец');
 }
 
 export async function createPet(p) {
@@ -761,4 +783,20 @@ export async function walksCount(petId) {
   const { data, error } = await sb.from('walks').select('id').eq('pet_id', petId);
   if (error) throw error;
   return data.length;
+}
+
+/** П13: для накопительных ролей — число и минуты прогулок, точки треков (lat/lon). */
+export async function walksTotals(petId) {
+  const { data, error } = await sb.from('walks').select('id, duration_min').eq('pet_id', petId);
+  if (error) throw error;
+  return { ids: data.map(w => w.id), count: data.length, minutes: data.reduce((a, w) => a + Number(w.duration_min || 0), 0) };
+}
+export async function trackPoints(walkIds) {
+  const out = [];
+  for (const id of walkIds) {
+    const { data, error } = await sb.from('walk_points').select('lat, lon').eq('walk_id', id);
+    if (error) throw error;
+    out.push(...data);
+  }
+  return out;
 }

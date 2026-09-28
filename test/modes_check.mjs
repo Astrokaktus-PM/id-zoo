@@ -34,5 +34,9 @@ eq('непоместившийся пункт скрыт', at('someone', S3).som
 eq('позже 23:30 не ставим', at('alone', { ...DEFAULT_SCHEDULE, evening_at: '22:30' }).some(x => x.startsWith('play@')), false);
 // Свой режим: время явное, пункты без времени — в конце.
 eq('свой режим', resolveItems({ items: [{ id: 'b', text: 'b' }, { id: 'a', at: '20:00', text: 'a' }] }, S0).map(x => x.id), ['a', 'b']);
+// П13: ни в одном режиме нет одного выхода на улицу в сутки — у всех есть вечерний.
+const OUT = ['walk', 'walk1', 'walk2', 'long', 'mid', 'out', 'dogs', 'eve'];
+for (const m of MODES.dog) eq(`${m.id}: есть вечерний выход`, m.items.some(it => it.when && it.when.k === 'evening'), true);
+for (const m of MODES.dog) eq(`${m.id}: выходов на улицу не меньше двух`, resolveItems(m, DEFAULT_SCHEDULE).filter(it => OUT.includes(it.id)).length >= 2, true);
 console.log(bad ? `расхождений: ${bad}` : 'всё сходится');
 process.exit(bad ? 1 : 0);

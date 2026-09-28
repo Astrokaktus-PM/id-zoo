@@ -13,8 +13,9 @@ import { humanError } from './db.js';
 import { CH, d5 } from './d5.js';
 import { MODES, resolveItems, DEFAULT_SCHEDULE, findMode, defaultMode } from './modes.js';
 import { compress } from './health.js';
+import { buildIcs } from './ics.js';
 import { planResult, checkMode, currentDiet, packLeft, checkSchedule } from './carestat.js';
-import { QUESTIONS, gradesFrom, adviceFrom, weekdayFrom } from './surveyq.js';
+import { questionsFor, gradesFrom, adviceFrom, weekdayFrom } from './surveyq.js';
 
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
@@ -192,6 +193,16 @@ export async function openSchedule(pet, role, done) {
       if (miss) pv.append(el('p', 'hint', `${miss} ${miss === 1 ? 'пункт не помещается' : 'пункта не помещаются'} и не показывается.`));
       box.append(pv);
     }
+    // П13, п. 9: напоминания без нашего сервера — файл календаря.
+    const ics = el('div', 'card');
+    ics.append(el('b', 'ct', 'Напоминания в календаре телефона'), el('p', 'hint', 'Файл .ics: прогулки и кормления каждый день, напоминание за 15 минут. Добавьте его в календарь один раз; поменяли распорядок — скачайте заново.'));
+    const dl = el('button', 'btn ghost sm', 'Скачать .ics'); dl.type = 'button';
+    dl.onclick = () => {
+      const text = buildIcs(S.pet, d, iso(new Date()), new Date().toISOString());
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/calendar;charset=utf-8' }));
+      a.download = `pet-id-${S.pet.name}.ics`; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    };
+    ics.append(dl); box.append(ics);
     const msg = el('div', 'msg err'); box.append(msg);
     if (ro) { box.append(el('p', 'hint', 'Распорядок меняют владелец и совладелец.')); return; }
     const save = el('button', 'btn', 'Сохранить распорядок'); save.type = 'button';
@@ -226,9 +237,9 @@ export async function openSurvey(pet, role, done, opts = {}) {
   const render = () => {
     box.replaceChildren();
     box.append(el('p', 'lede', opts.first
-      ? `Шесть вопросов про ${S.pet.name}. Ответы станут начальным состоянием: что сейчас ограничивает её день. Это не диагноз — поменяете в любой момент.`
+      ? `${questionsFor(S.pet.species).length} вопросов про ${S.pet.name}. Ответы станут начальным состоянием: что сейчас ограничивает её день. Это не диагноз — поменяете в любой момент.`
       : 'Ответы обновят степени ограничителей с сегодняшнего дня. Прежние отметки остаются в истории.'));
-    for (const q of QUESTIONS) {
+    for (const q of questionsFor(S.pet.species)) {
       const c = el('div', 'card');
       c.append(el('b', 'ct', q.text));
       const ch = el('div', 'chk-list');
@@ -269,6 +280,7 @@ export async function openSurvey(pet, role, done, opts = {}) {
   const result = (marks, advice, wm) => {
     box.replaceChildren();
     const c = el('div', 'card'); c.append(el('b', 'ct', 'Начальное состояние'));
+    if (!marks.length) c.append(el('p', 'hint', 'Эти ответы степени ограничителей не меняют.'));
     for (const m of marks) { const r = el('div', 'kv'); r.append(el('span', null, GATE_NAME[m.gate]), el('b', null, `${m.grade} · ${GR[m.grade]}`)); c.append(r); }
     box.append(c);
     for (const a of advice) { const b = el('div', 'attn'); b.append(el('p', null, a)); box.append(b); }
@@ -441,8 +453,19 @@ function openPhoto(p) {
   box.append(img);
   const kv = el('div', 'card'); for (const [k, v] of [['Дата', dmy(p.taken_on)], ['Раздел', TAGS[p.tag][1]], ['Подпись', p.caption || '—']]) { const r = el('div', 'kv'); r.append(el('span', null, k), el('b', null, v)); kv.append(r); }
   box.append(kv);
+  if (canManage()) {
+    const isMain = S.pet.avatar_photo_id === p.id;
+    const mb = el('button', 'btn ghost', isMain ? 'Убрать из главных' : 'Сделать главным фото');
+    mb.onclick = async () => {
+      mb.disabled = true;
+      try { await db.setAvatar(S.pet.id, isMain ? null : p.id); S.pet.avatar_photo_id = isMain ? null : p.id; openPhoto(p); ui.say('#photo-ok', isMain ? 'Главное фото убрано' : 'Это фото теперь в карточке и в списке питомцев', 'ok'); }
+      catch (e) { mb.disabled = false; ui.say('#photo-msg', humanError(e)); }
+    };
+    if (isMain) box.append(el('p', 'hint', 'Это главное фото питомца.'));
+    box.append(mb);
+  }
   if (mine(p)) box.append(delBtn('Удалить фото', async () => {
-    try { await db.deletePhoto(p); G.urls.delete(p.path); await openGallery(); ui.say('#gallery-ok', 'Фото удалено', 'ok'); } catch (e) { ui.say('#photo-msg', humanError(e)); }
+    try { await db.deletePhoto(p); G.urls.delete(p.path); if (S.pet.avatar_photo_id === p.id) S.pet.avatar_photo_id = null; await openGallery(); ui.say('#gallery-ok', 'Фото удалено', 'ok'); } catch (e) { ui.say('#photo-msg', humanError(e)); }
   }));
 }
 
@@ -498,7 +521,7 @@ function renderNutrition() {
       ah.append(el('span', null, pk.days <= 0 ? 'Упаковка должна была закончиться' : `Корма хватит на ${pk.days} дн.`)); a.append(ah);
       a.append(el('p', null, `Упаковка ${fmt(Number(cur.pack_kg))} кг открыта ${dmy(cur.pack_opened_on)}; расчёт — по ${fmt(Number(cur.grams_per_day))} г в сутки, без учёта лакомств.` + (pk.days > 0 ? ` Закончится около ${dmy(pk.ends)}.` : '')));
       if (canWrite()) {
-        const r = el('div', 'row');
+        const r = el('div', 'row wrap');
         const plan = el('button', 'btn sm', 'Запланировать покупку');
         plan.onclick = async () => {
           plan.disabled = true;
