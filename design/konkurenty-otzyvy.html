@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Что на самом деле ломается у конкурентов</title>
+<meta name="description" content="Разбор отзывов владельцев на 11 GPS-трекеров и ошейников: зарядка и износ, реальная нужность влагозащиты, ключевые претензии.">
+<meta name="color-scheme" content="light dark">
+<style>
+  html{color-scheme:light dark}
+  body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --bg:#F5F6F3; --card:#FFFFFF; --card2:#ECEEE9; --line:#D8DCD3; --line2:#BFC5B9;
+  --ink:#18242A; --ink2:#3D4B52; --sub:#69787D;
+  --accent:#00706A; --accent-s:#DBEDEA; --accent-b:#9CCFC8;
+  --warn:#96530F; --warn-s:#F5E8D8; --warn-b:#DEBE92;
+  --bad:#9C2B39; --bad-s:#F6E0E2; --bad-b:#DFA7AD;
+  --plum:#55428A; --plum-s:#E8E3F3; --plum-b:#BCACE0;
+  --claim:#2a78d6; --real:#d2660a;          /* validate_palette: PASS light / #FFFFFF */
+  --sh:0 1px 2px rgba(24,36,42,.05), 0 7px 22px -14px rgba(24,36,42,.2);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1417; --card:#141E22; --card2:#1B272C; --line:#293539; --line2:#3A4B51;
+  --ink:#E3EAE8; --ink2:#B2C0BF; --sub:#7C8E92;
+  --accent:#52C0B1; --accent-s:#11302D; --accent-b:#2E6660;
+  --warn:#D9954F; --warn-s:#2F2310; --warn-b:#6B4F27;
+  --bad:#E07C87; --bad-s:#31161A; --bad-b:#6E3239;
+  --plum:#A88FDC; --plum-s:#221C31; --plum-b:#4B3E72;
+  --claim:#3987e5; --real:#d95926;          /* validate_palette: PASS dark / #141E22 */
+  --sh:0 1px 2px rgba(0,0,0,.4), 0 9px 26px -16px rgba(0,0,0,.8);
+}}
+:root[data-theme="dark"]{
+  --bg:#0D1417; --card:#141E22; --card2:#1B272C; --line:#293539; --line2:#3A4B51;
+  --ink:#E3EAE8; --ink2:#B2C0BF; --sub:#7C8E92;
+  --accent:#52C0B1; --accent-s:#11302D; --accent-b:#2E6660;
+  --warn:#D9954F; --warn-s:#2F2310; --warn-b:#6B4F27;
+  --bad:#E07C87; --bad-s:#31161A; --bad-b:#6E3239;
+  --plum:#A88FDC; --plum-s:#221C31; --plum-b:#4B3E72;
+  --claim:#3987e5; --real:#d95926;
+  --sh:0 1px 2px rgba(0,0,0,.4), 0 9px 26px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font-family:Literata,Georgia,serif; font-size:15.5px; line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0; font-family:Onest,"Helvetica Neue",Arial,sans-serif;
+  letter-spacing:-.02em; line-height:1.14; text-wrap:balance}
+.mono,.lbl,th,.tag,.hero .n{font-family:"IBM Plex Mono",ui-monospace,monospace}
+.lbl{font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--sub);
+  display:block; margin-bottom:8px}
+p{margin:0 0 14px; max-width:70ch}
+strong{font-weight:600}
+
+.top{border-bottom:1px solid var(--line); background:var(--card)}
+.topin{max-width:1020px; margin:0 auto; padding:38px 26px 30px}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--accent); margin-bottom:12px}
+h1{font-size:clamp(29px,4.4vw,44px); font-weight:800}
+.lede{margin:15px 0 0; max-width:64ch; font-size:17px; color:var(--ink2)}
+.meta{display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 0}
+.tag{font-size:11px; letter-spacing:.04em; padding:4px 9px; border-radius:4px;
+  background:var(--card2); color:var(--sub); border:1px solid var(--line)}
+
+main{max-width:1020px; margin:0 auto; padding:38px 26px 90px}
+section{margin:0 0 52px}
+h2{font-size:26px; font-weight:700; margin:0 0 10px}
+h2 .num{font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:500;
+  color:var(--accent); margin-right:11px; letter-spacing:0}
+h3{font-size:18px; font-weight:700; margin:28px 0 7px}
+.intro{font-size:16.5px; color:var(--ink2); max-width:66ch; margin-bottom:22px}
+
+/* находка */
+.find{border-left:3px solid var(--accent); padding:3px 0 3px 20px; margin:22px 0}
+.find .t{font-family:Onest,Arial,sans-serif; font-size:19px; font-weight:700;
+  letter-spacing:-.02em; line-height:1.3; max-width:46ch; margin-bottom:7px}
+.find p{margin:0; font-size:15px; color:var(--ink2)}
+.find.warn{border-color:var(--warn)} .find.bad{border-color:var(--bad)}
+
+/* таблицы */
+.tw{overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:var(--card);
+  margin:18px 0; box-shadow:var(--sh)}
+table{border-collapse:collapse; width:100%; min-width:680px; font-size:14px}
+th{font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--sub);
+  text-align:left; font-weight:500; padding:12px 15px; background:var(--card2);
+  border-bottom:1px solid var(--line); white-space:nowrap; vertical-align:bottom}
+td{padding:12px 15px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink2)}
+tr:last-child td{border-bottom:0}
+td strong{color:var(--ink)}
+.n{font-variant-numeric:tabular-nums; white-space:nowrap; font-family:"IBM Plex Mono",monospace}
+.claim{color:var(--claim); font-weight:600}
+.real{color:var(--real); font-weight:600}
+.q{font-family:Literata,Georgia,serif; font-style:italic; color:var(--ink)}
+
+/* бейджи */
+.b{display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  letter-spacing:.04em; padding:2px 7px; border-radius:4px; white-space:nowrap; font-weight:500}
+.b.ok{background:var(--accent-s); color:var(--accent)}
+.b.no{background:var(--bad-s); color:var(--bad)}
+.b.mid{background:var(--warn-s); color:var(--warn)}
+.b.q{background:var(--card2); color:var(--sub); border:1px solid var(--line)}
+
+/* заметки */
+.note{border:1px solid var(--line); border-radius:12px; padding:18px 21px;
+  background:var(--card); margin:18px 0}
+.note.warn{background:var(--warn-s); border-color:var(--warn-b)}
+.note.warn .lbl{color:var(--warn)}
+.note.bad{background:var(--bad-s); border-color:var(--bad-b)}
+.note.bad .lbl{color:var(--bad)}
+.note.good{background:var(--accent-s); border-color:var(--accent-b)}
+.note.good .lbl{color:var(--accent)}
+.note.key{background:var(--plum-s); border-color:var(--plum-b)}
+.note.key .lbl{color:var(--plum)}
+.note p:last-child{margin-bottom:0}
+.note p{font-size:14.5px}
+
+/* герой-числа */
+.heroes{display:grid; grid-template-columns:repeat(auto-fit,minmax(168px,1fr)); gap:1px;
+  background:var(--line); border:1px solid var(--line); border-radius:12px;
+  overflow:hidden; margin:20px 0}
+.hero{background:var(--card); padding:17px 19px}
+.hero .n{display:block; font-family:Onest,Arial,sans-serif; font-size:30px; font-weight:800;
+  letter-spacing:-.035em; font-variant-numeric:tabular-nums; line-height:1}
+.hero .c{display:block; font-size:12.5px; color:var(--sub); margin-top:6px; line-height:1.4}
+
+/* график */
+.viz{background:var(--card); border:1px solid var(--line); border-radius:14px;
+  padding:22px 24px 18px; margin:20px 0; box-shadow:var(--sh)}
+.viz h3{margin:0 0 3px; font-size:16.5px}
+.viz .vsub{font-size:13px; color:var(--sub); margin:0 0 20px; max-width:62ch}
+.brow{display:grid; grid-template-columns:150px 1fr 56px; gap:13px; align-items:center;
+  padding:4px 0; margin-bottom:3px}
+.brow .bl{font-size:13.5px; font-family:Onest,Arial,sans-serif; text-align:right; color:var(--ink2)}
+.brow .bt{height:20px; position:relative; background:var(--card2); border-radius:4px}
+.brow .bt i{display:block; height:100%; background:var(--accent); border-radius:3px 4px 4px 3px}
+.brow .bv{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--ink2);
+  font-variant-numeric:tabular-nums}
+.brow .bv em{font-style:normal; color:var(--sub); font-size:11px}
+.vfoot{margin-top:16px; padding-top:13px; border-top:1px solid var(--line);
+  font-size:12.5px; color:var(--sub); max-width:66ch}
+
+/* легенда claim/real */
+.key2{display:flex; gap:18px; font-size:12.5px; color:var(--sub); margin:0 0 14px;
+  font-family:Onest,Arial,sans-serif}
+.key2 span{display:flex; align-items:center; gap:7px}
+.key2 i{width:11px; height:11px; border-radius:3px; display:block}
+
+.two{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:15px; margin:18px 0}
+
+footer{border-top:1px solid var(--line); margin-top:54px; padding-top:24px;
+  font-size:13px; color:var(--sub); max-width:76ch}
+footer h3{font-size:14px; margin:0 0 10px; color:var(--ink)}
+footer ul{padding-left:18px; margin:0 0 14px}
+footer li{margin-bottom:6px}
+footer a{color:var(--accent)}
+
+@media (max-width:620px){
+  main{padding:28px 18px 70px} .topin{padding:28px 18px 24px}
+  .brow{grid-template-columns:104px 1fr 48px; gap:9px}
+  .brow .bl{font-size:12px}
+}
+</style>
+
+<div class="top"><div class="topin">
+  <div class="eyebrow">Конкурентная разведка · Pet ID · для команды</div>
+  <h1>Что на самом деле ломается у конкурентов</h1>
+  <p class="lede">Отзывы владельцев по одиннадцати трекерам и ошейникам — РФ и зарубежные.
+  Три вопроса: как переносят зарядку и износ, нужна ли влагозащита в реальности,
+  и на что жалуются по-настоящему.</p>
+  <div class="meta">
+    <span class="tag">14 сентября 2026</span>
+    <span class="tag">~800 отзывов просмотрено</span>
+    <span class="tag">Amazon, Ozon, Reddit, irecommend — недоступны</span>
+  </div>
+</div></div>
+
+<main>
+
+<section>
+<h2><span class="num">00</span>Как это собрано и чему здесь нельзя верить</h2>
+<p class="intro">Без этого раздела остальные цифры читать нельзя. Часть площадок закрыта,
+и это смещает выборку в предсказуемую сторону.</p>
+
+<div class="two">
+  <div class="note good">
+    <span class="lbl">Получено</span>
+    <p>Trustpilot (~230 отзывов по европейским брендам), Chewy, Best Buy, Walmart,
+    <strong>BBB — жалобы в официальном реестре</strong>, ProductReview.com.au,
+    отзывы приложений, otzovik (157 отзывов Petsee, 11 Mishiko),
+    публичный API Wildberries (1 200+ отзывов с текстом), 2ГИС,
+    forum.guns.ru, справочные центры вендоров.</p>
+  </div>
+  <div class="note bad">
+    <span class="lbl">Закрыто</span>
+    <p><strong>Amazon</strong> и <strong>Reddit</strong> — robots.txt и блокировка.
+    <strong>Ozon</strong> — анти-бот. <strong>irecommend</strong> — сайт не отвечает.
+    PissedConsumer — CAPTCHA. Это критично: истории про «утонул в озере» и
+    «сдох через год» концентрируются именно на Amazon и Reddit.</p>
+  </div>
+</div>
+
+<div class="note warn">
+  <span class="lbl">Систематическое смещение, которое надо держать в голове</span>
+  <p>Trustpilot у этих брендов набирается приглашениями после покупки — там непропорционально
+  много пятёрок. Сравните один и тот же Tractive: <strong>4,7 из 5 при 60 тысячах отзывов
+  на Trustpilot и 1,7 из 5 при 66 отзывах на ProductReview.com.au</strong>, где люди приходят
+  сами и по своей инициативе. Обе цифры настоящие, ни одна не репрезентативна.
+  Поэтому ниже я нигде не считаю «процент недовольных» — только называю, что встречается
+  и насколько часто относительно просмотренного.</p>
+  <p>По Petsee отдельная проблема: <strong>otzovik сам повесил на карточку баннер
+  «здесь были замечены заказные рекламные отзывы»</strong>. До 2024 года распределение
+  было 13 единиц на 19 отзывов, с 2024-го — 104 пятёрки на 138. Либо вышла удачная модель,
+  либо закупка. Различить по данным нельзя.</p>
+</div>
+</section>
+
+<section>
+<h2><span class="num">01</span>Зарядка и износостойкость</h2>
+
+<div class="find">
+  <div class="t">Заявленная автономность не совпадает с реальной ни у одного производителя
+  из одиннадцати. Вопрос только в размере разрыва.</div>
+  <p>Это не дефект отдельных брендов — это норма категории. И это значит,
+  что честная цифра сама по себе становится позиционированием.</p>
+</div>
+
+<div class="tw"><table>
+  <thead><tr><th>Устройство</th><th class="n">Заявлено</th><th class="n">Реально по отзывам</th>
+    <th>Что именно говорят</th></tr></thead>
+  <tbody>
+  <tr><td><strong>Kippy EVO</strong></td><td class="n claim">7–10 дней</td><td class="n real">12–26 ч</td>
+    <td>«They claim up to 12+ days! <span class="q">They hardly do 12 hrs</span>».
+      Самый большой разрыв в выборке.</td></tr>
+  <tr><td><strong>Jiobit Gen 3</strong></td><td class="n claim">до 30 дней</td><td class="n real">1–7 дней</td>
+    <td>Справка Life360 честнее маркетинга: там «2–30 дней». Владелец: «заряжала 4 раза
+      за две недели при обещанных четырёх неделях».</td></tr>
+  <tr><td><strong>Fi Series 3+</strong></td><td class="n claim">до 3 мес.</td><td class="n real">2 дня – 3 нед.</td>
+    <td>Заявленное достигается только рядом с базой. У владельца за год Series 2 —
+      около 3 недель. «Battery life starts out AMAZING but has gotten to be less over time».</td></tr>
+  <tr><td><strong>Weenect XS</strong></td><td class="n claim">7 или 10 дней</td><td class="n real">1–2 дня</td>
+    <td>Витрина обещает 7 дней, собственный справочный центр — 10. Два заявления
+      одного вендора расходятся между собой.</td></tr>
+  <tr><td><strong>Pawfit 3</strong></td><td class="n claim">до 8 дней</td><td class="n real">1–3 дня</td>
+    <td><strong>Сам Pawfit в публичном ответе на жалобу назвал нормой 3–4 дня.</strong>
+      Владелец пишет «battery life is as advertised, charging about every 3 days» —
+      он уже считает нормой то, что вдвое меньше обещанного.</td></tr>
+  <tr><td><strong>Whistle Go Explore</strong></td><td class="n claim">20 дней</td><td class="n real">7–10 дней</td>
+    <td>Независимый тест — 7–10 дней. После ~11 месяцев у владельца ушло до суток.</td></tr>
+  <tr><td><strong>Tractive DOG 6</strong></td><td class="n claim">до 14 дней</td><td class="n real">1–8 дней</td>
+    <td>Единственный, где заявленное подтверждается — но только если питомец
+      живёт внутри домашней Wi-Fi-зоны. Вне её падает до суток.</td></tr>
+  <tr><td><strong>Invoxia Minitailz</strong></td><td class="n claim">до 15 дней</td><td class="n real">5–10 дней</td>
+    <td>8–10 дней при частых обновлениях, 5–6 вне Wi-Fi. Самый скромный разрыв.</td></tr>
+  <tr><td><strong>Petsee Dogs</strong></td><td class="n claim">до 7 дней</td><td class="n real">2–5 дней</td>
+    <td>«Заряд держит максимум трое суток. До 5 суток, как заявляет продавец, не бывает».
+      Зимой ещё меньше — вендор это признаёт.</td></tr>
+  <tr><td><strong>Halo 4</strong></td><td class="n claim">до 30 ч</td><td class="n real">8–12 ч</td>
+    <td>Halo прямо предписывает «charging it nightly» — ежедневная зарядка
+      это не дефект, а конструкция.</td></tr>
+  <tr><td><strong>SpotOn Nova</strong></td><td class="n claim">33+ ч</td><td class="n real">11–15 ч</td>
+    <td>«Daily battery life is about 11 hours. Battery has been replaced twice already».</td></tr>
+  </tbody>
+</table></div>
+<p style="font-size:13px;color:var(--sub);max-width:70ch">Колонка «реально» — <strong>слова
+владельцев и независимых тестеров, не измерение</strong>. Это диапазон встреченных
+утверждений, а не распределение. Медиану я не считаю: за каждой строкой от одного
+до пяти свидетельств, и усреднять их значило бы придумать точность, которой нет.</p>
+
+<h3>Что ломается на самом деле</h3>
+<div class="find warn">
+  <div class="t">Механика отваливается чаще, чем садится батарея и чем заливает водой.
+  Это самый недооценённый класс отказов во всей выборке.</div>
+</div>
+
+<div class="tw"><table>
+  <thead><tr><th>Бренд</th><th>Что ломается</th><th>Свидетельства</th></tr></thead>
+  <tbody>
+  <tr><td><strong>Tractive</strong><br><span class="b no">худший случай</span></td>
+    <td>Пластиковая вставка крепления к ошейнику</td>
+    <td>«Collar broke in the plastic insert <strong>after 2 days of use</strong>» ·
+      «one of the plastic hooks broke» <strong>прямо из коробки</strong> ·
+      «snapped. Has happened <strong>3 times already</strong>» ·
+      «Plastic mounting broke on the 6th day».
+      <strong>В двух случаях поддержка ответила, что это не гарантийный случай.</strong></td></tr>
+  <tr><td><strong>Whistle</strong></td><td>Пластиковые «уши» крепления</td>
+    <td>«<strong>I've had six of these. The dogs broke the plastic lugs on all six</strong>» ·
+      «4 broken trackers in 6 months» · у Switch отваливалась крышка батарейного отсека.</td></tr>
+  <tr><td><strong>Fi</strong></td><td>Пряжка, силиконовый держатель, металлическая накладка</td>
+    <td>Витрина обещает «500+ lbs resistance… strongest pullers and chewers».
+      Отзывы: «the collar buckle broke» · «Silicone rips easily» ·
+      «The locking mechanism breaks down… the collar literally comes off.
+      <strong>A GPS collar that won't stay on your dog</strong>» (клиент 6 лет).</td></tr>
+  <tr><td><strong>Halo</strong></td><td>Серийные замены корпуса и клипс</td>
+    <td>«metal clamps have fallen off 3 separate times» ·
+      «I am now on my <strong>4th collar in 6 months</strong>» · у одного клиента
+      <strong>10 замен за год</strong> (BBB).</td></tr>
+  <tr><td><strong>Petsee</strong></td><td>Резиновое крепление, крышка на трении</td>
+    <td>«На резиновое крепление не надейтесь, после камыша питомец придёт без трекера,
+      <strong>помогает изолента</strong>» · «усилил хомутом» · «лопнуло крепление через 3 дня» ·
+      «хочется прихватить крышку изолентой, она на трении».</td></tr>
+  <tr><td><strong>Jiobit</strong></td><td>Корпус вскрывается</td>
+    <td>«didn't even last 60 days before <strong>cracking open</strong>» ·
+      «emblem on the front has torn off <strong>leaving a hole in the exterior</strong>».
+      При заявленном IP68 это означает, что герметичности больше нет.</td></tr>
+  <tr><td><strong>Invoxia</strong></td><td>Металлическое кольцо крепления</td>
+    <td>«snapped open after three months» при том, что собака не тянет.
+      «The plastic clasp design is not durable and <strong>replacement parts
+      are not available</strong>».</td></tr>
+  </tbody>
+</table></div>
+
+<h3>Деградация батареи — и одно неприятное совпадение</h3>
+<div class="note warn">
+  <span class="lbl">Совпадение, которое встречается слишком часто, чтобы быть случайным</span>
+  <p>Владелец Halo в отзыве BBB: <span class="q">«Collars start refusing to charge
+  <strong>right after the 12-month warranty is up</strong>»</span>. Отдельно — жалоба
+  на вздутие аккумулятора: «The charging port is skewed indicating the battery has swollen».</p>
+  <p>Подтверждённая деградация по остальным: Pawfit — «7/8 дней в начале → 3/4 дня»,
+  гарантию не признали; Fi — «Battery doesn't even last a week now… paid for 6 months
+  and not even 2 months later»; Whistle — на 9–11 месяце ушло с недель на сутки;
+  SpotOn — отказ батареи через 15 месяцев при обещании «прослужит годы», плюс
+  <strong>$50 за выезд мастера</strong> для замены; Petsee — «первый месяц держал хорошо,
+  потом с батареей что-то случилось», причём поддержка сама признала это ненормальным.</p>
+</div>
+
+<h3>Эталон, который GPS-ошейник не побьёт</h3>
+<div class="heroes">
+  <div class="hero"><span class="n">~1 год</span><span class="c">AirTag на батарейке CR2032,
+    заряжать не нужно вообще</span></div>
+  <div class="hero"><span class="n">3 года</span><span class="c">Tile Mate — но батарея
+    несменная, потом устройство на выброс</span></div>
+  <div class="hero"><span class="n">500–700 дн</span><span class="c">Samsung SmartTag 2,
+    батарейка меняется владельцем</span></div>
+  <div class="hero"><span class="n">1–14 дн</span><span class="c">весь GPS-класс,
+    реальные значения из таблицы выше</span></div>
+</div>
+<p>Каждый сравнительный материал, который удалось открыть, формулирует это одинаково:
+метка «eliminates the weekly charging burden of traditional GPS collars».
+Полугодовой тест на трёх собаках — ни одного предупреждения о низком заряде.</p>
+<p>Обратная сторона, о которой в рекламе не пишут: реальный срок батарейки AirTag
+<strong>разбросан от 3 месяцев до 18</strong> — в ветке владельцев MacRumors итог
+сформулирован как «luck of the draw». И отдельная мелочь с большими последствиями:
+горькое покрытие некоторых батареек Duracell, сделанное от проглатывания детьми,
+мешает контакту.</p>
+</section>
+
+<section>
+<h2><span class="num">02</span>Нужна ли на самом деле пыле-влагозащита</h2>
+
+<div class="find bad">
+  <div class="t">Вывод противоположен ожидаемому: отказов от воды в отзывах почти нет.
+  Зато там, где они есть, причина не в классе IP.</div>
+</div>
+
+<div class="heroes">
+  <div class="hero"><span class="n">2</span><span class="c">отказа от воды на ~230 отзывов
+    по европейским брендам — менее 1%</span></div>
+  <div class="hero"><span class="n">0</span><span class="c">у Fi на ~120 просмотренных,
+    при самой агрессивной «водной» рекламе</span></div>
+  <div class="hero"><span class="n">0</span><span class="c">у Jiobit, Invoxia, SpotOn
+    и у Petsee — прямых «утонул и умер» нет</span></div>
+  <div class="hero"><span class="n">1</span><span class="c">отзыв за всё исследование,
+    где владелец счёл влагозащиту избыточной</span></div>
+</div>
+
+<div class="tw"><table>
+  <thead><tr><th>Устройство</th><th class="n">Заявлено</th><th>Отказы от воды в отзывах</th></tr></thead>
+  <tbody>
+  <tr><td><strong>Fi</strong></td><td class="n">IP68 + IP66K</td>
+    <td><span class="b ok">не найдено</span> Наоборот: собаки-дайверы, океан, «still communicates
+      fine». <strong>Но: витрина обещает «до 50 метров», собственная справка — 1,5 м на 30 минут.</strong>
+      Расхождение в 33 раза — и именно справка будет основанием в споре о гарантии.</td></tr>
+  <tr><td><strong>Tractive</strong></td><td class="n">IP68</td>
+    <td><span class="b mid">1 случай</span> «water damage вызвал непрекращающийся писк».
+      В рознице для DOG 4 при этом указан IPX7 — какой верен, не подтверждено.</td></tr>
+  <tr><td><strong>Pawfit</strong></td><td class="n">IPX8 / IP68</td>
+    <td><span class="b mid">1 случай</span> «The tracker got wet <strong>inside waterproof case</strong>».
+      Единственный, кто явно заявляет солёную воду.</td></tr>
+  <tr><td><strong>Weenect</strong></td><td class="n">IP68 (у Dogs² не заявлен)</td>
+    <td><span class="b ok">не найдено</span> Витрина 1,5 м / 60 мин, справка — 1 м.</td></tr>
+  <tr><td><strong>Kippy EVO</strong></td><td class="n">IP67</td>
+    <td><span class="b ok">не найдено</span> Самый слабый класс среди европейцев —
+      и при этом ни одной жалобы на воду.</td></tr>
+  <tr><td><strong>Jiobit</strong></td><td class="n">IP68</td>
+    <td><span class="b ok">не найдено напрямую</span> Но корпус трескается и вскрывается
+      механически — риск производный.</td></tr>
+  <tr><td><strong>Invoxia</strong></td><td class="n">IP67</td>
+    <td><span class="b ok">не найдено</span> Только пресная вода, кратковременно.
+      USB-C под резиновой заглушкой.</td></tr>
+  <tr><td><strong>Whistle</strong></td><td class="n">IPX8, до 2 м</td>
+    <td><span class="b no">есть, повторяются</span> «died after my dog played in
+      <strong>chest deep water</strong>» · «Don't hold up very well with a water dog.
+      Having to replace again». Примерно 3 из ~20 «водных» упоминаний.</td></tr>
+  <tr><td><strong>Halo</strong></td><td class="n">IP67</td>
+    <td><span class="b no">есть, и вендор сам предупреждает</span>
+      «My dog was in the water for only <strong>1–2 minutes</strong>, and the collar
+      completely stopped working» · «Every time it would get just a little wet it would
+      take days to dry out and charge again». Halo в справке: <strong>«Do not charge
+      the collar if the USB charging port is wet»</strong>.</td></tr>
+  <tr><td><strong>SpotOn</strong></td><td class="n">IP67</td>
+    <td><span class="b ok">не найдено</span> Наоборот: «She's in the water every day
+      and it has never affected the reliability».</td></tr>
+  <tr><td><strong>Petsee</strong></td><td class="n">IP67 (Cats — IP66)</td>
+    <td><span class="b mid">косвенно</span> Прямых «утонул» нет, но: «только брызгозащита,
+      конструкция с крышкой на трении» · «после попадания воды симкарта мокрая» ·
+      «нет полноценной защиты от воды, крышка требует дополнительной фиксации».</td></tr>
+  <tr><td><strong>Китайские с WB</strong></td><td class="n">IP67 на бумаге</td>
+    <td><span class="b no">есть, прямо</span> «Пошли дожди и трекер <strong>окислился</strong>
+      и перестал работать» · «Дождь и снег выдерживают. <strong>Утопление в реке — нет</strong>».
+      На форуме охотников — самостоятельная проклейка герметиком ABRO под прокладку.</td></tr>
+  <tr><td><strong>AirTag</strong></td><td class="n">IP67</td>
+    <td><span class="b ok">массовых нет</span> Единичная потеря сигнала при погружении,
+      часть обратима после просушки. Физика: <strong>под водой радиосигнал не проходит вообще</strong> —
+      это не поломка, но выглядит для владельца так же.</td></tr>
+  </tbody>
+</table></div>
+
+<div class="note key">
+  <span class="lbl">Что из этого следует</span>
+  <p>Поднимать класс IP ради цифры на коробке смысла нет — <strong>IP67 не отличается
+  от IP68 по числу жалоб</strong>. Отказы от воды возникают там, где герметичность нарушена
+  <em>механически</em> (треснул корпус Jiobit, отвалилась эмблема, крышка Petsee держится
+  на трении) или где <strong>вода блокирует зарядку</strong>, а не заливает электронику:
+  именно это описывают владельцы Halo — «намокнет, потом сутки сохнет и не заряжается».</p>
+  <p style="margin-bottom:0">То есть требование формулируется не как «взять IP68»,
+  а как: <strong>целостность корпуса при собачьей возне</strong> и
+  <strong>зарядный интерфейс, переживающий влагу</strong>. Первое проверяется тестом
+  на удар и на разгрызание, второе — конструкцией разъёма.</p>
+</div>
+
+<div class="note warn">
+  <span class="lbl">Обрезать влагозащиту нельзя</span>
+  <p>За всё исследование нашёлся <strong>ровно один</strong> отзыв, где владелец счёл защиту
+  избыточной (Whistle, 2019: «моя бордер-колли прыгает в бассейн на минуту и не уходит
+  глубже пары дюймов»). При этом в российских отзывах водонепроницаемость владельцы
+  <em>сами</em> пишут в графу «Достоинства» — то есть это то, что покупают.
+  Вывод: защита нужна как обещание, даже если по статистике отказов она почти не работает.
+  Экономить надо не на ней, а на её переоценке в рекламе.</p>
+</div>
+
+<h3>Мороз — тема, которой в отзывах почти нет</h3>
+<p>Ожидаемая для России проблема в данных <strong>практически не артикулирована</strong>:
+9 упоминаний на 157 отзывов Petsee и 3 на 1 200+ отзывов с Wildberries.
+Подтверждено ровно два факта: владельцы Petsee отмечают ускоренный разряд зимой
+(и вендор это признаёт, заявляя работу до −25 °C), и один охотник зафиксировал
+<strong>12 часов летом против 8 зимой</strong>. Прямых «отказал на морозе» нет.</p>
+<p>Осторожно с интерпретацией: отсутствие жалоб вероятнее означает, что зимой
+такие устройства просто мало кто носит, а не что проблемы нет. Считать это
+закрытым вопросом нельзя.</p>
+</section>
+
+<section>
+<h2><span class="num">03</span>Ключевые претензии: к кому и почему</h2>
+
+<div class="viz">
+  <h3>О чём вообще пишут владельцы Petsee</h3>
+  <p class="vsub">Упоминания темы в 157 отзывах на otzovik.com. Это <strong>упоминания,
+  а не жалобы</strong>: поддержку, например, чаще хвалят, чем ругают. Один продукт,
+  одна площадка — как распределение внимания, а не как рейтинг проблем.</p>
+  <div class="brow"><span class="bl">Батарея</span><span class="bt"><i style="width:100%"></i></span><span class="bv">67 <em>43%</em></span></div>
+  <div class="brow"><span class="bl">Связь и SIM</span><span class="bt"><i style="width:79%"></i></span><span class="bv">53 <em>34%</em></span></div>
+  <div class="brow"><span class="bl">Поддержка</span><span class="bt"><i style="width:64%"></i></span><span class="bv">43 <em>27%</em></span></div>
+  <div class="brow"><span class="bl">Приложение</span><span class="bt"><i style="width:60%"></i></span><span class="bv">40 <em>25%</em></span></div>
+  <div class="brow"><span class="bl">Вода и влага</span><span class="bt"><i style="width:60%"></i></span><span class="bv">40 <em>25%</em></span></div>
+  <div class="brow"><span class="bl">Точность</span><span class="bt"><i style="width:48%"></i></span><span class="bv">32 <em>20%</em></span></div>
+  <div class="brow"><span class="bl">Подписка и цена</span><span class="bt"><i style="width:48%"></i></span><span class="bv">32 <em>20%</em></span></div>
+  <div class="brow"><span class="bl">Крепление, корпус</span><span class="bt"><i style="width:36%"></i></span><span class="bv">24 <em>15%</em></span></div>
+  <div class="brow"><span class="bl">Мороз</span><span class="bt"><i style="width:13%"></i></span><span class="bv">9 <em>6%</em></span></div>
+  <p class="vfoot">Подсчёт сделан при разборе корпуса отзывов; исходный файл не сохранён,
+  поэтому перепроверить его я не могу — цифры приведены как есть.
+  Обратите внимание на предпоследнюю строку: крепление упоминают всего 15%,
+  но именно оно в разделе 01 оказалось самым воспроизводимым отказом по всем брендам.
+  Владельцы жалуются на то, что заметно каждый день, а не на то, что ломает продукт.</p>
+</div>
+
+<h3>Главная претензия к каждому</h3>
+<div class="tw"><table>
+  <thead><tr><th>Бренд</th><th class="n">Рейтинг</th><th>Что бьёт сильнее всего</th></tr></thead>
+  <tbody>
+  <tr><td><strong>Fi</strong></td><td class="n">3,3 / 464<br><span class="b no">49% единиц</span></td>
+    <td><strong>Биллинг и тёмные паттерны отмены.</strong> «They use dark patterns to make
+      ending a subscription incredibly difficult» · «you'll be asked 10 times if you really
+      want to cancel» · «I cancelled my subscription 2x and they still took my money».
+      <strong>117 жалоб в BBB за три года.</strong> На Chewy Series 2 — 2,6 из 5 при 44% единиц.</td></tr>
+  <tr><td><strong>Kippy</strong></td><td class="n">3,9 / 2 476<br><span class="b no">18% единиц</span></td>
+    <td><strong>GPS не работает вне Wi-Fi, плюс списания после прекращения использования.</strong>
+      «says that the pet is somewhere in a <strong>3 km radius</strong>» ·
+      «Haven't been used in 11 months… Then I wake up to find they saved my card details
+      and took €69.99» · <strong>списание €100 через два года после смерти кошки</strong>.
+      Компания отвечает лишь на 44% негативных отзывов.</td></tr>
+  <tr><td><strong>Tile</strong></td><td class="n">1,4 / 381<br><span class="b no">81% единиц</span></td>
+    <td><strong>Не находит и не отвечает.</strong> 15 из 16 жалоб BBB остались без ответа
+      компании. Несменная батарея у Mate/Slim/Sticker — «effectively single use disposable
+      items». После покупки Life360 прекращена услуга замены батарей.</td></tr>
+  <tr><td><strong>Whistle</strong></td><td class="n">2,2 / 2 582<br><span class="b no">BBB D−</span></td>
+    <td><strong>Отламывание креплений и биллинг.</strong> «trying to cancel this subscription
+      five times… I am charged for another year». Не ответила на 3 жалобы BBB.</td></tr>
+  <tr><td><strong>Halo</strong></td><td class="n">3,8 / 1 605<br><span class="b mid">190 жалоб BBB</span></td>
+    <td><strong>Удары током там, где собака ничего не нарушала.</strong>
+      «The collar sent electrical shocks to our Beagle puppy on 4 separate occasions
+      while she was <strong>just outside our house</strong>» · «randomly shocks my dog,
+      despite GPS being calibrated». Плюс собаки проходят забор насквозь:
+      «There is a <strong>5–10 second lag</strong> before it actually jumps across».</td></tr>
+  <tr><td><strong>SpotOn</strong></td><td class="n">4,1 / 792<br><span class="b ok">10 жалоб BBB</span></td>
+    <td><strong>Дрейф границы.</strong> «The drifting is way too much, leaves my dog
+      questioning his boundaries». На порядок меньше жалоб в BBB, чем у Halo,
+      при сопоставимой цене.</td></tr>
+  <tr><td><strong>Jiobit</strong></td><td class="n">Chewy 3,9 / 113<br>Google Play 2,4 / 293</td>
+    <td><strong>Кнопка отмены, которая ничего не делает.</strong> «There's a button to request
+      cancellation. Once clicked, <strong>absolutely NOTHING happens and the screen goes blank</strong>».
+      Отдельно: <strong>зарядное устройство не продаётся отдельно</strong> — его отказ убивает трекер.</td></tr>
+  <tr><td><strong>Tractive</strong></td><td class="n">4,7 / 60 000<br>ProductReview 1,7 / 66</td>
+    <td><strong>Поломка крепления + автопродление.</strong> Причём инструкция по отключению
+      автопродления у них есть и работает — жалобы про «нет никакого способа отменить»
+      фактически неверны. Проблема не в отсутствии кнопки, а в том, что её не находят.</td></tr>
+  <tr><td><strong>Weenect</strong></td><td class="n">4,6 / 23 500</td>
+    <td><strong>Точность.</strong> «First our cat was doing 107 mph, then he apparently
+      travelled <strong>388 miles to Cologne overnight</strong>». Плюс техдолг:
+      Dogs²/Cats² до сих пор на 2G.</td></tr>
+  <tr><td><strong>Petsee</strong></td><td class="n">otzovik 4,2 / 157<br>Яндекс 3,7 / 18</td>
+    <td><strong>Локация не обновляется сутками.</strong> Ошибки в 6,5 км, 110 км и 3 000 км.
+      Отдельная российская специфика: «Не работает в районах, где блокируют связь
+      при угрозах БПЛА, так что он становится бесполезным <strong>на даче, где он,
+      собственно, и нужен</strong>».</td></tr>
+  </tbody>
+</table></div>
+
+<h3>Момент, ради которого продукт существует — и в котором он отказывает</h3>
+<div class="note bad">
+  <span class="lbl">Задержка оповещения о побеге</span>
+  <p>Это сквозная претензия ко всей категории, и она страшнее остальных,
+  потому что бьёт ровно в ту минуту, ради которой устройство куплено.</p>
+  <p><strong>Tractive:</strong> «It updates about <strong>10 minutes</strong> after your pet
+  leaves the virtual fence, in which time the chances of finding your pet have
+  significantly diminished».<br>
+  <strong>Whistle:</strong> «whenever one of our dogs escapes, Whistle always says it's trying
+  to activate GPS and literally <strong>15 minutes</strong> goes by and nothing».<br>
+  <strong>Fi:</strong> «wouldn't notify dog left perimeter until <strong>quarter mile away</strong>».<br>
+  <strong>Weenect:</strong> «This collar does NOT alert you if your dog escapes your garden —
+  unless your garden is at least 2 000 square meters. My dog would be on the road
+  before I would be alerted».</p>
+  <p style="margin-bottom:0">И зеркальная проблема — ложные срабатывания:
+  Invoxia «app notifies of a dog leaving the fence when it does not»,
+  Tractive — тревога, когда собака на крыльце. Владелец, которого будят ложной тревогой
+  трижды в неделю, перестаёт реагировать на настоящую.</p>
+</div>
+
+<h3>Метки: ограничение, которое покупатели не понимают</h3>
+<p>AirTag, Tile и SmartTag находят вещь <strong>только через чужие телефоны рядом</strong>.
+Полевой замер в сельской местности при плотности «два дома на четверть мили» —
+обновление позиции заняло <strong>22 минуты</strong>. В независимом тесте GPS-ошейников
+AirTag занял <strong>последнее место из пяти</strong> с оценкой 58 из 100
+и «GPS Reliability 4.0 из 10»; вердикт — годится «only for owners… living in a more
+urban environment».</p>
+<div class="note bad">
+  <span class="lbl">Документ, который стоит прочитать целиком</span>
+  <p>Официальный форум Samsung, владелица SmartTag 2: <span class="q">«It simply do not work
+  when we really need it! <strong>My dog is lost for over a week now</strong> and the latest
+  signal I got is from Aug 29»</span>. Собака пропала в центре города, батарея была полная.
+  Ответ участника форума объясняет причину: дальность Bluetooth около 120 метров
+  в открытом поле и резко меньше среди зданий и растительности.</p>
+  <p style="margin-bottom:0">Понимают ли покупатели это ограничение до покупки —
+  прямых данных нет. Косвенный признак, что нет: объём разъяснительного контента
+  с заголовками формата «Your AirTag Has No GPS» и то, что метки вообще попадают
+  в обзоры GPS-ошейников как конкуренты.</p>
+</div>
+</section>
+
+<section>
+<h2><span class="num">04</span>Три находки, которые меняют планы</h2>
+
+<div class="note bad">
+  <span class="lbl">Whistle больше не существует</span>
+  <p>Mars Petcare купила Whistle в 2016 за $117 млн. В 2025 <strong>Tractive выкупила бренд
+  и отключила серверы 31 августа 2025</strong>. Go Explore, Switch, Health — всё железо
+  перестало работать, <strong>включая устройства с оплаченной подпиской</strong>.
+  Компенсация: бесплатный трекер Tractive по серийному номеру до 30 сентября.</p>
+  <p style="margin-bottom:0">Это лучший из существующих аргументов в разговоре про риск
+  подписочного железа — и одновременно урок нам. Владелец, купивший устройство за деньги,
+  получил кирпич по решению компании, которую он не выбирал. Ровно то же случилось
+  с <strong>Mishiko</strong>: сайт отдаёт ошибку сервера, приложение удалено из App Store,
+  на Яндекс.Маркете «товар распродан», блог не обновлялся с 2017 года.</p>
+</div>
+
+<div class="note warn">
+  <span class="lbl">Petsee — не стартап-пустышка, а растущий бизнес</span>
+  <p>ООО «ПЕТСИ», Екатеринбург, зарегистрировано 13.06.2024, но бренд работает с 2019 года
+  (до этого — от ИП, он же до сих пор числится разработчиком приложения).
+  <strong>Выручка: 2024 — 16,8 млн ₽, 2025 — 110,6 млн ₽, чистая прибыль 14,4 млн ₽.</strong>
+  Рост в 6,6 раза за год. Приложение обновлено в августе 2026, 50 тыс.+ установок,
+  3 070 отзывов в Google Play. Линейка расширяется: Cats, Dogs, PRO, КРС и Family
+  для пожилых и детей.</p>
+  <p style="margin-bottom:0">Монетизация: устройство 3 550–6 500 ₽ плюс обязательная подписка
+  217 ₽/мес или <strong>2 600 ₽/год</strong>, есть тариф 7 300 ₽ «навсегда».
+  Планировать, исходя из того, что конкурента нет, нельзя.</p>
+</div>
+
+<div class="note key">
+  <span class="lbl">На Wildberries Bluetooth-метки продаются как GPS-трекеры</span>
+  <p>У одной карточки «D&amp;D device» — <strong>1 323 отзыва</strong>, и это не GPS,
+  а метка на батарейках, работающая через чужие телефоны. Отсюда весь негатив:
+  «Работает только в зоне видимости блютуз» · «погрешность метров 500, не меньше» ·
+  «Ловит сигнал, когда кошка почти рядом, когда и глазами можно заметить».
+  То же с «GPS Трекер смарт-метка Mi Tag».</p>
+  <p style="margin-bottom:0">Следствие для нас: значительная часть российской аудитории
+  уже <strong>разочарована в категории</strong>, не разобравшись, что покупала не то.
+  Объяснять придётся не только чем мы лучше, но и чем мы вообще отличаемся.</p>
+</div>
+</section>
+
+<section>
+<h2><span class="num">05</span>Что из этого следует для нас</h2>
+<p class="intro">Шесть выводов, каждый проверяем и каждый переводится в требование.</p>
+
+<div class="tw"><table>
+  <thead><tr><th style="width:29%">Вывод</th><th>Основание</th><th style="width:26%">Что делать</th></tr></thead>
+  <tbody>
+  <tr><td><strong>Заявлять нижнюю границу автономности</strong></td>
+    <td>Разрыв «заявлено / реально» есть у всех одиннадцати и даёт до половины негатива.
+      Pawfit публично назвал нормой вдвое меньше рекламы — и это прочитали все.</td>
+    <td>В спецификации — минимальное значение при худшем сценарии.
+      «3 дня всегда» продаётся лучше, чем «до 7 дней иногда».</td></tr>
+  <tr><td><strong>Крепление — инженерный приоритет, а не деталь</strong></td>
+    <td>Самый воспроизводимый отказ в выборке: Tractive — из коробки и на 2-й день,
+      Whistle — 6 устройств подряд, Fi — «ошейник, который не держится на собаке».
+      У Petsee владельцы чинят изолентой.</td>
+    <td>Металл, а не пластик, в точке нагрузки. Тест на разгрызание и на зацеп
+      за ветку до запуска партии.</td></tr>
+  <tr><td><strong>IP68 не покупать, целостность корпуса — покупать</strong></td>
+    <td>IP67 и IP68 неразличимы по числу жалоб. Отказы возникают из-за трещин,
+      отвалившихся накладок и крышек на трении.</td>
+    <td>IP67 достаточно. Бюджет — на ударопрочность и на зарядный узел,
+      который переживает влагу.</td></tr>
+  <tr><td><strong>Не переобещать влагозащиту</strong></td>
+    <td>Fi: «до 50 метров» на витрине против 1,5 м в собственной справке.
+      Именно справка станет основанием в споре о гарантии.</td>
+    <td>Одна цифра во всех материалах. Расхождение витрины и документации —
+      прямой путь к жалобам.</td></tr>
+  <tr><td><strong>Отмена подписки в один тап, без разговора с человеком</strong></td>
+    <td>Самая массовая и самая злая категория жалоб у Fi, Kippy, Whistle, Jiobit.
+      В РФ это ещё и требование 376-ФЗ с 01.03.2026.</td>
+    <td>Кнопка в приложении, подтверждение письмом, возврат неиспользованного периода.
+      Это дешевле, чем репутация Fi.</td></tr>
+  <tr><td><strong>Задержка алерта о побеге — главная метрика продукта</strong></td>
+    <td>10–15 минут у лидеров категории. Владелец узнаёт о побеге, когда искать уже поздно.</td>
+    <td>Мерить и публиковать медианную задержку. Ложные тревоги считать
+      отдельно: они обесценивают настоящие.</td></tr>
+  </tbody>
+</table></div>
+
+<div class="note good">
+  <span class="lbl">И один вывод, который стоит всех остальных</span>
+  <p>Ни один бренд в выборке не проиграл на железе. Fi с рейтингом 3,3 и 49% единиц
+  делает хорошее устройство — его топят биллинг и поддержка. Kippy с 18% единиц
+  добили не батареей, а списаниями с карты через два года после смерти животного.
+  Whistle убила не поломка креплений, а решение владельца бизнеса выключить серверы.</p>
+  <p style="margin-bottom:0"><strong>Категория проигрывает на обещаниях и на обращении
+  с людьми, а не на технике.</strong> Для продукта, который позиционируется на снятии вины,
+  это не предупреждение, а описание свободной ниши.</p>
+</div>
+</section>
+
+<footer>
+  <h3>Чего в этом документе нет и почему</h3>
+  <ul>
+    <li><strong>Процентов недовольных.</strong> Ни одна площадка не отдаёт полный корпус
+      отзывов — только агрегаты и поисковые срезы. Любой процент был бы выдуман.</li>
+    <li><strong>Отзывов с Amazon, Reddit, Ozon и irecommend.</strong> Закрыты технически.
+      Именно там концентрируются истории про воду и про отказы через год, поэтому
+      раздел 02 остаётся с оговоркой о смещённой выборке.</li>
+    <li><strong>Российских отзывов на Kippy.</strong> Не найдено ни одного:
+      в App Store RU у приложения ноль оценок, на Wildberries и в RuStore его нет.</li>
+    <li><strong>Данных о морозе.</strong> Тема почти не представлена в отзывах,
+      и отсутствие жалоб здесь не равно отсутствию проблемы.</li>
+  </ul>
+  <p>Палитра графика проверена <span class="mono">validate_palette.js</span>:
+  обе темы проходят все пять проверок, худшая пара по цветовой слепоте ΔE 26,5.
+  Цифры в таблицах — цитаты владельцев и заявления вендоров, а не измерения;
+  подсчёт тем по 157 отзывам Petsee перепроверить нельзя, исходный файл не сохранён.</p>
+</footer>
+</main>
+</body>
+</html>

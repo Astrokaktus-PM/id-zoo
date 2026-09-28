@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Как считается пятый домен</title>
+<meta name="description" content="Спецификация расчёта пятого домена благополучия: опыт умноженный на потолок.">
+<meta name="color-scheme" content="light dark">
+<style>
+  html{color-scheme:light dark}
+  body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700;800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --bg:#F5F6F3; --surface:#FFFFFF; --surface-2:#ECEEE9; --sunk:#E3E7E0;
+  --line:#D8DCD3; --line-2:#BFC5B9;
+  --ink:#18242A; --ink-2:#3D4B52; --sub:#69787D;
+  --accent:#00706A; --accent-s:#DBEDEA; --accent-b:#9CCFC8;
+  --amber:#96530F; --amber-s:#F5E8D8; --amber-b:#DEBE92;
+  --plum:#55428A; --plum-s:#E8E3F3; --plum-b:#BCACE0;
+  --red:#9C2B39; --red-s:#F6E0E2; --red-b:#DFA7AD;
+  --s1:#005A54; --s2:#00786F; --s3:#3D9C93; --s4:#77BDB5; --s5:#A9D6D0;
+  --shadow:0 1px 2px rgba(24,36,42,.05), 0 6px 20px -12px rgba(24,36,42,.18);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1417; --surface:#141E22; --surface-2:#1B272C; --sunk:#101A1D;
+  --line:#293539; --line-2:#3A4B51;
+  --ink:#E3EAE8; --ink-2:#B2C0BF; --sub:#7C8E92;
+  --accent:#52C0B1; --accent-s:#11302D; --accent-b:#2E6660;
+  --amber:#D9954F; --amber-s:#2F2310; --amber-b:#6B4F27;
+  --plum:#A88FDC; --plum-s:#221C31; --plum-b:#4B3E72;
+  --red:#E07C87; --red-s:#31161A; --red-b:#6E3239;
+  --s1:#9FDDD4; --s2:#6FC4BA; --s3:#46A79D; --s4:#2A867E; --s5:#1D6660;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -14px rgba(0,0,0,.7);
+}}
+:root[data-theme="dark"]{
+  --bg:#0D1417; --surface:#141E22; --surface-2:#1B272C; --sunk:#101A1D;
+  --line:#293539; --line-2:#3A4B51;
+  --ink:#E3EAE8; --ink-2:#B2C0BF; --sub:#7C8E92;
+  --accent:#52C0B1; --accent-s:#11302D; --accent-b:#2E6660;
+  --amber:#D9954F; --amber-s:#2F2310; --amber-b:#6B4F27;
+  --plum:#A88FDC; --plum-s:#221C31; --plum-b:#4B3E72;
+  --red:#E07C87; --red-s:#31161A; --red-b:#6E3239;
+  --s1:#9FDDD4; --s2:#6FC4BA; --s3:#46A79D; --s4:#2A867E; --s5:#1D6660;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -14px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font-family:Literata,Georgia,serif; font-size:15.5px; line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:Onest,"Helvetica Neue",Arial,sans-serif;
+  margin:0; text-wrap:balance; letter-spacing:-.015em; line-height:1.15}
+.mono,.lbl,th,.tag,.fx,.k{font-family:"IBM Plex Mono",ui-monospace,monospace}
+
+.top{border-bottom:1px solid var(--line); background:var(--surface)}
+.topin{max-width:1000px; margin:0 auto; padding:36px 26px 30px}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--accent); margin-bottom:12px}
+h1{font-size:clamp(29px,4.4vw,43px); font-weight:800}
+.lede{margin:14px 0 0; max-width:66ch; font-size:17px; color:var(--ink-2)}
+.meta{display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 0}
+.tag{font-size:11px; letter-spacing:.04em; padding:4px 9px; border-radius:4px;
+  background:var(--surface-2); color:var(--sub); border:1px solid var(--line)}
+
+main{max-width:1000px; margin:0 auto; padding:40px 26px 90px}
+section{margin:0 0 48px}
+h2{font-size:25px; font-weight:700; margin:0 0 8px}
+h2 .num{font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:500;
+  color:var(--accent); margin-right:11px; letter-spacing:0}
+h3{font-size:17.5px; font-weight:700; margin:26px 0 6px}
+p{margin:0 0 13px; max-width:72ch}
+.lbl{font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--sub);
+  display:block; margin-bottom:7px}
+strong{font-weight:600}
+em{font-style:italic; color:var(--ink-2)}
+
+/* формула */
+.fx{background:var(--surface); border:1px solid var(--line-2); border-radius:12px;
+  padding:22px 24px; margin:18px 0; box-shadow:var(--shadow); overflow-x:auto}
+.fxline{font-size:18px; font-weight:500; letter-spacing:-.01em; white-space:nowrap;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.fxline .t{color:var(--sub); font-size:15px}
+.pill{padding:4px 11px; border-radius:6px; font-weight:600; white-space:nowrap}
+.pill.exp{background:var(--accent-s); color:var(--accent)}
+.pill.ceil{background:var(--amber-s); color:var(--amber)}
+.pill.res{background:var(--plum-s); color:var(--plum)}
+.fxnote{margin:14px 0 0; font-family:Literata,serif; font-size:14px; color:var(--ink-2);
+  max-width:70ch; white-space:normal}
+
+/* таблицы */
+.tw{overflow-x:auto; border:1px solid var(--line); border-radius:11px;
+  background:var(--surface); margin:16px 0; box-shadow:var(--shadow)}
+table{border-collapse:collapse; width:100%; min-width:640px; font-size:14px}
+th{font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--sub);
+  text-align:left; font-weight:500; padding:12px 15px; background:var(--surface-2);
+  border-bottom:1px solid var(--line); white-space:nowrap; vertical-align:bottom}
+td{padding:12px 15px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink-2)}
+tr:last-child td{border-bottom:0}
+td strong{color:var(--ink)}
+.n{font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap;
+  font-family:"IBM Plex Mono",monospace}
+tfoot td{background:var(--surface-2); font-weight:600; color:var(--ink)}
+.sw{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:8px;
+  vertical-align:-1px}
+
+/* заметки */
+.note{border:1px solid var(--line); border-radius:11px; padding:17px 20px;
+  background:var(--surface); margin:16px 0}
+.note.warn{background:var(--amber-s); border-color:var(--amber-b)}
+.note.warn .lbl{color:var(--amber)}
+.note.stop{background:var(--red-s); border-color:var(--red-b)}
+.note.stop .lbl{color:var(--red)}
+.note.good{background:var(--accent-s); border-color:var(--accent-b)}
+.note.good .lbl{color:var(--accent)}
+.note.key{background:var(--plum-s); border-color:var(--plum-b)}
+.note.key .lbl{color:var(--plum)}
+.note p:last-child{margin-bottom:0}
+.note p{font-size:14.5px}
+
+.two{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:14px; margin:16px 0}
+
+/* схема источники → результат */
+.diag{background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  padding:22px; margin:18px 0; box-shadow:var(--shadow); overflow-x:auto}
+
+/* карточка дня в интерфейсе */
+.uicard{background:var(--surface); border:1px solid var(--line-2); border-radius:14px;
+  padding:18px 20px; max-width:400px; box-shadow:var(--shadow)}
+.uicard .big{font-family:Onest,Arial,sans-serif; font-size:44px;
+  font-weight:800; letter-spacing:-.03em; line-height:1; font-variant-numeric:tabular-nums}
+.uicard .cap{font-size:13px; color:var(--sub); margin-top:4px}
+.uicard .sep{height:1px; background:var(--line); margin:15px 0}
+.uicard .row{display:flex; justify-content:space-between; gap:12px; font-size:13.5px;
+  margin-bottom:5px}
+.uicard .row span:last-child{font-family:"IBM Plex Mono",monospace; color:var(--sub);
+  font-variant-numeric:tabular-nums}
+.uicard .act{background:var(--accent-s); color:var(--accent); border-radius:9px;
+  padding:11px 13px; font-size:13.5px; margin-top:13px}
+
+/* недельная полоса */
+/* полоса недели: 1 балл = 1.32px, дно графика = 28px от низа контейнера */
+.week{display:flex; align-items:flex-end; gap:9px; height:216px; padding:32px 0 28px 62px;
+  position:relative; margin:24px 0 18px}
+.wd{flex:1; display:flex; flex-direction:column; justify-content:flex-end;
+  align-items:center; position:relative; z-index:3}
+.wd i{display:block; width:100%; border-radius:6px 6px 3px 3px; background:var(--s3);
+  height:calc(var(--v) * 1.32px)}
+.wd .v{font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;
+  margin-bottom:5px; font-variant-numeric:tabular-nums}
+.wd .d{position:absolute; bottom:-24px; font-family:"IBM Plex Mono",monospace;
+  font-size:11px; color:var(--sub)}
+.wln{position:absolute; left:0; right:0; z-index:4; pointer-events:none;
+  bottom:calc(28px + var(--v) * 1.32px)}
+.wln span{position:absolute; left:0; width:52px; text-align:right; top:-9px;
+  font-family:"IBM Plex Mono",monospace; font-size:11px; font-variant-numeric:tabular-nums}
+.wln.thr{border-top:1px dashed var(--line-2)}
+.wln.thr span{color:var(--sub)}
+.wln.avg{border-top:2px solid var(--plum); z-index:5}
+.wln.avg span{color:var(--plum); font-weight:600; top:-10px}
+
+/* реплики для пользователя */
+.say{border-left:3px solid var(--accent); padding:2px 0 2px 16px; margin:0 0 16px;
+  max-width:64ch}
+.say q{font-family:Literata,serif; font-size:16.5px; font-style:italic; display:block;
+  margin-bottom:5px; quotes:"«" "»"}
+.say .why{font-size:13.5px; color:var(--sub); display:block}
+
+ol.steps{counter-reset:s; list-style:none; padding:0; margin:16px 0}
+ol.steps li{counter-increment:s; position:relative; padding-left:38px; margin-bottom:14px;
+  font-size:14.5px; color:var(--ink-2); max-width:72ch}
+ol.steps li::before{content:counter(s); position:absolute; left:0; top:1px;
+  font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:600;
+  width:24px; height:24px; border-radius:7px; background:var(--accent-s);
+  color:var(--accent); display:grid; place-items:center}
+ol.steps li strong{color:var(--ink)}
+
+footer{border-top:1px solid var(--line); margin-top:56px; padding-top:22px;
+  font-size:13px; color:var(--sub); max-width:78ch}
+footer h3{font-size:14px; margin:0 0 9px; color:var(--ink)}
+footer ul{padding-left:18px; margin:0}
+footer li{margin-bottom:5px}
+@media (max-width:600px){ main{padding:30px 18px 70px} .topin{padding:28px 18px 24px} }
+</style>
+
+<div class="top"><div class="topin">
+  <div class="eyebrow">Спецификация · Pet ID · для команды</div>
+  <h1>Как считается пятый домен</h1>
+  <p class="lede">Модель, которую можно открыть пользователю целиком и не постесняться.
+  Никакого обучения, никакого чёрного ящика: арифметика, которую человек проверит на бумаге
+  и в которой узнает свой день.</p>
+  <div class="meta">
+    <span class="tag">9 сентября 2026</span>
+    <span class="tag">все числа посчитаны кодом · d5_model.py</span>
+    <span class="tag">веса и нормы — калибровка, не измерение</span>
+  </div>
+</div></div>
+
+<main>
+
+<section>
+<h2><span class="num">01</span>Одна идея, из которой следует вся формула</h2>
+
+<p>В модели пяти доменов первые четыре — <strong>источники</strong>, пятый — <strong>результат</strong>.
+Но источники неодинаковы, и это главное, что даёт нам конструкцию.</p>
+
+<p>Аффекты, критичные для выживания — голод, жажда, боль, одышка, страх — в лучшем случае
+доводятся до нейтрали. Сытая собака не становится «дважды счастливой» от второй миски;
+она становится толстой. Здоровье, еда и безопасность <em>не создают</em> положительного
+состояния — они убирают отрицательное.</p>
+
+<p>Положительное состояние создают ситуационные аффекты: любопытство, игра, привязанность,
+уверенность. Они связаны с тем, что животное <strong>само что-то выбирает и делает</strong>.
+Вот это и накапливается.</p>
+
+<div class="note key">
+  <span class="lbl">Отсюда вся модель в одном предложении</span>
+  <p>То, что связано с выживанием, <strong>ставит потолок</strong>. То, что связано
+  с выбором и опытом, <strong>набирает баллы</strong>. Пятый домен — это набранное,
+  умноженное на потолок.</p>
+</div>
+
+<div class="diag">
+<svg viewBox="0 0 760 260" role="img" width="100%"
+     aria-label="Четыре домена-источника: три ставят потолок, четвёртый набирает опыт; вместе дают пятый домен">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--line-2)"/></marker>
+    <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker>
+  </defs>
+
+  <text x="0" y="14" font-size="10.5" letter-spacing="1.4" fill="var(--sub)"
+        font-family="IBM Plex Mono, monospace">СТАВЯТ ПОТОЛОК</text>
+  <g font-family="Onest, Arial, sans-serif">
+    <rect x="0" y="26" width="176" height="42" rx="9" fill="var(--amber-s)" stroke="var(--amber-b)"/>
+    <text x="14" y="43" font-size="13" font-weight="600" fill="var(--ink)">1 · Питание</text>
+    <text x="14" y="59" font-size="11" fill="var(--sub)" font-family="Literata, serif">рацион, вода, вес</text>
+
+    <rect x="0" y="76" width="176" height="42" rx="9" fill="var(--amber-s)" stroke="var(--amber-b)"/>
+    <text x="14" y="93" font-size="13" font-weight="600" fill="var(--ink)">2 · Среда</text>
+    <text x="14" y="109" font-size="11" fill="var(--sub)" font-family="Literata, serif">покой, тепло, укрытие</text>
+
+    <rect x="0" y="126" width="176" height="42" rx="9" fill="var(--amber-s)" stroke="var(--amber-b)"/>
+    <text x="14" y="143" font-size="13" font-weight="600" fill="var(--ink)">3 · Здоровье</text>
+    <text x="14" y="159" font-size="11" fill="var(--sub)" font-family="Literata, serif">боль, болезнь, профилактика</text>
+
+    <rect x="0" y="176" width="176" height="42" rx="9" fill="var(--amber-s)" stroke="var(--amber-b)"/>
+    <text x="14" y="193" font-size="13" font-weight="600" fill="var(--ink)">4− · Страх</text>
+    <text x="14" y="209" font-size="11" fill="var(--sub)" font-family="Literata, serif">принуждение, конфликт</text>
+  </g>
+
+  <text x="270" y="14" font-size="10.5" letter-spacing="1.4" fill="var(--sub)"
+        font-family="IBM Plex Mono, monospace">НАБИРАЮТ ОПЫТ</text>
+  <g font-family="Onest, Arial, sans-serif">
+    <rect x="270" y="26" width="192" height="192" rx="10" fill="var(--accent-s)" stroke="var(--accent-b)"/>
+    <text x="286" y="48" font-size="13" font-weight="600" fill="var(--ink)">4+ · Поведение и выбор</text>
+    <g font-size="11.5" fill="var(--ink)" font-family="Literata, serif">
+      <text x="286" y="76">свобода выбора</text>
+      <text x="286" y="98">работа носом</text>
+      <text x="286" y="120">общение</text>
+      <text x="286" y="142">движение</text>
+      <text x="286" y="164">новизна и задача</text>
+    </g>
+    <text x="286" y="196" font-size="10.5" fill="var(--accent)"
+          font-family="IBM Plex Mono, monospace">СУММА ВЕСОВ = 100</text>
+  </g>
+
+  <path d="M176 100 H236 V122" fill="none" stroke="var(--line-2)" stroke-width="1.6" marker-end="url(#ar)"/>
+  <text x="182" y="94" font-size="10" fill="var(--amber)"
+        font-family="IBM Plex Mono, monospace">×потолок</text>
+  <path d="M462 122 H556" fill="none" stroke="var(--accent)" stroke-width="1.8" marker-end="url(#ar2)"/>
+
+  <g>
+    <rect x="566" y="72" width="194" height="100" rx="12" fill="var(--plum-s)" stroke="var(--plum-b)"/>
+    <text x="583" y="98" font-size="12.5" font-weight="600" fill="var(--ink)"
+          font-family="Onest, Arial, sans-serif">5 · Психическое состояние</text>
+    <text x="583" y="126" font-size="27" font-weight="800" fill="var(--plum)"
+          font-family="Onest, Arial, sans-serif">опыт × потолок</text>
+    <text x="583" y="150" font-size="11" fill="var(--sub)" font-family="Literata, serif">то,
+      ради чего всё остальное</text>
+  </g>
+  <path d="M236 122 H262" fill="none" stroke="var(--line-2)" stroke-width="1.6"/>
+</svg>
+</div>
+</section>
+
+<section>
+<h2><span class="num">02</span>Формула</h2>
+
+<div class="fx">
+  <div class="fxline">
+    <span class="pill exp">ОПЫТ</span><span class="t">=</span>
+    <span>Σ&nbsp;вес<sub>i</sub> × min(1;&nbsp;факт<sub>i</sub> / норма<sub>i</sub>)</span>
+  </div>
+  <p class="fxnote"><strong>min(1; …)</strong> — вся суть. Канал можно закрыть, но нельзя
+  перезакрыть. Три часа ходьбы дают ровно столько же, сколько час: двадцать баллов
+  за движение, и ни одним больше. Поэтому набрать сто можно только разнообразием,
+  а не одним героическим усилием. Это не приём — это то, что говорит сама модель
+  пяти доменов: благополучие складывается из <em>разных</em> положительных переживаний.</p>
+</div>
+
+<div class="fx">
+  <div class="fxline">
+    <span class="pill ceil">ПОТОЛОК</span><span class="t">=</span>
+    <span>min(коэффициент каждого из четырёх ограничителей)</span>
+  </div>
+  <p class="fxnote">Потолок ставит <strong>самая большая проблема</strong>, а не их сумма.
+  Мы намеренно не наказываем дважды за одно недомогание: у собаки с больной лапой
+  и стрессом от боли это одно событие, а не два. Спорное решение — вынесено в открытые
+  вопросы в конце.</p>
+</div>
+
+<div class="fx">
+  <div class="fxline">
+    <span class="pill res">ПЯТЫЙ ДОМЕН</span><span class="t">=</span>
+    <span class="pill exp">ОПЫТ</span><span class="t">×</span><span class="pill ceil">ПОТОЛОК</span>
+  </div>
+  <p class="fxnote">Умножение, а не выбор меньшего. Смысл: <strong>боль забирает часть
+  всего, что вы дали</strong>. Собака с невылеченной хромотой получает от той же прогулки
+  меньше, чем здоровая, — и человек видит это как «пока лапа болит, до него доходит две
+  трети». Такая формулировка ведёт к правильному действию: лечи лапу, а не гуляй дольше.</p>
+</div>
+
+<div class="note">
+  <span class="lbl">Третье число, которое считается отдельно</span>
+  <p><strong>Полнота данных</strong> = сумма весов тех каналов, про которые сегодня
+  вообще что-то известно. Это не часть балла — это мера доверия к баллу.
+  Зачем она нужна, разобрано в разделе 05, и это самое важное решение во всей модели.</p>
+</div>
+</section>
+
+<section>
+<h2><span class="num">03</span>Каналы опыта</h2>
+
+<p>Пять каналов, сумма весов сто. Каждый — отдельный вид положительного переживания,
+и ни один не заменяет другой полностью. Столбец «усилие» — сколько это стоит человеку
+на единицу; он не входит в расчёт балла, но именно по нему ранжируются рекомендации.</p>
+
+<h3>Собака · взрослая, средняя активность</h3>
+<div class="tw"><table>
+  <thead><tr><th>Канал</th><th class="n">Вес</th><th class="n">Норма</th><th>Период</th>
+    <th class="n">Усилие</th><th>Почему он здесь</th></tr></thead>
+  <tbody>
+  <tr><td><span class="sw" style="background:var(--s1)"></span><strong>Свобода выбора</strong></td>
+    <td class="n">25</td><td class="n">30 мин</td><td>день</td><td class="n">0,1</td>
+    <td>Самостоятельно решает, куда идти и что нюхать. Наибольший вес — потому что
+      именно агентность отличает «выгуляли» от «прожил день». И почти ничего не стоит
+      хозяину: надо просто не тянуть поводок.</td></tr>
+  <tr><td><span class="sw" style="background:var(--s2)"></span><strong>Работа носом</strong></td>
+    <td class="n">20</td><td class="n">20 мин</td><td>день</td><td class="n">0,3</td>
+    <td>Основной способ собаки взаимодействовать с миром. Поиск и обнюхивание утомляют
+      и насыщают сильнее равной по времени ходьбы.</td></tr>
+  <tr><td><span class="sw" style="background:var(--s3)"></span><strong>Общение</strong></td>
+    <td class="n">20</td><td class="n">45 мин</td><td>день</td><td class="n">0,6</td>
+    <td>Контакт с вами и с другими собаками. Привязанность и игра — отдельный класс
+      положительных аффектов, движением он не заменяется.</td></tr>
+  <tr><td><span class="sw" style="background:var(--s4)"></span><strong>Движение</strong></td>
+    <td class="n">20</td><td class="n">60 мин</td><td>день</td><td class="n">1,0</td>
+    <td>Физическая нагрузка. Специально <em>не</em> главный канал: длительность прогулки —
+      самая привычная и самая обманчивая метрика.</td></tr>
+  <tr><td><span class="sw" style="background:var(--s5)"></span><strong>Новизна и задача</strong></td>
+    <td class="n">15</td><td class="n">3 раза</td><td><strong>неделя</strong></td><td class="n">1,4</td>
+    <td>Новое место, новый маршрут, обучение. <strong>Недельный канал</strong>: требовать
+      новизны каждый день — значит гарантированно создавать вину.</td></tr>
+  </tbody>
+  <tfoot><tr><td>Сумма</td><td class="n">100</td><td colspan="4"></td></tr></tfoot>
+</table></div>
+
+<h3>Кошка · домашняя</h3>
+<p>Другой вид — другая таблица, и это принципиально. Модель настраивается не текстом
+рекомендаций, а весами и нормами: у кошки нет отдельного канала «движение», оно внутри
+охоты, зато появляется контроль территории.</p>
+<div class="tw"><table>
+  <thead><tr><th>Канал</th><th class="n">Вес</th><th class="n">Норма</th><th>Период</th>
+    <th class="n">Усилие</th><th>Почему он здесь</th></tr></thead>
+  <tbody>
+  <tr><td><span class="sw" style="background:var(--s1)"></span><strong>Охота и игра</strong></td>
+    <td class="n">30</td><td class="n">25 мин</td><td>день</td><td class="n">0,6</td>
+    <td>Полная последовательность: выследить, догнать, схватить, «убить», съесть.
+      Обрывать её на середине — источник фрустрации.</td></tr>
+  <tr><td><span class="sw" style="background:var(--s2)"></span><strong>Свобода выбора</strong></td>
+    <td class="n">25</td><td class="n">60 мин</td><td>день</td><td class="n">0,1</td>
+    <td>Доступ во все зоны, возможность уйти и не участвовать.</td></tr>
+  <tr><td><span class="sw" style="background:var(--s3)"></span><strong>Контроль территории</strong></td>
+    <td class="n">20</td><td class="n">30 мин</td><td>день</td><td class="n">0,2</td>
+    <td>Высота, укрытия, обзор. У кошки это прямой источник уверенности,
+      у собаки такого канала нет.</td></tr>
+  <tr><td><span class="sw" style="background:var(--s4)"></span><strong>Общение</strong></td>
+    <td class="n">15</td><td class="n">20 мин</td><td>день</td><td class="n">0,4</td>
+    <td>Контакт на её условиях — вес ниже, чем у собаки, и это не оценка,
+      а видовая разница.</td></tr>
+  <tr><td><span class="sw" style="background:var(--s5)"></span><strong>Новизна и задача</strong></td>
+    <td class="n">10</td><td class="n">3 раза</td><td><strong>неделя</strong></td><td class="n">0,9</td>
+    <td>Новый запах, новая кормушка-головоломка, перестановка.</td></tr>
+  </tbody>
+  <tfoot><tr><td>Сумма</td><td class="n">100</td><td colspan="4"></td></tr></tfoot>
+</table></div>
+
+<div class="note warn">
+  <span class="lbl">Честно про происхождение чисел</span>
+  <p>Веса и нормы — <strong>калибровка, а не измерение</strong>. Состав каналов взят
+  из модели пяти доменов, а конкретные 25/20/20/20/15 и «30 минут выбора» назначены нами
+  и подлежат проверке. Правильный способ их уточнить — не спор внутри команды,
+  а сверка с оценкой ветеринарного специалиста на выборке реальных дней. До этого момента
+  числа в интерфейсе должны быть открыты и помечены как настраиваемые.</p>
+</div>
+</section>
+
+<section>
+<h2><span class="num">04</span>Потолок: шкала, которую мы не придумывали</h2>
+
+<p>В модели пяти доменов тяжесть отрицательного состояния оценивается буквами от A до E.
+Мы берём эту шкалу как есть и сопоставляем каждой букве коэффициент. Это даёт то,
+чего не даёт своя выдуманная шкала: у оценки есть внешнее основание, и ветеринар,
+знакомый с моделью, читает её без объяснений.</p>
+
+<div class="tw"><table>
+  <thead><tr><th>Степень</th><th>Что это значит</th><th class="n">Потолок</th>
+    <th>Пример по домену 3</th></tr></thead>
+  <tbody>
+  <tr><td><strong>A</strong></td><td>нет проблемы</td><td class="n">100%</td>
+    <td>ничего не беспокоит, профилактика в срок</td></tr>
+  <tr><td><strong>B</strong></td><td>лёгкая</td><td class="n">85%</td>
+    <td>просрочена обработка от паразитов, зуд</td></tr>
+  <tr><td><strong>C</strong></td><td>умеренная</td><td class="n">65%</td>
+    <td>хромота, которую видно, но собака ест и гуляет</td></tr>
+  <tr><td><strong>D</strong></td><td>выраженная</td><td class="n">40%</td>
+    <td>боль, меняющая поведение: отказывается от прогулки</td></tr>
+  <tr><td><strong>E</strong></td><td>тяжёлая</td><td class="n">15%</td>
+    <td>острое состояние, нужен врач сегодня</td></tr>
+  </tbody>
+</table></div>
+
+<p>Четыре ограничителя: <strong>еда и вода</strong> (домен 1), <strong>среда и покой</strong>
+(домен 2), <strong>здоровье и боль</strong> (домен 3), <strong>страх и стресс</strong>
+(отрицательная сторона домена 4). Степень ставит либо система — по записи в карте здоровья,
+по просроченной процедуре, по погоде, — либо сам владелец одним тапом.</p>
+
+<div class="note stop">
+  <span class="lbl">Жёсткое правило</span>
+  <p>Степени D и E не должны молча снижать балл. Они означают «нужен врач», и приложение
+  обязано сказать это словами и предложить запись, а не показать грустное число.
+  Балл в этом состоянии вообще не главное, что человек должен увидеть на экране.</p>
+</div>
+</section>
+
+<section>
+<h2><span class="num">05</span>Полнота данных: самое важное решение</h2>
+
+<p>Очевидная реализация выглядит так: чего не отметили — того не было, значит ноль.
+Она ломает продукт целиком.</p>
+
+<p>Человек, который забыл отметить игру, получает низкий балл и сообщение,
+что его собаке было плохо. Приложение, которое обещает снимать вину,
+начинает её производить — причём на пустом месте, потому что игра-то была.</p>
+
+<div class="note key">
+  <span class="lbl">Правило</span>
+  <p>Отсутствие отметки — это <strong>«не знаем»</strong>, а не <strong>«не было»</strong>.
+  Балл считается, но пока полнота данных ниже половины, приложение
+  <strong>не выносит суждения вообще</strong>. Вместо числа — один короткий вопрос.</p>
+</div>
+
+<div class="two">
+<div class="uicard">
+  <span class="lbl">Так — нет</span>
+  <div class="big" style="color:var(--red)">15</div>
+  <div class="cap">Рексу сегодня плохо</div>
+  <div class="sep"></div>
+  <div class="row"><span>Свобода выбора</span><span>0 / 30</span></div>
+  <div class="row"><span>Работа носом</span><span>0 / 20</span></div>
+  <div class="row"><span>Общение</span><span>0 / 45</span></div>
+  <div class="row"><span>Движение</span><span>45 / 60</span></div>
+</div>
+<div class="uicard">
+  <span class="lbl">Так — да</span>
+  <div class="big">?</div>
+  <div class="cap">Знаем только про 20% дня</div>
+  <div class="sep"></div>
+  <div class="row"><span>Движение</span><span>45 мин ✓</span></div>
+  <div class="row"><span>Остальное</span><span>не знаем</span></div>
+  <div class="act">Один вопрос: <strong>вы играли или занимались
+    с Рексом сегодня?</strong><br>Да · Нет · Пропустить</div>
+</div>
+</div>
+
+<p>Побочный, но важный эффект: полнота данных — это <strong>прямой и честный аргумент
+за устройство</strong>. Трекер и телефон закрывают движение и частично новизну
+автоматически; нос, общение и выбор остаются за человеком. Так апгрейд продаётся
+не страхом потери, а понятной механикой: «сейчас мы знаем о 40% дня, с трекером
+будем знать о 70% и перестанем спрашивать».</p>
+</section>
+
+<section>
+<h2><span class="num">06</span>День не выносит вердикт. Неделя выносит</h2>
+
+<p>Благополучие — состояние, а не событие. Одна плохая суббота ничего не значит,
+две плохие недели значат много. Из этого следует, как устроен интерфейс.</p>
+
+<p><strong>Крупное число — среднее за семь дней.</strong> Дневной балл — маленькая точка
+на полосе. У дня нет вердикта: у него есть только «чего не хватило» и одно действие.
+Так исчезает обрыв на границе диапазонов, когда 79 и 81 дают разные приговоры за ничто.</p>
+
+<div class="week" role="img"
+     aria-label="Дневные баллы: пн 78, вт 62, ср 40, чт 55, пт 71, сб 87, вс 64. Среднее 65,4 при пороге 80.">
+  <div class="wln thr" style="--v:80"><span>80</span></div>
+  <div class="wln avg" style="--v:65.4"><span>65,4</span></div>
+  <div class="wd" style="--v:78"><span class="v">78</span><i></i><span class="d">пн</span></div>
+  <div class="wd" style="--v:62"><span class="v">62</span><i></i><span class="d">вт</span></div>
+  <div class="wd" style="--v:40"><span class="v">40</span><i style="background:var(--amber)"></i><span class="d">ср</span></div>
+  <div class="wd" style="--v:55"><span class="v">55</span><i></i><span class="d">чт</span></div>
+  <div class="wd" style="--v:71"><span class="v">71</span><i></i><span class="d">пт</span></div>
+  <div class="wd" style="--v:87"><span class="v">87</span><i></i><span class="d">сб</span></div>
+  <div class="wd" style="--v:64"><span class="v">64</span><i></i><span class="d">вс</span></div>
+</div>
+<p style="font-size:13px;color:var(--sub);margin-top:26px;max-width:70ch">
+<strong style="color:var(--plum)">65,4</strong> — среднее за семь дней, то самое крупное
+число в интерфейсе. Пунктир на <strong>80</strong> — граница «достаточно».
+Оранжевым — среда: там сработал потолок, а не недостаток усилий.</p>
+
+<p>Среда выделена: в этот день сработал потолок по здоровью, и приложение показывает
+не «вы плохо старались», а «пока лапа болит, до Рекса доходит две трети».
+Опыт в среду был ровно такой же, как во вторник, — 62. Разницу сделала хромота.</p>
+
+<div class="tw"><table>
+  <thead><tr><th>Среднее за 7 дней</th><th>Что показываем</th><th>Что предлагаем</th></tr></thead>
+  <tbody>
+  <tr><td class="n">80 и выше</td><td><strong>Так и живите</strong></td>
+    <td>Ничего. Сто не нужно и не является целью — об этом надо сказать прямо.</td></tr>
+  <tr><td class="n">60–79</td><td><strong>Хорошая неделя, один канал проседает</strong></td>
+    <td>Показать какой именно и самое дешёвое действие.</td></tr>
+  <tr><td class="n">40–59</td><td><strong>Так живётся хуже, чем может</strong></td>
+    <td>Предложить сменить режим дня — возможно, текущий просто невыполним.</td></tr>
+  <tr><td class="n">ниже 40</td><td><strong>Разберёмся вместе</strong></td>
+    <td>Не балл, а разговор: вопрос эксперту, врач или пересмотр ожиданий от себя.</td></tr>
+  </tbody>
+</table></div>
+</section>
+
+<section>
+<h2><span class="num">07</span>Проработанный пример</h2>
+<p>Вторник и среда из полосы выше. Данные одинаковые, разница только в потолке.</p>
+
+<div class="tw"><table>
+  <thead><tr><th>Канал</th><th class="n">Вес</th><th class="n">Факт</th><th class="n">Норма</th>
+    <th class="n">Закрыт</th><th class="n">Баллы</th></tr></thead>
+  <tbody>
+  <tr><td>Свобода выбора</td><td class="n">25</td><td class="n">14</td><td class="n">30</td>
+    <td class="n">47%</td><td class="n">11,7</td></tr>
+  <tr><td>Работа носом</td><td class="n">20</td><td class="n">22</td><td class="n">20</td>
+    <td class="n">100%</td><td class="n">20,0</td></tr>
+  <tr><td>Общение</td><td class="n">20</td><td class="n">30</td><td class="n">45</td>
+    <td class="n">67%</td><td class="n">13,3</td></tr>
+  <tr><td>Движение</td><td class="n">20</td><td class="n">22</td><td class="n">60</td>
+    <td class="n">37%</td><td class="n">7,3</td></tr>
+  <tr><td>Новизна · за неделю</td><td class="n">15</td><td class="n">2</td><td class="n">3</td>
+    <td class="n">67%</td><td class="n">10,0</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="5">ОПЫТ</td><td class="n">62,3</td></tr>
+    <tr><td colspan="5">Вторник · потолок 100%</td><td class="n">62,3</td></tr>
+    <tr><td colspan="5">Среда · хромота, степень C → потолок 65%</td><td class="n">40,5</td></tr>
+  </tfoot>
+</table></div>
+
+<p>Обратите внимание на строку «работа носом»: 22 минуты при норме 20 дают 20 баллов,
+а не 22. Лишние две минуты не пропали — они просто не считаются, потому что канал
+уже закрыт. Именно это правило запрещает набрать сто одной прогулкой.</p>
+
+<h3>Что предложить во вторник</h3>
+<p>До восьмидесяти не хватает 17,7 балла. Их можно добрать четырьмя способами,
+и они <strong>совершенно не равны по цене для человека</strong>:</p>
+
+<div class="tw"><table>
+  <thead><tr><th>Что добрать</th><th class="n">Сколько</th><th class="n">Даст</th>
+    <th class="n">Цена усилия</th><th>Как это звучит для человека</th></tr></thead>
+  <tbody>
+  <tr style="background:var(--accent-s)"><td><strong>Свобода выбора</strong></td>
+    <td class="n">+15 мин</td><td class="n">+13,3</td><td class="n">1,6</td>
+    <td><strong>Не тяните поводок и дайте выбрать маршрут.</strong> Времени не нужно
+      вообще — только другое поведение на той же прогулке.</td></tr>
+  <tr><td>Новизна</td><td class="n">+1 раз</td><td class="n">+5,0</td><td class="n">1,4</td>
+    <td>Свернуть в незнакомый двор. Дёшево, но закроется только за неделю.</td></tr>
+  <tr><td>Общение</td><td class="n">+15 мин</td><td class="n">+6,7</td><td class="n">9,0</td>
+    <td>Пятнадцать минут вашего полного внимания — в день завала это дорого.</td></tr>
+  <tr><td>Движение</td><td class="n">+38 мин</td><td class="n">+12,7</td><td class="n">38,0</td>
+    <td>Ещё сорок минут на улице. Самое очевидное решение и самое дорогое
+      из всех — в двадцать раз дороже первого.</td></tr>
+  </tbody>
+</table></div>
+
+<div class="note good">
+  <span class="lbl">Вот здесь пользователь чувствует ценность</span>
+  <p>Приложение говорит человеку, у которого нет сил, что <strong>гулять дольше —
+  худший из доступных вариантов</strong>, а лучший вообще не требует времени.
+  Это не утешение и не поблажка: перестать тянуть поводок действительно даёт больше,
+  чем лишние сорок минут ходьбы. Ни одна метрика вида «километры за день»
+  такого сказать не может — а наша может, потому что каналы разделены
+  и у каждого своя цена.</p>
+</div>
+</section>
+
+<section>
+<h2><span class="num">08</span>Как объяснить это пользователю</h2>
+<p>Четыре фразы. Ими закрывается онбординг, и по ним же проверяется гипотеза H2 —
+понял человек конструкцию или нет.</p>
+
+<div class="say"><q>Четыре вещи — источники. Пятая — то, что из них получается</q>
+  <span class="why">Первый экран. Здесь же схема из раздела 01.</span></div>
+<div class="say"><q>Еда, здоровье и безопасность не добавляют баллов. Они снимают потолок</q>
+  <span class="why">Самая контринтуитивная часть, и объяснять её надо примером:
+  больная собака не станет счастливее от лишней прогулки.</span></div>
+<div class="say"><q>Каждое дело можно закрыть, но нельзя перезакрыть. Поэтому важно разное,
+  а не много</q>
+  <span class="why">Снимает вопрос «а если я гуляю три часа» и объясняет,
+  почему длинная прогулка не даёт сто.</span></div>
+<div class="say"><q>Восемьдесят — это хорошая жизнь. Сто не нужно</q>
+  <span class="why">Обязательная фраза. Без неё продукт превращается в счётчик
+  недостаточности — ровно в то, от чего мы обещали избавить.</span></div>
+
+<h3>Экран «как это посчитано»</h3>
+<ol class="steps">
+  <li><strong>Доступен всегда,</strong> в один тап с любого места, где показан балл.</li>
+  <li><strong>Показывает вашу собственную арифметику:</strong> строки каналов, факт, норму,
+    вес, баллы, потолок. Те самые числа, что в примере выше — не общие слова о методике.</li>
+  <li><strong>Каждая строка раскрывается до источника:</strong> «22 минуты обнюхивания —
+    это отметка в 19:40 и трек прогулки». Число, происхождение которого нельзя посмотреть,
+    в интерфейсе не показывается.</li>
+  <li><strong>Веса и нормы видны и подписаны как настраиваемые.</strong> Позже — редактируемые
+    вместе с врачом или кинологом; сразу — хотя бы открытые.</li>
+  <li><strong>Отдельная строка «мы не знаем»</strong> с перечнем каналов без данных.
+    Это не упрёк, а приглашение отметить.</li>
+</ol>
+</section>
+
+<section>
+<h2><span class="num">09</span>Чего модель намеренно не делает</h2>
+<div class="two">
+  <div class="note">
+    <span class="lbl">Не обучается</span>
+    <p>Никакой модели, подбирающей веса по данным. Объяснимость здесь важнее точности:
+    число, которое человек не может проверить, не снимает вину, а добавляет.
+    Машинное обучение уместно позже и в другом месте — в подсказках, не в балле.</p>
+  </div>
+  <div class="note">
+    <span class="lbl">Не сравнивает с другими</span>
+    <p>Никаких «вы в 34-м процентиле среди бордер-колли». Соревнование владельцев —
+    прямой генератор вины и прямое противоречие позиционированию.
+    Сравнение допустимо только с собой в прошлом.</p>
+  </div>
+  <div class="note">
+    <span class="lbl">Не ставит диагнозов</span>
+    <p>Потолок по здоровью — это отражение того, что уже записано в карте
+    или отмечено человеком. Модель не выводит болезнь из поведения
+    и не пишет ничего похожего на диагноз.</p>
+  </div>
+  <div class="note">
+    <span class="lbl">Не наказывает за пропуски</span>
+    <p>Нет ни серий, ни штрафов за прерванную привычку, ни падающего балла
+    от бездействия. Пропущенный день — это отсутствие данных,
+    а не отрицательный результат.</p>
+  </div>
+</div>
+</section>
+
+<section>
+<h2><span class="num">10</span>Открытые вопросы</h2>
+<p>Места, где мы приняли решение и можем ошибаться. Все они проверяемы,
+и лучше проверить их до запуска, чем спорить о них внутри команды.</p>
+
+<div class="tw"><table>
+  <thead><tr><th style="width:24%">Вопрос</th><th style="width:30%">Что решили сейчас</th>
+    <th>Как проверить</th></tr></thead>
+  <tbody>
+  <tr><td><strong>Потолок: минимум или произведение</strong></td>
+    <td>Минимум. Две умеренные проблемы дают тот же потолок, что одна.</td>
+    <td>Собрать 30–50 реальных дней с несколькими одновременными проблемами
+      и сверить обе версии с оценкой ветеринарного специалиста. Расхождение
+      покажет, какая ближе.</td></tr>
+  <tr><td><strong>Веса каналов</strong></td>
+    <td>25 / 20 / 20 / 20 / 15 для собаки. Свобода выбора — главная.</td>
+    <td>Слепая сверка: специалист оценивает описания дней, не видя балла;
+      считаем согласие. Заодно проверяется, не завышен ли вес выбора.</td></tr>
+  <tr><td><strong>Нормы в минутах</strong></td>
+    <td>30 / 20 / 45 / 60 минут и 3 новизны в неделю.</td>
+    <td>Посмотреть распределение по когорте: если медианный день даёт 45,
+      норма завышена и продукт производит вину; если 95 — занижена
+      и балл ничего не значит.</td></tr>
+  <tr><td><strong>Порог полноты 50%</strong></td>
+    <td>Ниже половины не выносим суждения.</td>
+    <td>Считается на данных задним числом: какая доля дней попадёт в «не знаем».
+      Если больше трети — порог или набор каналов надо менять.</td></tr>
+  <tr><td><strong>Граница «достаточно» на 80</strong></td>
+    <td>80 по недельному среднему.</td>
+    <td>Сопоставить с ответом человека на прямой вопрос «на этой неделе
+      вам хватало сил на собаку?». Граница должна совпадать
+      с его собственным ощущением, а не с красивым числом.</td></tr>
+  <tr><td><strong>Усилие как коэффициент</strong></td>
+    <td>Фиксированные значения от 0,1 до 1,4.</td>
+    <td>Усилие зависит от человека и дня. Проверить, помогает ли персонализация:
+      сплит фиксированных значений против подстройки под режим дня.</td></tr>
+  </tbody>
+</table></div>
+</section>
+
+<footer>
+  <h3>Основание</h3>
+  <ul>
+    <li>Модель пяти доменов, ревизии 2015 и 2020: домены 1–4 — источники аффектов,
+      домен 5 — психическое состояние; различение аффектов, критичных для выживания,
+      и ситуационных, связанных с агентностью; шкала тяжести A–E.</li>
+    <li>Все числа в примерах посчитаны кодом <span class="mono">d5_model.py</span>,
+      не вручную. Файл лежит рядом с этим документом и является исполняемой
+      спецификацией: расхождение между ним и текстом — ошибка текста.</li>
+    <li>Веса, нормы и коэффициенты усилия — калибровка команды, не результат измерения.
+      Раздел 10 перечисляет, чем каждое из этих чисел проверяется.</li>
+  </ul>
+</footer>
+</main>
+</body>
+</html>

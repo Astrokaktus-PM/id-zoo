@@ -1,0 +1,1604 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pet ID: сценарии и путь к MVP</title>
+<meta name="description" content="Сценарии использования Pet ID и два пути к MVP — без трекеров и с трекерами, плюс гипотезы.">
+<meta name="color-scheme" content="light dark">
+<style>
+  html{color-scheme:light dark}
+  body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700;800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --bg:#F5F6F3; --surface:#FFFFFF; --surface-2:#ECEEE9; --sunk:#E3E7E0;
+  --line:#D8DCD3; --line-2:#BFC5B9;
+  --ink:#18242A; --ink-2:#3D4B52; --sub:#69787D;
+  --accent:#00706A; --accent-s:#DBEDEA; --accent-b:#9CCFC8;
+  --amber:#96530F; --amber-s:#F5E8D8; --amber-b:#DEBE92;
+  --plum:#55428A; --plum-s:#E8E3F3; --plum-b:#BCACE0;
+  --red:#9C2B39; --red-s:#F6E0E2; --red-b:#DFA7AD;
+  --shadow:0 1px 2px rgba(24,36,42,.05), 0 6px 20px -12px rgba(24,36,42,.18);
+  --rail:#C3C9BE;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1417; --surface:#141E22; --surface-2:#1B272C; --sunk:#101A1D;
+    --line:#293539; --line-2:#3A4B51;
+    --ink:#E3EAE8; --ink-2:#B2C0BF; --sub:#7C8E92;
+    --accent:#52C0B1; --accent-s:#11302D; --accent-b:#2E6660;
+    --amber:#D9954F; --amber-s:#2F2310; --amber-b:#6B4F27;
+    --plum:#A88FDC; --plum-s:#221C31; --plum-b:#4B3E72;
+    --red:#E07C87; --red-s:#31161A; --red-b:#6E3239;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -14px rgba(0,0,0,.7);
+    --rail:#33444A;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1417; --surface:#141E22; --surface-2:#1B272C; --sunk:#101A1D;
+  --line:#293539; --line-2:#3A4B51;
+  --ink:#E3EAE8; --ink-2:#B2C0BF; --sub:#7C8E92;
+  --accent:#52C0B1; --accent-s:#11302D; --accent-b:#2E6660;
+  --amber:#D9954F; --amber-s:#2F2310; --amber-b:#6B4F27;
+  --plum:#A88FDC; --plum-s:#221C31; --plum-b:#4B3E72;
+  --red:#E07C87; --red-s:#31161A; --red-b:#6E3239;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -14px rgba(0,0,0,.7);
+  --rail:#33444A;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:Literata,Georgia,"Times New Roman",serif;
+  font-size:15.5px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:Onest,"Helvetica Neue",Arial,sans-serif;
+  margin:0; text-wrap:balance; letter-spacing:-.015em; line-height:1.15}
+.mono,.chip,.tag,.wk,.hid,th,.lbl{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,monospace}
+
+/* ---------- шапка ---------- */
+.top{border-bottom:1px solid var(--line); background:var(--surface)}
+.topin{max-width:1120px; margin:0 auto; padding:34px 26px 0}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--accent); margin-bottom:12px}
+h1{font-size:clamp(30px,4.6vw,46px); font-weight:800}
+.lede{margin:14px 0 0; max-width:66ch; font-size:17px; color:var(--ink-2)}
+.meta{display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 0}
+.tag{font-size:11px; letter-spacing:.04em; padding:4px 9px; border-radius:4px;
+  background:var(--surface-2); color:var(--sub); border:1px solid var(--line)}
+
+/* ---------- вкладки ---------- */
+nav{display:flex; gap:2px; margin:26px 0 -1px; overflow-x:auto; scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{
+  appearance:none; border:1px solid transparent; border-bottom:0; background:none;
+  font-family:Onest,Arial,sans-serif; font-size:14.5px; font-weight:600;
+  color:var(--sub); padding:11px 17px; cursor:pointer; white-space:nowrap;
+  border-radius:8px 8px 0 0; position:relative; top:1px;
+}
+nav button:hover{color:var(--ink)}
+nav button[aria-selected="true"]{
+  background:var(--bg); border-color:var(--line); color:var(--ink);
+}
+nav button .n{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--accent); margin-right:7px}
+nav button:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
+
+main{max-width:1120px; margin:0 auto; padding:36px 26px 90px}
+.panel{display:none}
+.panel[data-on="1"]{display:block}
+
+/* ---------- общая типографика ---------- */
+section{margin:0 0 44px}
+h2{font-size:25px; font-weight:700; margin:0 0 6px}
+h2 .num{font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:500;
+  color:var(--accent); margin-right:10px; letter-spacing:0}
+h3{font-size:18px; font-weight:700; margin:0 0 5px}
+p{margin:0 0 13px; max-width:72ch}
+.intro{font-size:16.5px; color:var(--ink-2); max-width:70ch; margin-bottom:26px}
+.lbl{font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--sub);
+  display:block; margin-bottom:7px}
+strong{font-weight:600}
+a{color:var(--accent)}
+
+/* ---------- карточка сценария ---------- */
+.scn{background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  padding:20px 22px 18px; margin-bottom:14px; box-shadow:var(--shadow)}
+.scnhead{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:4px}
+.sid{font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;
+  color:var(--bg); background:var(--accent); border-radius:4px; padding:3px 7px; letter-spacing:.02em}
+.scn.warnv .sid{background:var(--amber)}
+.scn h3{flex:1; min-width:200px}
+.gto{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px;
+  margin:14px 0 16px; padding:14px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line)}
+.gto>div p{margin:0; font-size:14px; color:var(--ink-2)}
+
+/* рельс экранов */
+.rail{display:flex; align-items:stretch; gap:0; overflow-x:auto; padding:4px 0 10px;
+  scrollbar-width:thin}
+.step{display:flex; align-items:center; flex:none}
+.step .box{
+  background:var(--surface-2); border:1px solid var(--line); border-radius:8px;
+  padding:7px 11px; min-width:96px; text-align:left;
+}
+.step .box .id{font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--accent);
+  display:block; letter-spacing:.03em}
+.step .box .nm{font-family:Onest,Arial,sans-serif; font-size:13px;
+  font-weight:600; display:block; line-height:1.25; margin-top:2px}
+.step .arw{color:var(--rail); font-size:15px; padding:0 7px; flex:none}
+.step.branch .box{background:transparent; border-style:dashed}
+.step.branch .box .id{color:var(--sub)}
+.step.key .box{background:var(--accent-s); border-color:var(--accent-b)}
+.risk{display:flex; gap:10px; align-items:flex-start; background:var(--amber-s);
+  border-left:3px solid var(--amber); border-radius:0 8px 8px 0; padding:11px 14px; margin-top:4px}
+.risk .lbl{color:var(--amber); margin:0 0 3px}
+.risk p{margin:0; font-size:14px; color:var(--ink-2)}
+
+/* ---------- фазы дорожной карты ---------- */
+.phase{display:grid; grid-template-columns:104px 1fr; gap:0;
+  border-left:2px solid var(--line-2); margin-left:6px}
+.phase:last-child{border-left-color:transparent}
+.pwk{padding:2px 18px 30px 20px; position:relative}
+.pwk::before{content:""; position:absolute; left:-7px; top:6px; width:12px; height:12px;
+  border-radius:50%; background:var(--accent); border:3px solid var(--bg)}
+.pwk .wk{display:block; font-size:11px; font-weight:600; letter-spacing:.05em; color:var(--accent)}
+.pwk .dur{display:block; font-size:11px; color:var(--sub); margin-top:2px;
+  font-family:"IBM Plex Mono",monospace}
+.pbody{padding:0 0 30px}
+.pbody h3{margin-bottom:8px}
+.pbody ul{margin:0 0 12px; padding-left:19px}
+.pbody li{margin-bottom:6px; font-size:14.5px; color:var(--ink-2)}
+.pbody li strong{color:var(--ink)}
+.done{background:var(--surface); border:1px solid var(--line); border-radius:9px;
+  padding:11px 14px; margin-top:2px}
+.done .lbl{color:var(--accent); margin-bottom:4px}
+.done p{margin:0; font-size:14px}
+.gate{background:var(--plum-s); border:1px solid var(--plum-b); border-radius:9px;
+  padding:11px 14px; margin-top:9px}
+.gate .lbl{color:var(--plum); margin-bottom:4px}
+.gate p{margin:0; font-size:14px}
+
+/* ---------- таблицы ---------- */
+.tw{overflow-x:auto; border:1px solid var(--line); border-radius:11px; background:var(--surface);
+  margin-bottom:16px; box-shadow:var(--shadow)}
+table{border-collapse:collapse; width:100%; min-width:660px; font-size:14px}
+th{font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--sub);
+  text-align:left; font-weight:500; padding:12px 15px; background:var(--surface-2);
+  border-bottom:1px solid var(--line); white-space:nowrap; vertical-align:bottom}
+td{padding:13px 15px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink-2)}
+tr:last-child td{border-bottom:0}
+td strong{color:var(--ink)}
+.num-c{font-variant-numeric:tabular-nums; white-space:nowrap}
+.hid{font-weight:600; color:var(--accent); white-space:nowrap}
+
+/* ---------- бейджи ---------- */
+.b{display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  letter-spacing:.04em; padding:2px 7px; border-radius:4px; white-space:nowrap; font-weight:500}
+.b.ok{background:var(--accent-s); color:var(--accent)}
+.b.no{background:var(--red-s); color:var(--red)}
+.b.mid{background:var(--amber-s); color:var(--amber)}
+.b.pl{background:var(--plum-s); color:var(--plum)}
+.b.q{background:var(--surface-2); color:var(--sub); border:1px solid var(--line)}
+
+/* ---------- заметки ---------- */
+.note{border:1px solid var(--line); border-radius:11px; padding:16px 19px;
+  background:var(--surface); margin-bottom:16px}
+.note.warn{background:var(--amber-s); border-color:var(--amber-b)}
+.note.warn .lbl{color:var(--amber)}
+.note.stop{background:var(--red-s); border-color:var(--red-b)}
+.note.stop .lbl{color:var(--red)}
+.note.good{background:var(--accent-s); border-color:var(--accent-b)}
+.note.good .lbl{color:var(--accent)}
+.note p:last-child{margin-bottom:0}
+.note p{font-size:14.5px}
+
+/* ---------- развилка технологий ---------- */
+.forks{display:grid; grid-template-columns:repeat(auto-fit,minmax(268px,1fr)); gap:14px; margin-bottom:18px}
+.fork{background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  padding:18px 20px; display:flex; flex-direction:column; gap:11px; box-shadow:var(--shadow)}
+.fork.pick{border-color:var(--accent); border-width:2px; padding:17px 19px}
+.fork h3{font-size:16.5px}
+.fork .sum{font-size:13.5px; color:var(--sub); margin:-6px 0 0}
+.pm{display:flex; flex-direction:column; gap:5px; font-size:13.5px; color:var(--ink-2)}
+.pm div{display:flex; gap:8px; align-items:flex-start}
+.pm .s{flex:none; width:14px; font-family:"IBM Plex Mono",monospace; font-weight:600}
+.pm .plus .s{color:var(--accent)} .pm .minus .s{color:var(--red)}
+.fork .verdict{margin-top:auto; padding-top:11px; border-top:1px solid var(--line);
+  font-size:13.5px}
+.fork .verdict .b{white-space:normal; display:inline; line-height:1.9}
+
+/* ---------- сетка колонок ---------- */
+.two{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin-bottom:16px}
+
+/* ---------- итоги ---------- */
+.sums{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px;
+  background:var(--line); border:1px solid var(--line); border-radius:11px; overflow:hidden;
+  margin-bottom:22px}
+.sums div{background:var(--surface); padding:15px 17px}
+.sums b{display:block; font-family:Onest,Arial,sans-serif; font-size:23px;
+  font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+.sums span{display:block; font-size:12.5px; color:var(--sub); margin-top:3px; line-height:1.35}
+
+footer{border-top:1px solid var(--line); margin-top:56px; padding-top:22px;
+  font-size:13px; color:var(--sub); max-width:78ch}
+footer h3{font-size:14px; margin-bottom:9px; color:var(--ink)}
+footer ul{padding-left:18px; margin:0}
+footer li{margin-bottom:5px}
+footer a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-b)}
+
+@media (prefers-reduced-motion:no-preference){
+  .panel[data-on="1"]{animation:fade .22s ease-out}
+  @keyframes fade{from{opacity:.4}to{opacity:1}}
+}
+@media (max-width:640px){
+  .phase{grid-template-columns:74px 1fr}
+  .pwk{padding:2px 12px 26px 14px}
+  main{padding:28px 18px 70px}
+  .topin{padding:26px 18px 0}
+}
+</style>
+
+<div class="top">
+  <div class="topin">
+    <div class="eyebrow">Внутренний документ · для команды</div>
+    <h1>Pet ID: сценарии и путь к MVP</h1>
+    <p class="lede">Что уже описано в кликабельном макете v1.4, в каком порядке это можно построить
+      без железа и с железом, и какие утверждения нужно проверить прежде, чем строить дальше.</p>
+    <div class="meta">
+      <span class="tag">макет v1.4 · 56 экранов</span>
+      <span class="tag">7 сентября 2026</span>
+      <span class="tag">суммы и сроки — оценка, не данные</span>
+    </div>
+    <nav role="tablist">
+      <button role="tab" aria-selected="true" data-p="scen"><span class="n">01</span>Сценарии</button>
+      <button role="tab" aria-selected="false" data-p="web"><span class="n">02</span>MVP без трекеров</button>
+      <button role="tab" aria-selected="false" data-p="phone"><span class="n">03</span>Смартфон вместо трекера</button>
+      <button role="tab" aria-selected="false" data-p="hw"><span class="n">04</span>MVP с трекерами</button>
+      <button role="tab" aria-selected="false" data-p="hyp"><span class="n">05</span>Гипотезы и проверка</button>
+    </nav>
+  </div>
+</div>
+
+<main>
+
+<!-- ═══════════════ 01 СЦЕНАРИИ ═══════════════ -->
+<div class="panel" id="p-scen" data-on="1" role="tabpanel">
+
+<p class="intro">Шестнадцать сценариев, собранных из фактических переходов между экранами макета v1.4.
+Это не список функций, а список ситуаций, в которых человек открывает приложение. Экраны в рельсе —
+реальные id из макета: пунктирная рамка означает ответвление, заливка — экран, где происходит
+главное действие сценария.</p>
+
+<div class="sums">
+  <div><b>16</b><span>сценариев</span></div>
+  <div><b>56</b><span>экранов задействовано</span></div>
+  <div><b>4</b><span>работают без трекера полностью</span></div>
+  <div><b>2</b><span>требуют железа</span></div>
+</div>
+
+<section>
+<h2><span class="num">A</span>Заведение</h2>
+
+<div class="scn">
+  <div class="scnhead"><span class="sid">S1</span><h3>Первый запуск: от установки до заполненного профиля</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>Скачал приложение — обычно в первую неделю после появления питомца или после испуга «чуть не потерял».</p></div>
+    <div><span class="lbl">Цель человека</span><p>Понять, зачем это нужно, и не потратить больше пяти минут.</p></div>
+    <div><span class="lbl">Выход</span><p>Профиль владельца, профиль питомца, роли совладельцев, базовое понимание пяти доменов.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step"><div class="box"><span class="id">onb1</span><span class="nm">Обещание</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">onb0</span><span class="nm">Профиль владельца</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">onb2</span><span class="nm">Кто у вас живёт</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">onb3</span><span class="nm">Профиль питомца</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">onbshare</span><span class="nm">Совладение</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">onbkb</span><span class="nm">Пять доменов</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">home</span><span class="nm">Сегодня</span></div></div>
+  </div>
+  <div class="rail">
+    <div class="step branch"><div class="box"><span class="id">ветка</span><span class="nm">Не готов регистрироваться</span></div><span class="arw">→</span></div>
+    <div class="step branch"><div class="box"><span class="id">demo</span><span class="nm">Демо-режим</span></div><span class="arw">→</span></div>
+    <div class="step branch"><div class="box"><span class="id">onb0</span><span class="nm">Возврат в онбординг</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>Шесть экранов до первой пользы — это много. Обучение пяти доменам (<span class="mono">onbkb</span>)
+    стоит перед главной, но именно оно объясняет всю дальнейшую логику. Проверяется гипотезой H2.</p></div></div>
+</div>
+</section>
+
+<section>
+<h2><span class="num">B</span>Ежедневный цикл</h2>
+
+<div class="scn">
+  <div class="scnhead"><span class="sid">S2</span><h3>Вечерний вопрос: сегодня было достаточно?</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>Вечер. Ощущение, что весь день был занят и питомцу досталось мало.</p></div>
+    <div><span class="lbl">Цель человека</span><p>Узнать, всё ли в порядке, — или что сделать прямо сейчас, чтобы стало в порядке.</p></div>
+    <div><span class="lbl">Выход</span><p>Ответ «достаточно» с объяснением, из чего он сложился, либо одно выполнимое действие.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step"><div class="box"><span class="id">home</span><span class="nm">Кольцо достаточности</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">wellbeing</span><span class="nm">4 источника → 5-й домен</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">plan</span><span class="nm">Режим дня</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">plan2</span><span class="nm">План на сегодня</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">home</span><span class="nm">Задачи в списке</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>Всё держится на формуле пятого домена. Если она непрозрачна, число не убеждает; если она
+    очевидна, продукт кажется пустым. На MVP формула должна быть открытой взвешенной суммой
+    с видимыми весами, а не моделью.</p></div></div>
+</div>
+
+<div class="scn">
+  <div class="scnhead"><span class="sid">S3</span><h3>Настройка режима под свой график</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>Готовые режимы не подходят: сменный график, командировки, питомец у другого человека.</p></div>
+    <div><span class="lbl">Цель человека</span><p>Чтобы план перестал предлагать невозможное и не создавал новую вину.</p></div>
+    <div><span class="lbl">Выход</span><p>Именованный режим с часами отсутствия и обязательными пунктами, привязанный к дням недели.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step"><div class="box"><span class="id">plan</span><span class="nm">5 готовых + свои</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">planedit</span><span class="nm">Редактор режима</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">plan2</span><span class="nm">Проверка дня</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>Автоподстановка режима по календарю, погоде и карте здоровья — это три интеграции ради
+    удобства. На MVP достаточно ручного переключателя; автоматика переносится в следующую итерацию.</p></div></div>
+</div>
+
+<div class="scn">
+  <div class="scnhead"><span class="sid">S4</span><h3>Учёт расходов</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>Крупная трата у ветеринара или вопрос «сколько он вообще у нас стоит».</p></div>
+    <div><span class="lbl">Цель человека</span><p>Понять структуру расходов и сравнить себя с похожими владельцами.</p></div>
+    <div><span class="lbl">Выход</span><p>Месячная сумма с разбивкой и прогноз, когда закончится корм.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step"><div class="box"><span class="id">home</span><span class="nm">Плашка месяца</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">money</span><span class="nm">Структура расходов</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">moneyadd</span><span class="nm">Новый расход</span></div></div>
+    <span class="arw">·</span>
+    <div class="step branch"><div class="box"><span class="id">tco</span><span class="nm">Стоимость содержания</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>«73% учтено автоматически» требует либо распознавания чеков, либо банковской интеграции.
+    На MVP автоматики нет — только ручной ввод и распознавание суммы со скана документа,
+    поэтому обещание в интерфейсе надо снять.</p></div></div>
+</div>
+</section>
+
+<section>
+<h2><span class="num">C</span>Прогулка и социальное</h2>
+
+<div class="scn">
+  <div class="scnhead"><span class="sid">S5</span><h3>Обычная прогулка, в том числе с несколькими питомцами</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>Выход из дома с поводком в руке.</p></div>
+    <div><span class="lbl">Цель человека</span><p>Зафиксировать, что прогулка была, и получить внятную оценку — хватило или нет.</p></div>
+    <div><span class="lbl">Выход</span><p>Отчёт с раздельными нормами по каждому питомцу и одной понятной рекомендацией.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step"><div class="box"><span class="id">home</span><span class="nm">Начать прогулку</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">walkstart</span><span class="nm">Выбор питомцев и статусов</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">walk</span><span class="nm">Прогулка идёт</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">walkend</span><span class="nm">ИИ-отчёт</span></div><span class="arw">→</span></div>
+    <div class="step branch"><div class="box"><span class="id">gallery</span><span class="nm">Фото</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>В вебе фоновая геолокация недоступна: маршрут пишется только пока вкладка активна
+    и экран включён. Значит на веб-MVP прогулка — это либо отметка «гулял 25 минут»,
+    либо трек с оговоркой, что телефон нельзя убирать в карман.</p></div></div>
+</div>
+
+<div class="scn warnv">
+  <div class="scnhead"><span class="sid">S6</span><h3>«Снюхаться»: знакомство на прогулке</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>Гуляет один, видит, что рядом есть другие владельцы, хочет социализировать собаку.</p></div>
+    <div><span class="lbl">Цель человека</span><p>Познакомиться, не раскрывая себя тому, кто может оказаться неприятным.</p></div>
+    <div><span class="lbl">Выход</span><p>Взаимное согласие → видимость на карте и чат на время прогулки. Или ничего, без следа.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step"><div class="box"><span class="id">walkstart</span><span class="nm">Тумблер включён</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">sniff</span><span class="nm">Кто рядом · 500 м</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">sniffreq</span><span class="nm">Анонимно, обоим</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">sniffmatch</span><span class="nm">Карта и направление</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">sniffchat</span><span class="nm">Чат до конца прогулки</span></div><span class="arw">→</span></div>
+    <div class="step branch"><div class="box"><span class="id">recs</span><span class="nm">Оставить знакомство</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>Единственный сценарий, где ошибка проектирования наносит вред человеку, а не портит метрику.
+    Показ направления и расстояния — это, по сути, наведение одного пользователя на другого.
+    Отключение по умолчанию, немедленный обрыв связи после прогулки и жалоба в один тап
+    обязаны быть в MVP, а не в следующей версии. Гипотеза H6.</p></div></div>
+</div>
+
+<div class="scn">
+  <div class="scnhead"><span class="sid">S7</span><h3>Публичные статусы и что видно на карте</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>У собаки течка, зооагрессия, или наоборот — хочется обозначить открытость к знакомствам.</p></div>
+    <div><span class="lbl">Цель человека</span><p>Предупредить окружающих, ничего о себе не раскрыв.</p></div>
+    <div><span class="lbl">Выход</span><p>Зона на карте у других владельцев без имени, породы и точной точки.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step"><div class="box"><span class="id">cal</span><span class="nm">Даты течки</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">status</span><span class="nm">Что публикуется</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">map</span><span class="nm">Зоны и алерты</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>Статус «зооагрессия» полезен ровно настолько, насколько честно его ставят. Владелец агрессивной
+    собаки не заинтересован себя помечать. Если ставить будут меньше одного процента — функция
+    мёртвая и её надо строить иначе, например от жалоб, а не от самопометки. Гипотеза H7.</p></div></div>
+</div>
+
+<div class="scn">
+  <div class="scnhead"><span class="sid">S8</span><h3>Маршрут как повод выйти</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>Одни и те же двести метров вокруг дома каждый день, скучно обоим.</p></div>
+    <div><span class="lbl">Цель человека</span><p>Разнообразие без планирования — чтобы кто-то предложил, куда пойти.</p></div>
+    <div><span class="lbl">Выход</span><p>Маршрут с ожидаемым числом встреч и прогрессом по району.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step"><div class="box"><span class="id">home</span><span class="nm">Маршрут на сегодня</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">routes</span><span class="nm">3 варианта · тишина/встречи</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">walk</span><span class="nm">Прогулка</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>«Больше встреч» можно обещать только при достаточной плотности пользователей в районе.
+    До нескольких сотен активных в городе счётчик участников будет показывать ноль,
+    и функцию честнее не включать.</p></div></div>
+</div>
+
+<div class="scn">
+  <div class="scnhead"><span class="sid">S9</span><h3>Вопрос породнику или врачу в своём городе</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>Непонятный симптом или поведение; гуглить страшно, идти к врачу пока рано.</p></div>
+    <div><span class="lbl">Цель человека</span><p>Ответ от человека с той же породой в том же городе, а не спор на сорок комментариев.</p></div>
+    <div><span class="lbl">Выход</span><p>Ответ в личный кабинет; при вопросе «посоветуйте врача» — ответ с географией.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step"><div class="box"><span class="id">feed</span><span class="nm">Сообщество</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">expert</span><span class="nm">Порода + город</span></div><span class="arw">→</span></div>
+    <div class="step branch"><div class="box"><span class="id">events</span><span class="nm">Лента событий</span></div><span class="arw">→</span></div>
+    <div class="step branch"><div class="box"><span class="id">cal</span><span class="nm">Перенос в свой календарь</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>Экспертный совет — это маркетплейс с двумя сторонами: без отвечающих он пустой.
+    На MVP отвечающими должны быть заранее набранные люди, а не «кто-нибудь из пользователей».</p></div></div>
+</div>
+</section>
+
+<section>
+<h2><span class="num">D</span>Здоровье и документы</h2>
+
+<div class="scn">
+  <div class="scnhead"><span class="sid">S10</span><h3>Занести процедуру: вручную или сканом</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>Вернулся от врача с выпиской. Или подстриг когти дома.</p></div>
+    <div><span class="lbl">Цель человека</span><p>Чтобы бумага не потерялась и чтобы вовремя напомнили о следующем разе.</p></div>
+    <div><span class="lbl">Выход</span><p>Запись в карте здоровья, оригинал в банке документов, напоминание в календаре.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step"><div class="box"><span class="id">health</span><span class="nm">Карта здоровья</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">docscan</span><span class="nm">Снять документ</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">docs</span><span class="nm">Банк документов</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">calset</span><span class="nm">Правило напоминания</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>Распознавание никогда не бывает стопроцентным. Поля должны быть редактируемыми до
+    сохранения, а запись — помеченной как «распознано и подтверждено вами», иначе в карту
+    попадут неверные даты вакцинации, и цена ошибки здесь медицинская.</p></div></div>
+</div>
+
+<div class="scn">
+  <div class="scnhead"><span class="sid">S11</span><h3>Запись к партнёру и взаимная оценка</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>Напоминание о сроке процедуры или предложение из ленты событий.</p></div>
+    <div><span class="lbl">Цель человека</span><p>Записаться в два тапа и не заполнять анкету заново.</p></div>
+    <div><span class="lbl">Выход</span><p>Визит, автоматическая запись в карте, рекомендация в банк.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step"><div class="box"><span class="id">cal</span><span class="nm">Срок процедуры</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">partner</span><span class="nm">Клиника / груминг</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">review</span><span class="nm">Как всё прошло</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">recs</span><span class="nm">Банк рекомендаций</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>Партнёрская сторона — отдельный продукт, которого в макете нет. Клинике нужен кабинет,
+    чтобы подтвердить визит и написать рекомендацию. Без него «рекомендации от партнёров»
+    придётся заводить руками. Гипотеза H8.</p></div></div>
+</div>
+
+<div class="scn">
+  <div class="scnhead"><span class="sid">S12</span><h3>Что происходит дома, пока никого нет</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>Соседи жалуются на вой, или дома опять что-то погрызено.</p></div>
+    <div><span class="lbl">Цель человека</span><p>Понять, это скука, тревога разлуки или реакция на шум — и что с этим делать.</p></div>
+    <div><span class="lbl">Выход</span><p>Разметка суток по категориям и один протокол действий или вопрос эксперту.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step"><div class="box"><span class="id">cams</span><span class="nm">Камеры партнёра</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">behavior</span><span class="nm">Разметка суток</span></div><span class="arw">→</span></div>
+    <div class="step branch"><div class="box"><span class="id">course</span><span class="nm">Протокол</span></div></div>
+    <span class="arw">·</span>
+    <div class="step branch"><div class="box"><span class="id">expert</span><span class="nm">Вопрос эксперту</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>Зависит от чужого API. Для ONVIF/RTSP и Ivideon доступ документирован, для остальных —
+    <strong>не подтверждено</strong>. И это функция, которая не должна ставить диагноз:
+    она показывает когда и сколько, вывод делает специалист.</p></div></div>
+</div>
+</section>
+
+<section>
+<h2><span class="num">E</span>Потеря</h2>
+
+<div class="scn">
+  <div class="scnhead"><span class="sid">S13</span><h3>Питомца нашёл посторонний человек</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>Прохожий увидел собаку без хозяина и жетон с QR-кодом.</p></div>
+    <div><span class="lbl">Цель нашедшего</span><p>Помочь за одну минуту, не устанавливая приложение и не звоня незнакомцу.</p></div>
+    <div><span class="lbl">Выход</span><p>Владелец уведомлён и видит место находки. Персональные данные владельца не раскрыты.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step"><div class="box"><span class="id">qr</span><span class="nm">Жетон на ошейнике</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">found</span><span class="nm">Веб-страница · без приложения</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">found2</span><span class="nm">Владелец уведомлён</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>Единственный сценарий, целиком работающий без установки и без подписки — и поэтому
+    самый дешёвый канал привлечения. Требует только веба и печати жетонов.
+    Должен работать, даже если аккаунт владельца неактивен.</p></div></div>
+</div>
+
+<div class="scn warnv">
+  <div class="scnhead"><span class="sid">S14</span><h3>Питомец потерялся: режим «Спасите»</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>Убежал с прогулки, испугался салюта, выскочил в подъезд.</p></div>
+    <div><span class="lbl">Цель человека</span><p>Найти. Всё остальное в эту минуту неважно.</p></div>
+    <div><span class="lbl">Выход</span><p>Последняя точка, ориентировка соседям, отклики.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step"><div class="box"><span class="id">tracker</span><span class="nm">Последняя точка</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">sos</span><span class="nm">Режим «Спасите»</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">sos2</span><span class="nm">Идёт поиск</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">heroes</span><span class="nm">Команда Героев</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>Без трекера остаётся только ориентировка соседям — то, что уже делают городские чаты,
+    и делают бесплатно. Это единственный сценарий, где железо действительно меняет исход,
+    и одновременно тот, ради которого люди чаще всего и приходят.</p></div></div>
+</div>
+</section>
+
+<section>
+<h2><span class="num">F</span>Границы продукта</h2>
+
+<div class="scn">
+  <div class="scnhead"><span class="sid">S15</span><h3>Пользователь без трекера</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>Устройство не купил и не собирается — большинство пользователей на старте.</p></div>
+    <div><span class="lbl">Цель человека</span><p>Понять, что именно он теряет, и не чувствовать себя пользователем второго сорта.</p></div>
+    <div><span class="lbl">Выход</span><p>Честный список: что работает так же, что недоступно, чем компенсируется.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step key"><div class="box"><span class="id">notracker</span><span class="nm">Что работает и что нет</span></div><span class="arw">→</span></div>
+    <div class="step"><div class="box"><span class="id">wellbeing</span><span class="nm">5 доменов по отметкам</span></div></div>
+    <span class="arw">·</span>
+    <div class="step"><div class="box"><span class="id">qr</span><span class="nm">Жетон</span></div></div>
+    <span class="arw">·</span>
+    <div class="step branch"><div class="box"><span class="id">tracker</span><span class="nm">Апгрейд позже</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>Это не запасной сценарий, а основной путь веб-MVP. Если ценность держится только на
+    железе, у продукта нет входа для большинства аудитории — и весь план из вкладки 02
+    теряет смысл.</p></div></div>
+</div>
+
+<div class="scn">
+  <div class="scnhead"><span class="sid">S16</span><h3>Момент оплаты</h3></div>
+  <div class="gto">
+    <div><span class="lbl">Триггер</span><p>Упирается в закрытую функцию или доходит до конца бесплатного периода.</p></div>
+    <div><span class="lbl">Цель человека</span><p>Понять, за что платит, — состоянием, а не списком функций.</p></div>
+    <div><span class="lbl">Выход</span><p>Подписка или осознанный отказ, после которого продукт остаётся пригодным.</p></div>
+  </div>
+  <div class="rail">
+    <div class="step"><div class="box"><span class="id">home</span><span class="nm">Premium в шапке</span></div><span class="arw">→</span></div>
+    <div class="step key"><div class="box"><span class="id">paywall</span><span class="nm">«Не значит быть идеальным»</span></div><span class="arw">→</span></div>
+    <div class="step branch"><div class="box"><span class="id">home</span><span class="nm">Позже</span></div></div>
+  </div>
+  <div class="risk"><div><span class="lbl">Где ломается</span>
+    <p>Пейволл продаёт состояние, а не функции. Это гипотеза H1, и она главная:
+    если она неверна, надо переписывать не пейволл, а позиционирование продукта.</p></div></div>
+</div>
+</section>
+
+</div>
+
+<!-- ═══════════════ 02 MVP БЕЗ ТРЕКЕРОВ ═══════════════ -->
+<div class="panel" id="p-web" role="tabpanel">
+
+<p class="intro">Веб-приложение без железа. Цель этого MVP — не собрать все 56 экранов,
+а проверить единственное утверждение: снятие вины стоит денег. Всё, что не служит этой проверке,
+из объёма выброшено и перечислено отдельно.</p>
+
+<div class="sums">
+  <div><b>18</b><span>недель до запуска на когорте</span></div>
+  <div><b>9</b><span>сценариев из 16 работают</span></div>
+  <div><b>0</b><span>единиц железа, кроме жетона</span></div>
+  <div><b>5</b><span>гипотез закрывается</span></div>
+</div>
+
+<div class="note good">
+  <span class="lbl">Формулировка объёма</span>
+  <p>MVP — это S1, S2, S3, S4, S7, S10, S13, S15, S16 плюс частично S5.
+  Не входит: «снюхаться» в реальном времени, камеры и анализ поведения, маршруты-квесты,
+  экспертный совет, партнёрский кабинет, страхование, курс новичка, лента событий, галерея.
+  Всё это описано в макете и остаётся в бэклоге.</p>
+</div>
+
+<h2 style="margin-bottom:18px">Дорожная карта</h2>
+
+<div class="phase">
+  <div class="pwk"><span class="wk">Ф0</span><span class="dur">1 нед</span></div>
+  <div class="pbody">
+    <h3>Решения, которые нельзя отложить</h3>
+    <ul>
+      <li><strong>Один город, одна аудитория.</strong> Плотность важнее охвата: без неё не работают
+        ни карта, ни статусы, ни маршруты.</li>
+      <li><strong>Юрлицо и 152-ФЗ.</strong> Уведомление Роскомнадзора об обработке персданных,
+        размещение базы на территории РФ, политика обработки на сайте до первой регистрации.</li>
+      <li><strong>Форма доставки.</strong> PWA или сайт. Ключевое ограничение:
+        Web Push на iOS работает только для PWA, добавленной пользователем на домашний экран.
+        Из этого прямо следует, что почта в напоминаниях — не дополнение, а основной канал.</li>
+      <li><strong>Заявка в ВетИС.</strong> Подать в первую неделю: цикл согласования долгий,
+        а от ответа зависит, будет ли верификация владения в MVP вообще.</li>
+    </ul>
+    <div class="gate"><span class="lbl">Условие перехода</span>
+      <p>Город выбран, юрлицо есть, заявка на тестовый доступ к Ветис.API отправлена.</p></div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="pwk"><span class="wk">Ф1</span><span class="dur">нед 1–3</span></div>
+  <div class="pbody">
+    <h3>Каркас: люди, питомцы, доступ</h3>
+    <ul>
+      <li>Вход по номеру телефона или ссылке на почту. Без OAuth и без Госуслуг на старте —
+        это интеграция ради интеграции.</li>
+      <li>Профиль владельца (город и район обязательны — от них зависит вся география) и профиль питомца.</li>
+      <li><strong>Совладение с четырьмя ролями</strong> — владелец, совладелец, помощник, гость.
+        Заложить сразу: переделывать модель доступа на живых данных дорого.</li>
+      <li>Хранилище: реляционная база плюс S3-совместимое объектное, оба в российской юрисдикции.</li>
+    </ul>
+    <div class="done"><span class="lbl">Чем заканчивается</span>
+      <p>Человек регистрируется, заводит питомца, приглашает второго владельца, и тот видит то,
+      что ему положено по роли.</p></div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="pwk"><span class="wk">Ф2</span><span class="dur">нед 3–6</span></div>
+  <div class="pbody">
+    <h3>Ядро: пять доменов</h3>
+    <ul>
+      <li>Ручные отметки по четырём доменам-источникам: питание, среда, здоровье, поведение.</li>
+      <li><strong>Расчёт пятого домена — открытая взвешенная сумма с видимыми весами.</strong>
+        Никакого машинного обучения: на этом этапе важно, чтобы человек понимал, откуда взялось число,
+        а не чтобы число было точным.</li>
+      <li>Вечерний экран «сегодня было достаточно» с объяснением, из чего сложился ответ.</li>
+      <li>Режимы дня: пять готовых плюс редактор своего. Автоподстановка — в бэклог.</li>
+    </ul>
+    <div class="gate"><span class="lbl">Условие перехода</span>
+      <p>Юзабилити-тест на 8–10 людях: не менее шести объясняют своими словами, что пятый домен
+      складывается из четырёх. Иначе — переделывать объяснение, а не идти дальше (H2).</p></div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="pwk"><span class="wk">Ф3</span><span class="dur">нед 6–9</span></div>
+  <div class="pbody">
+    <h3>Здоровье, документы, напоминания</h3>
+    <ul>
+      <li>Карта здоровья: вакцинация, обработки, уход, приёмы. Ручной ввод.</li>
+      <li>Загрузка фото документа и распознавание. <strong>Не своя модель</strong> — облачный OCR;
+        поля редактируются до сохранения, запись помечается как подтверждённая пользователем.</li>
+      <li>Календарь месяцем, правила напоминаний: за сколько, как часто, push и почта.</li>
+      <li>Хранение документов: при 10–50 листах в год это <strong>0,18–0,92 ₽ в год на питомца</strong>
+        — фактически бесплатно. Реальные затраты здесь — распознавание и трафик загрузки.</li>
+    </ul>
+    <div class="done"><span class="lbl">Чем заканчивается</span>
+      <p>Владелец фотографирует выписку и получает напоминание о следующей обработке
+      в срок, который сам задал.</p></div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="pwk"><span class="wk">Ф4</span><span class="dur">нед 9–11</span></div>
+  <div class="pbody">
+    <h3>Верификация владения без железа</h3>
+    <ul>
+      <li>Ветис.API 2.1 находится в промышленной эксплуатации; доступ выдаётся в два этапа —
+        сначала тестовый контур, затем промышленный по квалифицированной электронной подписи.
+        Компонент «Хорриот» содержит учётные данные животных.</li>
+      <li>Требование к интегратору: доля ошибочных запросов ниже 10% в промышленной эксплуатации.</li>
+      <li><strong>Запасной путь обязателен.</strong> Если доступа не будет — верификация
+        по фото ветпаспорта и номеру чипа, проверенная человеком. Медленно, но не блокирует запуск.</li>
+    </ul>
+    <div class="gate"><span class="lbl">Условие перехода</span>
+      <p>Есть работающая верификация — государственная или ручная. Без неё «верифицированный
+      профиль» из позиционирования надо убрать, а не оставлять как обещание.</p></div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="pwk"><span class="wk">Ф5</span><span class="dur">нед 11–13</span></div>
+  <div class="pbody">
+    <h3>QR-жетон: единственное железо этого этапа</h3>
+    <ul>
+      <li>Публичная страница находки, работающая без установки приложения и без подписки владельца.</li>
+      <li>На странице — только то, что нужно нашедшему: как связаться через сервис
+        и куда сообщить место. Никаких персональных данных владельца.</li>
+      <li>Печать и гравировка — подрядчик. Жетон окупается не как товар, а как канал привлечения.</li>
+    </ul>
+    <div class="done"><span class="lbl">Чем заканчивается</span>
+      <p>Сценарий S13 работает целиком. Появляется первый измеримый канал привлечения,
+      не связанный с платным трафиком.</p></div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="pwk"><span class="wk">Ф6</span><span class="dur">нед 13–16</span></div>
+  <div class="pbody">
+    <h3>Прогулка и статусы на телефонном GPS</h3>
+    <ul>
+      <li>Отметка прогулки вручную плюс необязательный трек по GPS браузера.</li>
+      <li><strong>Ограничение, которое надо назвать вслух:</strong> браузер не пишет геолокацию
+        в фоне. Трек останавливается, когда экран гаснет. Значит основной способ — ручная отметка,
+        а трек подаётся как «положите телефон экраном вверх».</li>
+      <li>Публичные статусы и их отображение зонами на карте: течка из календаря,
+        зооагрессия и дружелюбие — вручную.</li>
+      <li>«Снюхаться» <strong>не входит</strong>: без фоновой геолокации присутствие
+        рядом определить нельзя, а половинчатая реализация здесь опаснее отсутствия.</li>
+      <li><strong>Развилка на этом шаге.</strong> Если продукт делать нативным приложением,
+        а не вебом, смартфон владельца становится полноценным источником геоданных:
+        возвращаются трек в фоне, маршруты и «снюхаться». Цена — плюс 6–10 недель,
+        две площадки и проверка разрешений. Разбор во вкладке 03.</li>
+    </ul>
+    <div class="done"><span class="lbl">Чем заканчивается</span>
+      <p>Карта показывает предупреждения, прогулки попадают в домен 4, S7 работает.</p></div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="pwk"><span class="wk">Ф7</span><span class="dur">нед 16–18</span></div>
+  <div class="pbody">
+    <h3>Деньги</h3>
+    <ul>
+      <li>Подписка через российского провайдера с поддержкой рекуррентных платежей.</li>
+      <li><strong>376-ФЗ, действует с 1 марта 2026.</strong> Запрещено списывать по реквизитам,
+        от использования которых потребитель отказался; отказ надо принимать в электронной форме.
+        Практически: кнопка «отвязать карту» в интерфейсе и жёсткая проверка на стороне сервера
+        перед каждым списанием.</li>
+      <li>Два варианта пейволла для сплит-теста: «дневник достаточности» против
+        «полная статистика». Это и есть проверка H1.</li>
+    </ul>
+    <div class="gate"><span class="lbl">Условие перехода</span>
+      <p>Первый платёж прошёл, отмена работает, оба варианта пейволла раздаются случайно.</p></div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="pwk"><span class="wk">Ф8</span><span class="dur">нед 18+</span></div>
+  <div class="pbody">
+    <h3>Запуск на когорте</h3>
+    <ul>
+      <li>300–500 владельцев в одном городе. Не больше: цель — измерить, а не расти.</li>
+      <li>Каналы: жетоны через клиники и груминги, приюты, локальные сообщества. Платный трафик —
+        только как контрольная группа для сравнения стоимости привлечения.</li>
+      <li>Наблюдение 8 недель без изменений продукта. Правки в этот период ломают когортное измерение.</li>
+    </ul>
+    <div class="done"><span class="lbl">Чем заканчивается</span>
+      <p>Закрыты H1, H2, H3, H5, H10. По результатам — решение, идти ли в железо.</p></div>
+  </div>
+</div>
+
+<div class="note warn">
+  <span class="lbl">Чего этот MVP принципиально не проверяет</span>
+  <p>Ничего про железо: удержание владельцев трекера, готовность платить за устройство,
+  реальную дальность и время работы, ценность живой точки на карте. И ничего про сценарий S14 —
+  без трекера режим «Спасите» повторяет то, что бесплатно делают городские чаты.
+  Если вся ценность продукта окажется в потере питомца, веб-MVP этого не покажет,
+  и это его главное слепое пятно.</p>
+</div>
+
+</div>
+
+<!-- ═══════════════ 03 СМАРТФОН ВМЕСТО ТРЕКЕРА ═══════════════ -->
+<div class="panel" id="p-phone" role="tabpanel">
+
+<p class="intro">Промежуточный вариант между вебом без железа и собственным устройством:
+источником геоданных становится смартфон владельца. Это не «трекер попроще» — это другой объект
+наблюдения, и именно из этого следуют и возможности, и границы.</p>
+
+<div class="note stop">
+  <span class="lbl">Главное различие, из которого следует всё остальное</span>
+  <p>Трекер на ошейнике отслеживает <strong>животное</strong>. Смартфон отслеживает
+  <strong>владельца</strong>. Пока они рядом, это одно и то же — и все прогулочные и социальные
+  сценарии работают. В ту секунду, когда собака убежала, телефон продолжает добросовестно
+  показывать, где стоит человек. То есть ровно в сценарии, ради которого люди чаще всего
+  и приходят, смартфон не заменяет устройство ничем.</p>
+</div>
+
+<h2>Цена решения: это уже не веб</h2>
+<p>Плана из вкладки 02 это касается напрямую. Браузер не пишет геолокацию в фоне —
+поэтому там «снюхаться» был вынесен за скобки. Нативное приложение фон писать может,
+но за это платят другим:</p>
+
+<div class="tw">
+<table>
+  <thead><tr><th style="width:26%">Что меняется</th><th>Веб (вкладка 02)</th><th>Нативное приложение</th></tr></thead>
+  <tbody>
+  <tr><td><strong>Фоновая геолокация</strong></td>
+    <td><span class="b no">нет</span> Трек только пока вкладка активна и экран включён</td>
+    <td><span class="b ok">есть</span> При выданном разрешении и работающем сервисе переднего плана</td></tr>
+  <tr><td><strong>Выкладка</strong></td>
+    <td>Обновление в любой момент, никакого ревью</td>
+    <td>Две площадки, ревью на каждое обновление</td></tr>
+  <tr><td><strong>Разрешение на фон</strong></td>
+    <td>Не требуется</td>
+    <td>Отдельная проверка магазина: форма-декларация, видео до 30 секунд с демонстрацией
+      функции, политика конфиденциальности, явное уведомление в интерфейсе перед запросом</td></tr>
+  <tr><td><strong>Команда</strong></td>
+    <td>Один фронтенд</td>
+    <td>iOS и Android или кроссплатформенный фреймворк плюс нативный код под геолокацию</td></tr>
+  <tr><td><strong>Срок</strong></td>
+    <td>18 недель</td>
+    <td><span class="b mid">+6–10 недель</span> <span class="b q">оценка</span> — разработка,
+      подача на проверку разрешений, возможные доработки после отказа</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note warn">
+  <span class="lbl">Риск, который нельзя обойти инженерно</span>
+  <p>Фоновая геолокация в Google Play — чувствительное разрешение с ручной проверкой.
+  Одобряют, когда она нужна для основной функции и даёт пользователю понятную пользу.
+  Частые причины отказа: заявлено несколько функций сразу вместо одной, функцию нельзя
+  проверить по видео, несоответствие видео описанию, неверно оформленное уведомление
+  пользователю. Практический вывод: подавать надо <strong>одну</strong> функцию —
+  «фиксация прогулки с питомцем» — и снимать видео именно про неё.</p>
+</div>
+
+<h2>Три режима, а не один</h2>
+<p>Соблазн — включить фоновую геолокацию круглосуточно. Это ошибка: она сажает батарею,
+усложняет ревью и создаёт настоящий риск приватности. Правильная конструкция —
+три разных режима с разной ценой.</p>
+
+<div class="forks">
+  <div class="fork pick">
+    <h3>1. Прогулка идёт</h3>
+    <p class="sum">Пользователь нажал «начать прогулку»</p>
+    <div class="pm">
+      <div class="plus"><span class="s">+</span><span>Точность максимальная, обновление раз в несколько секунд</span></div>
+      <div class="plus"><span class="s">+</span><span>Сервис переднего плана с постоянным уведомлением: человек видит, что запись идёт</span></div>
+      <div class="plus"><span class="s">+</span><span>Здесь и только здесь работают маршрут, «снюхаться» и видимость на карте</span></div>
+      <div class="minus"><span class="s">−</span><span>Расход батареи порядка 5–10% в час <span class="b q">оценка, нужен замер</span></span></div>
+    </div>
+    <p class="verdict">Окно 30–60 минут. Расход приемлем, потому что конечен и запущен человеком.</p>
+  </div>
+
+  <div class="fork">
+    <h3>2. Дежурный</h3>
+    <p class="sum">Приложение закрыто, прогулка не начата</p>
+    <div class="pm">
+      <div class="plus"><span class="s">+</span><span>Геозона вокруг дома: вышли — предложить начать прогулку</span></div>
+      <div class="plus"><span class="s">+</span><span>Расход близок к нулю: срабатывает по событию, а не опрашивает GPS</span></div>
+      <div class="minus"><span class="s">−</span><span>На iOS не более 20 отслеживаемых геозон на приложение</span></div>
+      <div class="minus"><span class="s">−</span><span>Событие выхода срабатывает с задержкой, особенно в плотной застройке</span></div>
+    </div>
+    <p class="verdict">Нужен ровно для одного: чтобы человек не забывал нажать «начать».</p>
+  </div>
+
+  <div class="fork">
+    <h3>3. Поиск</h3>
+    <p class="sum">Объявлена пропажа, участник согласился искать</p>
+    <div class="pm">
+      <div class="plus"><span class="s">+</span><span>Тот же режим, что и прогулка, но включается по согласию и на срок поиска</span></div>
+      <div class="plus"><span class="s">+</span><span>Пишет покрытие: какие улицы уже прошли</span></div>
+      <div class="minus"><span class="s">−</span><span>Показывает, где ищущие, а не где животное</span></div>
+    </div>
+    <p class="verdict">Единственный режим, который создаёт ценность, недоступную городским чатам.</p>
+  </div>
+</div>
+
+<h2>Что работает и чего не будет</h2>
+<div class="tw">
+<table>
+  <thead><tr><th style="width:22%">Сценарий</th><th style="width:14%">На смартфоне</th><th>Как именно и с какой оговоркой</th></tr></thead>
+  <tbody>
+  <tr><td><strong>S5 Прогулка</strong></td><td><span class="b ok">полностью</span></td>
+    <td>Трек, длительность, темп, километраж. Точность GPS телефона 5–15 м —
+      этого хватает для нормы активности. Данные идут в домен 4 так же, как шли бы с ошейника.</td></tr>
+  <tr><td><strong>S8 Маршруты</strong></td><td><span class="b ok">полностью</span></td>
+    <td>Предложение маршрута, отметка пройденных точек, прогресс по району.
+      Счётчик «сколько сейчас гуляет» считается по тем, у кого прогулка активна.</td></tr>
+  <tr><td><strong>S6 «Снюхаться»</strong></td><td><span class="b ok">полностью</span></td>
+    <td>Оба телефона в режиме прогулки шлют координаты на сервер, сервер считает,
+      кто в радиусе 500 м. <strong>Не через Bluetooth напрямую:</strong> в фоне iOS кладёт
+      идентификаторы сервисов в служебную область, откуда их видят только другие
+      iOS-устройства, явно ищущие именно этот идентификатор. Кроссплатформенное обнаружение
+      «телефон видит телефон» в фоне не работает — только через сервер.</td></tr>
+  <tr><td><strong>S7 Статусы на карте</strong></td><td><span class="b ok">полностью</span></td>
+    <td>Зона течки, зооагрессии, дружелюбия привязывается к позиции владельца во время
+      прогулки. Именно зона, а не точка — это и требование приватности, и следствие того,
+      что точка всё равно принадлежит человеку, а не собаке.</td></tr>
+  <tr><td><strong>S14 Поиск пропавшего</strong></td><td><span class="b mid">частично</span></td>
+    <td>Разбор ниже. Появляется точка разрыва и координация поиска — не появляется
+      местоположение животного.</td></tr>
+  <tr><td>Виртуальный забор</td><td><span class="b no">нет</span></td>
+    <td>Забор имеет смысл вокруг животного, оставшегося одного. Телефон в это время
+      в кармане у владельца в другом месте.</td></tr>
+  <tr><td>Активность дома</td><td><span class="b no">нет</span></td>
+    <td>Сколько питомец двигался, пока хозяина не было, телефон не знает.
+      Ручные отметки и камеры — единственная замена.</td></tr>
+  <tr><td>Пульс, дыхание, сон</td><td><span class="b no">нет</span></td>
+    <td>Считаются с акселерометра на теле животного. Ни телефон, ни часы владельца
+      этого не дают.</td></tr>
+  <tr><td>Живая точка вне прогулки</td><td><span class="b no">нет</span></td>
+    <td>Питомец у выгульщика, на передержке, у второго владельца — приложение слепо,
+      пока тот человек сам не начнёт прогулку в своём приложении.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Поиск пропавшего без устройства: что на самом деле даёт телефон</h2>
+<p>Здесь чаще всего возникает завышенное ожидание, поэтому стоит разобрать по частям.
+Телефон не находит животное. Он делает три другие вещи, и каждая из них имеет ценность.</p>
+
+<div class="two">
+  <div class="note good">
+    <span class="lbl">1. Точка и время разрыва</span>
+    <p>Трек прогулки заканчивается там, где человек нажал «пропал» — значит система знает
+    точное место и минуту, когда они были вместе в последний раз. Люди в панике описывают
+    это как «где-то у гаражей, минут двадцать назад». Разница между этим и координатой
+    с точностью 10 метров — это радиус поиска: за двадцать минут собака уходит на километры,
+    и стартовая ошибка в триста метров разворачивает поиск не в ту сторону.</p>
+  </div>
+  <div class="note good">
+    <span class="lbl">2. Мобилизация тех, кто уже на улице</span>
+    <p>В момент пропажи в радиусе двух-трёх километров есть люди, у которых прямо сейчас
+    активна прогулка. Они уже вышли, уже идут, у них уже включён экран. Это принципиально
+    лучшая аудитория, чем подписчики районного чата, которые прочитают вечером.</p>
+  </div>
+</div>
+<div class="note good">
+  <span class="lbl">3. Учёт покрытия — то, чего нет в городских чатах</span>
+  <p>Когда ищущие включают режим поиска, их треки складываются в карту покрытия:
+  видно, какие улицы и дворы уже прошли и когда. Сейчас это главная потеря в стихийном
+  поиске — десять человек по три раза проходят один и тот же сквер, а соседний квартал
+  не проверял никто. Это чисто программная функция, для неё не нужно ни грамма железа,
+  и она работает тем лучше, чем больше участников.</p>
+</div>
+
+<div class="note stop">
+  <span class="lbl">Чего в этом сценарии не будет, как ни строй</span>
+  <p>Ни направления, ни расстояния, ни «горячо-холодно». Крауд-поиск в стиле сетей
+  из потерянных меток здесь тоже не появляется: в тех сетях чужие телефоны ловят
+  <strong>радиометку на предмете</strong>. Если на животном ничего нет, ловить нечего —
+  сколько бы пользователей ни было. Самая дешёвая вещь, которая это меняет, —
+  не трекер, а BLE-метка на ошейнике за несколько сотен рублей: она не даёт координат сама,
+  но её может услышать проходящий мимо телефон другого участника.</p>
+</div>
+
+<h2>Что это меняет в плане</h2>
+<div class="phase">
+  <div class="pwk"><span class="wk">Δ1</span><span class="dur">решение</span></div>
+  <div class="pbody">
+    <h3>Веб или нативное приложение — развилка, а не деталь</h3>
+    <ul>
+      <li><strong>Веб.</strong> 18 недель, дешевле, без ревью. Прогулка — ручная отметка,
+        «снюхаться» и маршруты не входят. Проверяет гипотезы H1, H2, H3, H5, H9.</li>
+      <li><strong>Нативное.</strong> 24–28 недель <span class="b q">оценка</span>, две площадки,
+        проверка разрешений. Добавляет S5, S6, S7, S8 и координацию поиска.
+        Проверяет те же гипотезы плюс H6 и H16–H17.</li>
+      <li><strong>Что решает выбор:</strong> нужна ли социальная часть, чтобы продукт удерживал.
+        Если ценность в вечернем вопросе «сегодня было достаточно» — хватает веба.
+        Если удержание держится на встречах и сообществе — веб её не проверит,
+        и восемнадцать недель уйдут на измерение не того.</li>
+    </ul>
+  </div>
+</div>
+<div class="phase">
+  <div class="pwk"><span class="wk">Δ2</span><span class="dur">объём</span></div>
+  <div class="pbody">
+    <h3>Правки к вкладке 02, если выбрано нативное</h3>
+    <ul>
+      <li>Ф6 переписывается: вместо «трек, пока экран включён» — три режима геолокации.</li>
+      <li>Добавляется Ф6-бис: подача формы-декларации на фоновую геолокацию.
+        <strong>Подавать надо заранее</strong> — отказ означает переделку и повторную подачу,
+        а это недели, не дни.</li>
+      <li>«Снюхаться» возвращается в объём MVP — со всеми требованиями безопасности из H6,
+        которые в этом варианте становятся обязательными, а не желательными.</li>
+      <li>Координация поиска добавляется как отдельный экран: карта покрытия и список
+        откликнувшихся.</li>
+    </ul>
+  </div>
+</div>
+<div class="phase">
+  <div class="pwk"><span class="wk">Δ3</span><span class="dur">позиция</span></div>
+  <div class="pbody">
+    <h3>Как это подавать пользователю</h3>
+    <ul>
+      <li>Не «версия без трекера», а <strong>«телефон уже у вас в кармане»</strong>.
+        Экран <span class="mono">notracker</span> в макете написан правильно —
+        честный список того, что работает и чего нет.</li>
+      <li>Трекер перестаёт быть входным билетом и становится апгрейдом с понятной причиной:
+        он закрывает ровно те четыре строки, где сейчас стоит «нет».</li>
+      <li>Это же меняет экономику: устройство продаётся не новичку, а человеку,
+        который уже месяц пользуется и знает, чего ему не хватает. Конверсия
+        из активного пользователя выше, чем из холодного трафика — но насколько,
+        это гипотеза H13.</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<!-- ═══════════════ 04 MVP С ТРЕКЕРАМИ ═══════════════ -->
+<div class="panel" id="p-hw" role="tabpanel">
+
+<p class="intro">Второй MVP начинается только после первого и только при выполненном условии перехода.
+Здесь появляется физический продукт, регуляторика связи и себестоимость, которая уже
+не поддаётся быстрым правкам.</p>
+
+<div class="note stop">
+  <span class="lbl">Условие входа в этот этап</span>
+  <p>Веб-MVP показал <strong>D28-удержание выше 20%</strong> и конверсию в подписку,
+  дающую LTV/CAC не ниже 3 хотя бы по одному каналу. Если удержания нет, трекер его не создаст —
+  он создаст себестоимость, склад и возвраты.</p>
+</div>
+
+<h2>Развилка технологии</h2>
+<p class="intro" style="margin-bottom:18px">Это решение определяет всё остальное:
+себестоимость, время работы, обязательность подписки, необходимость собственной инфраструктуры.
+Отменить его после запуска производства нельзя.</p>
+
+<div class="forks">
+  <div class="fork">
+    <h3>GSM + GPS на M2M-SIM</h3>
+    <p class="sum">Готовые ODM-платформы, свой корпус и прошивка</p>
+    <div class="pm">
+      <div class="plus"><span class="s">+</span><span>Работает по всей стране с первого дня, своя сеть не нужна</span></div>
+      <div class="plus"><span class="s">+</span><span>Координаты точные и сразу, без триангуляции</span></div>
+      <div class="minus"><span class="s">−</span><span>Батарея 2–5 суток при частом опросе</span></div>
+      <div class="minus"><span class="s">−</span><span>Себестоимость связи каждый месяц на каждое устройство</span></div>
+      <div class="minus"><span class="s">−</span><span>SIM привязывает к оператору и его тарифной политике</span></div>
+    </div>
+    <p class="verdict"><span class="b mid">быстро, дорого в эксплуатации</span></p>
+  </div>
+
+  <div class="fork">
+    <h3>LoRa и своя сеть</h3>
+    <p class="sum">MeshCore под MIT либо Meshtastic под GPL-3.0</p>
+    <div class="pm">
+      <div class="plus"><span class="s">+</span><span>Время работы неделями, себестоимость связи нулевая</span></div>
+      <div class="plus"><span class="s">+</span><span>MeshCore под MIT: лицензия не навязывает раскрытие прошивки</span></div>
+      <div class="minus"><span class="s">−</span><span><strong>LoRa сама по себе не даёт координат.</strong> Нужен либо GPS в устройстве, либо TDoA от трёх и более базовых станций</span></div>
+      <div class="minus"><span class="s">−</span><span>Базовые станции в городе-миллионнике: порядка двадцати штук, 3–6 млн ₽ — <span class="b q">оценка</span></span></div>
+      <div class="minus"><span class="s">−</span><span>Продукт не работает вне зоны своей сети — то есть почти везде</span></div>
+    </div>
+    <p class="verdict"><span class="b no">не для MVP: инфраструктура до первой продажи</span></p>
+  </div>
+
+  <div class="fork pick">
+    <h3>BLE-метка с GSM по алерту</h3>
+    <p class="sum">Гибрид: радиомаяк постоянно, сотовый модуль — только когда что-то случилось</p>
+    <div class="pm">
+      <div class="plus"><span class="s">+</span><span>Время работы месяцами: дорогой радиотракт молчит в норме</span></div>
+      <div class="plus"><span class="s">+</span><span>Себестоимость связи почти нулевая — трафик только по событию</span></div>
+      <div class="plus"><span class="s">+</span><span>Дома и на прогулке рядом хватает BLE, живая точка нужна редко</span></div>
+      <div class="minus"><span class="s">−</span><span>Сложнее прошивка: два радиотракта и логика пробуждения</span></div>
+      <div class="minus"><span class="s">−</span><span>Крауд-поиск по чужим телефонам не работает, пока сеть пользователей пустая</span></div>
+    </div>
+    <p class="verdict"><strong>Рабочая гипотеза для MVP.</strong> Опровергается, если полевые
+      замеры покажут, что задержка пробуждения GSM-модуля больше нескольких минут:
+      тогда сценарий S14 не спасается и смысл гибрида пропадает.</p>
+  </div>
+</div>
+
+<h2>Регуляторные рамки, которые нельзя обойти</h2>
+
+<div class="note">
+  <span class="lbl">Что значат сокращения</span>
+  <p><strong>ГКРЧ</strong> — Государственная комиссия по радиочастотам. Орган, который решает,
+  на каких частотах и с какой мощностью в России вообще разрешено излучать.<br>
+  <strong>МГц</strong> — мегагерц, единица частоты. «868,7–869,2 МГц» — узкая полоса радиоэфира,
+  отведённая под маломощную технику.<br>
+  <strong>мВт</strong> — милливатт, тысячная доля ватта. Мера мощности передатчика.<br>
+  <strong>ЭИИМ</strong> — эквивалентная изотропно излучаемая мощность. Не мощность самой
+  микросхемы, а мощность с учётом антенны: сколько энергии реально уходит в эфир
+  в самом «громком» направлении. Как разница между голой лампочкой и той же лампочкой
+  в фонаре с отражателем — ватты те же, светит дальше.<br>
+  <strong>Duty cycle</strong> (коэффициент использования канала) — какую долю времени
+  передатчику разрешено говорить. 10% — не больше шести минут в час, остальное молчит.
+  Ограничение нужно, чтобы одно устройство не занимало общий эфир целиком.<br>
+  <strong>LBT</strong> — listen before talk, «послушай, прежде чем говорить». Альтернатива
+  ограничению по времени: устройство обязано проверить, свободен ли канал, и только тогда
+  передавать.<br>
+  <strong>РЭС</strong> — радиоэлектронное средство. Юридический термин для любого прибора
+  с радиопередатчиком.<br>
+  <strong>ПП РФ</strong> — постановление правительства Российской Федерации.</p>
+</div>
+
+<div class="note warn">
+  <span class="lbl">В чём здесь развилка, если совсем просто</span>
+  <p>Это два разных вопроса, и на них отвечают два разных документа.</p>
+  <p><strong>Первый вопрос: можно ли вообще излучать на этой частоте и насколько сильно.</strong>
+  Отвечает решение ГКРЧ. Ответ: да, в полосе 868,7–869,2 МГц можно до 100 мВт,
+  но говорить не больше десятой части времени — либо каждый раз проверять, что эфир свободен.</p>
+  <p><strong>Второй вопрос: надо ли ставить каждый проданный экземпляр на учёт
+  в Роскомнадзоре.</strong> Отвечает постановление № 1800. Ответ: не надо, если мощность
+  не выше 25 мВт. Выше — надо.</p>
+  <p>Между 25 и 100 мВт лежит зона, где излучать законно, но каждое устройство —
+  регистрируемое. Для продукта, который планируется продавать тысячами, это неработающий
+  вариант: регистрация умножается на тираж.</p>
+  <p style="margin-bottom:0"><strong>Чем мы платим за 25 мВт.</strong> Мощность влияет
+  на дальность. Разница между 25 и 100 мВт — четырёхкратная по мощности. В чистом поле
+  это примерно удвоение дальности; в городе, где сигнал гасят стены, выигрыш меньше —
+  порядка полутора раз <span class="b q">оценка, зависит от застройки</span>.
+  Ровно это и надо померить прежде, чем принимать решение: гипотеза H12.</p>
+</div>
+
+<div class="tw">
+<table>
+  <thead><tr><th>Норма</th><th>Что устанавливает</th><th>Что из этого следует для устройства</th></tr></thead>
+  <tbody>
+  <tr>
+    <td><strong>Решение ГКРЧ 18-46-03-1</strong><br><span class="b q">от 11.09.2018</span></td>
+    <td>В полосе 868,7–869,2 МГц разрешена мощность до 100 мВт при коэффициенте использования
+      канала не выше 10% либо при применении LBT. В полосах 866–868 МГц — до 25 мВт
+      при duty cycle до 1%.</td>
+    <td>Верхняя полоса — единственная пригодная для регулярного опроса. Ниже 868,7 МГц
+      duty cycle 1% означает секунды эфира в час.</td>
+  </tr>
+  <tr>
+    <td><strong>ПП РФ № 1800, п. 23</strong><br><span class="b q">от 20.10.2021</span></td>
+    <td>Маломощные передающие устройства в диапазонах 864–865, 866–868, 868,7–869,2 и
+      5725–5875 МГц с максимальной ЭИИМ <strong>25 мВт</strong> регистрации не подлежат.</td>
+    <td><strong>Развилка в железе.</strong> 25 мВт — не регистрируем ни одно устройство.
+      100 мВт — дальность больше, но каждый экземпляр становится РЭС, подлежащим регистрации.
+      Для потребительского продукта с тысячами устройств второй вариант нерабочий.</td>
+  </tr>
+  <tr>
+    <td><strong>M2M-SIM</strong><br><span class="b mid">практика операторов</span></td>
+    <td>По текущей коммерческой практике M2M-тарифы операторы оформляют на юридические лица
+      и ИП. Законодательное закрепление — проект постановления правительства
+      с планируемой датой 1 сентября 2027 года, <strong>не принят</strong>.</td>
+    <td>Связь идёт через нас, а не через симку покупателя. Значит подписка — не выбор
+      бизнес-модели, а конструктивное требование. Это же снимает вопрос «а можно без подписки».</td>
+  </tr>
+  <tr>
+    <td><strong>376-ФЗ</strong><br><span class="b q">с 01.03.2026</span></td>
+    <td>Запрещено использовать для периодических платежей реквизиты, от применения которых
+      потребитель отказался; отказ принимается в электронной форме.</td>
+    <td>Отвязка карты — обязательный элемент интерфейса. При аренде устройства
+      надо заранее описать, что происходит с железом при отказе от списаний.</td>
+  </tr>
+  <tr>
+    <td><strong>ТР ТС 020/2011, 004/2011</strong></td>
+    <td>Электромагнитная совместимость и безопасность низковольтного оборудования.</td>
+    <td>Декларирование соответствия до ввоза и продажи. Срок и стоимость зависят от лаборатории.
+      Ввоз изделий с криптографией дополнительно требует нотификации —
+      <strong>требует проверки юристом</strong>.</td>
+  </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 style="margin-bottom:18px">Дорожная карта</h2>
+
+<div class="phase">
+  <div class="pwk"><span class="wk">Ж0</span><span class="dur">нед 1–2</span></div>
+  <div class="pbody">
+    <h3>Выбор платформы и подрядчика</h3>
+    <ul>
+      <li>Три-четыре ODM на запрос, техзадание с жёсткими рамками: ЭИИМ не выше 25 мВт,
+        BLE-маяк постоянно, сотовый модуль по событию.</li>
+      <li>Решить <strong>аренда или продажа</strong> до проектирования корпуса: возвратное
+        устройство должно переживать чистку и смену владельца.</li>
+      <li>Договор с оператором на M2M — от него зависит и себестоимость, и сроки.</li>
+    </ul>
+    <div class="gate"><span class="lbl">Условие перехода</span>
+      <p>Есть подписанное ТЗ и посчитанная себестоимость комплекта, а не смета «примерно».</p></div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="pwk"><span class="wk">Ж1</span><span class="dur">нед 2–10</span></div>
+  <div class="pbody">
+    <h3>Прототип и полевые замеры</h3>
+    <ul>
+      <li>20–30 инженерных образцов. Замеры делаются в городе, а не в поле:
+        ранее полученная точность СКО около 92 м относится к открытой воде,
+        <strong>городская застройка не измерена</strong>.</li>
+      <li>Ресурс батареи — тридцать суток непрерывно на реальном профиле использования,
+        а не расчёт по даташиту.</li>
+      <li>Задержка пробуждения сотового модуля по алерту — ключевая метрика: она определяет,
+        спасает ли устройство сценарий S14.</li>
+    </ul>
+    <div class="gate"><span class="lbl">Условие перехода</span>
+      <p>Медиана времени работы не ниже 70% заявленного и задержка алерта в пределах,
+      при которых поиск ещё имеет смысл (H11, H12).</p></div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="pwk"><span class="wk">Ж2</span><span class="dur">нед 6–12</span></div>
+  <div class="pbody">
+    <h3>Данные с устройства — только те, что реальны</h3>
+    <ul>
+      <li>Акселерометр: шаги, активность, сон, косвенно частота дыхания и пульса.</li>
+      <li><strong>Оптическая пульсометрия через шерсть не работает.</strong> Это показано
+        в исследованиях и подтверждено производителями трекеров. Обещать пульс с оптического
+        датчика нельзя — ни в интерфейсе, ни в презентации инвестору.</li>
+      <li>Виртуальный забор, алерт выхода из зоны, алерт разряда батареи.</li>
+      <li>Данные с устройства подмешиваются в домены 3 и 4, а не образуют отдельный раздел:
+        иначе ломается вся конструкция пяти доменов.</li>
+    </ul>
+    <div class="done"><span class="lbl">Чем заканчивается</span>
+      <p>Владелец трекера видит тот же экран благополучия, но с меньшим числом ручных отметок.</p></div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="pwk"><span class="wk">Ж3</span><span class="dur">нед 10–16</span></div>
+  <div class="pbody">
+    <h3>Сертификация, логистика, поддержка</h3>
+    <ul>
+      <li>Декларирование по техрегламентам, проверка необходимости нотификации на криптографию.</li>
+      <li>Склад, упаковка, обмен брака. Возврат при аренде — отдельный процесс, который дороже,
+        чем кажется.</li>
+      <li>Поддержка: устройство порождает обращения, которых у веб-продукта не было.</li>
+    </ul>
+    <div class="gate"><span class="lbl">Условие перехода</span>
+      <p>Есть документы, есть партия, есть человек, отвечающий за возвраты.</p></div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="pwk"><span class="wk">Ж4</span><span class="dur">нед 16–24</span></div>
+  <div class="pbody">
+    <h3>Пилот на 100–200 устройствах</h3>
+    <ul>
+      <li>Один город, желательно тот же, где шёл веб-MVP: часть аудитории уже есть.</li>
+      <li>Сравнение двух когорт: с трекером и без. Метрика — удержание и выручка на пользователя,
+        а не удовлетворённость.</li>
+      <li>Предзаказ с реальной оплатой до отгрузки — это и есть проверка готовности платить (H13).
+        Опросы здесь бесполезны.</li>
+    </ul>
+    <div class="done"><span class="lbl">Чем заканчивается</span>
+      <p>Понятно, окупает ли устройство себя как товар, как канал привлечения — или не окупает вовсе.</p></div>
+  </div>
+</div>
+
+<div class="note">
+  <span class="lbl">Экономический смысл железа</span>
+  <p>По расчётам предыдущей итерации отношение LTV к стоимости привлечения различается по каналам
+  на порядок: платный трафик около 2,2, жетон около 13,5, партнёрский канал около 10,2,
+  органика около 27,1 — <span class="b q">оценка, не данные</span>. Если эти пропорции
+  подтвердятся на реальной когорте, трекер имеет смысл не как источник маржи,
+  а как повод для человека вообще узнать о продукте. Тогда правильная цена устройства —
+  на грани себестоимости, а зарабатывает подписка.</p>
+</div>
+
+</div>
+
+<!-- ═══════════════ 04 ГИПОТЕЗЫ ═══════════════ -->
+<div class="panel" id="p-hyp" role="tabpanel">
+
+<p class="intro">Семнадцать утверждений, на которых стоит план. Для каждого — способ его
+опровергнуть. Гипотеза без критерия опровержения не гипотеза, а мнение,
+и такие в таблицу не попали.</p>
+
+<div class="note">
+  <span class="lbl">Как выбирался способ проверки</span>
+  <p>Порядок один и тот же: сначала считается, во что обойдётся ошибка, если гипотеза неверна,
+  а мы этого не узнали; затем — сколько стоит проверка. Проверять первым надо то,
+  где разница между этими двумя числами наибольшая. Отсюда практическое правило:
+  <strong>H9 делается в первый день</strong> — заявка в ВетИС стоит нескольких часов работы,
+  а её отрицательный ответ переписывает позиционирование.</p>
+  <p style="margin-bottom:0">И общее ограничение по методам: <strong>интервью не проверяют
+  готовность платить</strong>. Люди добросовестно ошибаются в прогнозах собственного поведения.
+  Интервью хороши там, где проверяется понимание и формулировки, — H2, H6.
+  Всё, что про деньги и удержание, проверяется только поведением: сплит-тестом,
+  предоплатой, когортой.</p>
+</div>
+
+<h2>Обязательные до запуска веб-MVP</h2>
+<div class="tw">
+<table>
+  <thead><tr>
+    <th style="width:52px">#</th><th style="width:24%">Утверждение</th>
+    <th style="width:24%">Чем опровергается</th><th>Способы проверки, от лучшего к худшему</th>
+  </tr></thead>
+  <tbody>
+  <tr>
+    <td class="hid">H1</td>
+    <td><strong>Люди платят за снятие вины, а не за данные.</strong> Пейволл, обещающий состояние,
+      конвертирует лучше, чем пейволл со списком функций.</td>
+    <td>Разница конверсии из пробного периода в оплату меньше 2 п.п. при 400 и более
+      пользователях на ветку.</td>
+    <td><strong>1. Сплит-тест двух пейволлов</strong> при одинаковой цене — единственный
+      способ измерить деньги деньгами.<br>
+      2. Фейк-дор: лендинг с двумя формулировками, метрика — клик по «оформить».
+      Дешевле, но меряет намерение, а не оплату.<br>
+      3. Интервью — <span class="b no">не годится</span>: прогноз собственной оплаты
+      систематически завышен.</td>
+  </tr>
+  <tr>
+    <td class="hid">H2</td>
+    <td><strong>Конструкция пяти доменов понятна за одно объяснение</strong> — человек понимает,
+      что пятый складывается из четырёх.</td>
+    <td>Менее шести из десяти верно пересказывают логику своими словами после онбординга.</td>
+    <td><strong>1. Модерируемый юзабилити-тест на 8–10 людях</strong> — здесь интервью как раз
+      лучший метод, потому что проверяется понимание.<br>
+      2. Вопрос с выбором ответа сразу после онбординга: масштабируется, но подсказывает ответ.<br>
+      3. Косвенно — доля дошедших до конца онбординга. Слабый сигнал: доходят и не поняв.</td>
+  </tr>
+  <tr>
+    <td class="hid">H3</td>
+    <td><strong>Продукт удерживает без железа.</strong> Ценности ежедневного цикла хватает,
+      чтобы возвращаться месяц.</td>
+    <td>Доля активных на 28-й день ниже 20%.</td>
+    <td><strong>1. Когорта 300–500 человек, восемь недель без правок продукта.</strong>
+      Правки внутри окна уничтожают измерение.<br>
+      2. Сравнение с медианами по подписочным приложениям — только как ориентир,
+      база у них другая. <span class="b q">оценка</span></td>
+  </tr>
+  <tr>
+    <td class="hid">H5</td>
+    <td><strong>Владельцы действительно грузят документы.</strong> Банк документов
+      наполняется без принуждения.</td>
+    <td>Менее четверти активных загрузили хотя бы три документа за 30 дней.</td>
+    <td><strong>1. Продуктовая метрика на когорте</strong> — считается само.<br>
+      2. Сплит: подсказка загрузить в онбординге против подсказки после первого визита к врачу.<br>
+      3. Опрос — <span class="b no">бесполезен</span>: намерение вести документы
+      декларируют почти все.</td>
+  </tr>
+  <tr>
+    <td class="hid">H9</td>
+    <td><strong>Ветис.API даст доступ коммерческому приложению</strong> и позволит сверять
+      данные животного.</td>
+    <td>Отказ или требования, невыполнимые для стороннего сервиса.</td>
+    <td><strong>1. Подать заявку на тестовый контур в первую неделю.</strong> Бинарный ответ,
+      стоит нескольких часов, а последствия отказа переписывают позиционирование.<br>
+      2. Параллельно — разговор с уже интегрированной клиникой о её опыте.</td>
+  </tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Проверяются на живой когорте</h2>
+<div class="tw">
+<table>
+  <thead><tr>
+    <th style="width:52px">#</th><th style="width:24%">Утверждение</th>
+    <th style="width:24%">Чем опровергается</th><th>Способы проверки, от лучшего к худшему</th>
+  </tr></thead>
+  <tbody>
+  <tr>
+    <td class="hid">H4</td>
+    <td><strong>Почта в напоминаниях не лишняя.</strong> Push плюс письмо удерживают
+      заметно лучше, чем один push.</td>
+    <td>Разница в доле выполненных напоминаний меньше 3 п.п.</td>
+    <td><strong>1. Сплит по каналам внутри когорты.</strong><br>
+      2. Отдельно посмотреть долю iOS: если Web Push там не доставляется, письмо
+      окажется единственным работающим каналом, и гипотеза станет не про удержание,
+      а про доставляемость.</td>
+  </tr>
+  <tr>
+    <td class="hid">H6</td>
+    <td><strong>«Снюхаться» безопасно.</strong> Функция не превращается в инструмент
+      преследования и не отпугивает женскую аудиторию.</td>
+    <td>Более 2% знакомств заканчиваются жалобой, либо более половины женщин
+      выключают функцию в первую неделю.</td>
+    <td><strong>1. Раздельный по полу анализ отключений плюс частота жалоб на тысячу знакомств.</strong><br>
+      2. Глубинные интервью с женщинами до запуска — здесь они уместны: проверяется
+      восприятие риска, а не готовность платить.<br>
+      3. Ограниченный запуск в одном районе с ручным разбором каждой жалобы.<br>
+      <span class="b no">Нельзя</span> проверять этот пункт масштабным запуском:
+      цена ошибки — вред человеку.</td>
+  </tr>
+  <tr>
+    <td class="hid">H7</td>
+    <td><strong>Статус зооагрессии ставят честно.</strong> Самопометка работает
+      как предупреждение окружающим.</td>
+    <td>Статус ставят менее 1% владельцев собак — значит он не отражает реальность
+      и создаёт ложное чувство безопасности.</td>
+    <td><strong>1. Доля поставивших против внешней оценки распространённости зооагрессии.</strong><br>
+      2. Инциденты в зонах без статуса — сигнал, что метка не работает.<br>
+      3. Если гипотеза не подтвердится, альтернативная конструкция — метка от чужих жалоб,
+      а не от владельца. Её придётся проверять отдельно и она тяжелее этически.</td>
+  </tr>
+  <tr>
+    <td class="hid">H8</td>
+    <td><strong>Клиники готовы отдавать записи о приёме в приложение владельца.</strong></td>
+    <td>Из двадцати переговоров пилот согласуют менее трёх.</td>
+    <td><strong>1. Двадцать холодных встреч с готовым пилотным договором на руках.</strong>
+      Метрика — подписи, не «интерес».<br>
+      2. Разговор с поставщиками медицинских информационных систем: интеграция через них
+      может оказаться дешевле, чем с каждой клиникой.<br>
+      3. Опрос клиник — <span class="b no">не годится</span>: «интересно» ничего не стоит.</td>
+  </tr>
+  <tr>
+    <td class="hid">H10</td>
+    <td><strong>QR-жетон окупает привлечение</strong> и работает лучше платного трафика.</td>
+    <td>Отношение LTV к стоимости привлечения по каналу жетона ниже 3.</td>
+    <td><strong>1. Когортный учёт по источнику с первого дня</strong> — метку канала
+      надо заложить в схему данных заранее, задним числом это не восстанавливается.<br>
+      2. Контрольная закупка платного трафика на небольшой бюджет для сравнения.</td>
+  </tr>
+  <tr>
+    <td class="hid">H16</td>
+    <td><strong>Люди дают разрешение на фоновую геолокацию.</strong> Без него нативный
+      вариант из вкладки 03 теряет смысл: ни трека, ни «снюхаться».</td>
+    <td>Разрешение «всегда» выдаёт менее половины тех, у кого его запросили после
+      первой прогулки.</td>
+    <td><strong>1. Метрика выдачи в когорте, раздельно по платформам</strong> —
+      на iOS и Android разные диалоги и разное поведение.<br>
+      2. Сплит момента запроса: сразу в онбординге против запроса после первой прогулки,
+      когда польза уже понятна.<br>
+      3. До запуска — проверить, что магазин вообще одобрил разрешение.
+      Отказ площадки закрывает гипотезу раньше, чем до неё дойдут пользователи.</td>
+  </tr>
+  <tr>
+    <td class="hid">H17</td>
+    <td><strong>Плотности хватает, чтобы «снюхаться» и координация поиска работали.</strong>
+      В радиусе 500 м во время прогулки регулярно оказывается хоть кто-то.</td>
+    <td>Медианное число других гуляющих в радиусе 500 м меньше единицы —
+      функция показывает пустой экран и обесценивает себя с первого раза.</td>
+    <td><strong>1. Считать на данных когорты до включения функции:</strong> треки уже пишутся,
+      пересечения по времени и расстоянию считаются задним числом. Проверка ничего не стоит
+      и не требует запуска функции.<br>
+      2. Порог включения по району, а не по городу: показывать функцию только там,
+      где плотность уже достаточна.<br>
+      3. Запуск «на всех и посмотрим» — <span class="b no">худший вариант</span>:
+      первое впечатление от пустого списка не отыгрывается.</td>
+  </tr>
+  <tr>
+    <td class="hid">H14</td>
+    <td><strong>Разметка поведения по видео достаточно точна,</strong> чтобы показывать её
+      владельцу как факт.</td>
+    <td>F-мера ниже 0,7 по категории вокализации на размеченной выборке.</td>
+    <td><strong>1. Разметка 200 часов записи с независимой сверкой специалистом.</strong><br>
+      2. Пока точность не измерена — показывать результат как наблюдение, а не как вывод,
+      и не давать формулировок, похожих на диагноз.</td>
+  </tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Только на этапе железа</h2>
+<div class="tw">
+<table>
+  <thead><tr>
+    <th style="width:52px">#</th><th style="width:24%">Утверждение</th>
+    <th style="width:24%">Чем опровергается</th><th>Способы проверки, от лучшего к худшему</th>
+  </tr></thead>
+  <tbody>
+  <tr>
+    <td class="hid">H11</td>
+    <td><strong>Устройство держит заряд столько, сколько заявлено,</strong> на реальном
+      профиле использования.</td>
+    <td>Медиана времени работы ниже 70% заявленного на выборке из тридцати устройств.</td>
+    <td><strong>1. Тридцать устройств, тридцать суток, реальные владельцы.</strong><br>
+      2. Стендовые испытания — обязательны, но недостаточны: они не воспроизводят
+      поведение живой собаки.<br>
+      3. Расчёт по даташиту — <span class="b no">не проверка</span>.</td>
+  </tr>
+  <tr>
+    <td class="hid">H12</td>
+    <td><strong>Дальности при 25 мВт хватает в городе.</strong> Ограничение мощности ради
+      отказа от регистрации РЭС не убивает продукт.</td>
+    <td>Устойчивая связь менее 300 м в плотной застройке.</td>
+    <td><strong>1. Полевые замеры в трёх типах застройки</strong> — новостройки,
+      сталинский центр, частный сектор.<br>
+      2. Сравнение с замерами на 100 мВт, чтобы понять цену отказа от регистрации.<br>
+      3. Литературные значения 0,5–2 км — <span class="b q">ориентир</span>, не результат:
+      условия измерения у всех разные.</td>
+  </tr>
+  <tr>
+    <td class="hid">H13</td>
+    <td><strong>Люди платят за устройство</strong> — и выбирают аренду, а не покупку.</td>
+    <td>Конверсия активных пользователей в оплаченный предзаказ ниже 1,5%.</td>
+    <td><strong>1. Предзаказ с реальным списанием и датой отгрузки.</strong>
+      Единственный честный тест.<br>
+      2. Две цены на две когорты — заодно измеряется эластичность.<br>
+      3. Опрос «купили бы вы» — <span class="b no">не годится</span>.</td>
+  </tr>
+  <tr>
+    <td class="hid">H15</td>
+    <td><strong>Гибрид BLE+GSM спасает сценарий поиска:</strong> задержка от алерта
+      до первой точки достаточно мала.</td>
+    <td>Медианная задержка выше нескольких минут — за это время собака уходит
+      за пределы полезного радиуса.</td>
+    <td><strong>1. Замер на прототипах с имитацией побега.</strong><br>
+      2. Если не подтвердится — возврат к постоянному GSM с потерей времени работы,
+      то есть к варианту 1 развилки, и вся экономика устройства пересчитывается.</td>
+  </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note warn">
+  <span class="lbl">Что делать с опровергнутой гипотезой</span>
+  <p>H1 опровергнута — переписывается позиционирование, а не пейволл.
+  H2 — переделывается онбординг, продукт остаётся.
+  H3 — продукт не удерживает без железа; либо переходить к трекеру раньше плана,
+  либо признать, что ежедневного цикла недостаточно.
+  H6 — функция выключается совсем, а не «дорабатывается».
+  H9 — из позиционирования убирается слово «верифицированный».
+  H13 — устройство становится бесплатным приложением к подписке или не выпускается.</p>
+</div>
+
+<footer>
+  <h3>Источники по фактическим утверждениям</h3>
+  <ul>
+    <li>Решение ГКРЧ от 11.09.2018 № 18-46-03-1 — полосы и условия использования 868 МГц:
+      <a href="https://base.garant.ru/72061772/">base.garant.ru/72061772</a>,
+      разбор параметров: <a href="https://habr.com/ru/articles/425903/">habr.com/ru/articles/425903</a></li>
+    <li>Постановление Правительства РФ от 20.10.2021 № 1800, п. 23 перечня изъятий —
+      маломощные устройства до 25 мВт ЭИИМ не регистрируются:
+      <a href="https://base.garant.ru/402961872/">base.garant.ru/402961872</a></li>
+    <li>Компонент Ветис.API — статус промышленной эксплуатации, порядок получения доступа,
+      состав сервисов включая «Хорриот»:
+      <a href="https://help.vetrf.ru/wiki/%D0%9A%D0%BE%D0%BC%D0%BF%D0%BE%D0%BD%D0%B5%D0%BD%D1%82_%D0%92%D0%B5%D1%82%D0%B8%D1%81.API">help.vetrf.ru</a></li>
+    <li>376-ФЗ, действует с 01.03.2026 — запрет списаний по отвязанным реквизитам:
+      <a href="https://www.consultant.ru/law/hotdocs/91121.html">consultant.ru/law/hotdocs/91121</a></li>
+    <li>Регулирование M2M-сим — проект постановления, планируемая дата 01.09.2027, не принят:
+      <a href="https://www.vedomosti.ru/technology/articles/2026/08/10/1219876-mintsifri-otreguliruet-rabotu-m2m-sim-kart">vedomosti.ru</a></li>
+    <li>Требования Google Play к фоновой геолокации — форма-декларация, видео, ревью:
+      <a href="https://support.google.com/googleplay/android-developer/answer/9799150">support.google.com</a></li>
+    <li>Поведение BLE в фоне на iOS — служебная область для идентификаторов сервисов,
+      снижение частоты рекламы и сканирования:
+      <a href="https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/CoreBluetoothBackgroundProcessingForIOSApps/PerformingTasksWhileYourAppIsInTheBackground.html">developer.apple.com</a></li>
+    <li>Ограничение в 20 отслеживаемых геозон на приложение в iOS:
+      <a href="https://radar.com/blog/limitations-of-ios-geofencing">radar.com</a></li>
+  </ul>
+  <p style="margin-top:16px">Сроки в неделях, себестоимости и отношения LTV к стоимости привлечения —
+  оценка команды, не измеренные данные. Помечены соответствующим образом по тексту.</p>
+</footer>
+
+</div>
+
+</main>
+
+<script>
+(function(){
+  var btns=[].slice.call(document.querySelectorAll('nav button'));
+  var panels={scen:document.getElementById('p-scen'),web:document.getElementById('p-web'),
+              phone:document.getElementById('p-phone'),
+              hw:document.getElementById('p-hw'),hyp:document.getElementById('p-hyp')};
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){
+      btns.forEach(function(x){x.setAttribute('aria-selected', x===b?'true':'false');});
+      Object.keys(panels).forEach(function(k){
+        if(k===b.dataset.p){panels[k].setAttribute('data-on','1');}
+        else{panels[k].removeAttribute('data-on');}
+      });
+      window.scrollTo({top:0,behavior:'instant'});
+    });
+  });
+})();
+</script>
+</body>
+</html>

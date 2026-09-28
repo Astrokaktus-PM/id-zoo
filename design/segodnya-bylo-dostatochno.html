@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Сегодня было достаточно?</title>
+<meta name="description" content="Как Pet ID считает благополучие питомца: почему здоровье снимает потолок, а не добавляет баллов. С живым калькулятором.">
+<meta name="color-scheme" content="light dark">
+<style>
+  html{color-scheme:light dark}
+  body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:#F6F7F4}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --bg:#F6F7F4; --card:#FFFFFF; --card2:#EDEFEA; --line:#DCDFD7; --line2:#C6CBBF;
+  --ink:#17232A; --ink2:#3E4C53; --sub:#6B797E;
+  --src:#00706A; --src-s:#DCEDEA;
+  --d5:#5B4795; --d5-s:#E9E4F5; --d5-b:#B9A9E0;
+  --warn:#95530F; --warn-s:#F5E8D8; --warn-b:#DCBC90;
+  --s1:#005A54; --s2:#00786F; --s3:#3D9C93; --s4:#77BDB5; --s5:#A9D6D0;
+  --sh:0 1px 2px rgba(23,35,42,.05), 0 8px 26px -16px rgba(23,35,42,.22);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1518; --card:#151F23; --card2:#1C282D; --line:#2A363A; --line2:#3C4D53;
+  --ink:#E4EBE9; --ink2:#B3C1C0; --sub:#7D8F93;
+  --src:#52C0B1; --src-s:#12312E;
+  --d5:#AC94DE; --d5-s:#231C32; --d5-b:#4E4176;
+  --warn:#DA9650; --warn-s:#302410; --warn-b:#6D5028;
+  --s1:#9FDDD4; --s2:#6FC4BA; --s3:#46A79D; --s4:#2A867E; --s5:#1D6660;
+  --sh:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.8);
+}}
+:root[data-theme="dark"]{
+  --bg:#0E1518; --card:#151F23; --card2:#1C282D; --line:#2A363A; --line2:#3C4D53;
+  --ink:#E4EBE9; --ink2:#B3C1C0; --sub:#7D8F93;
+  --src:#52C0B1; --src-s:#12312E;
+  --d5:#AC94DE; --d5-s:#231C32; --d5-b:#4E4176;
+  --warn:#DA9650; --warn-s:#302410; --warn-b:#6D5028;
+  --s1:#9FDDD4; --s2:#6FC4BA; --s3:#46A79D; --s4:#2A867E; --s5:#1D6660;
+  --sh:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font-family:Onest,"Helvetica Neue",Arial,sans-serif; font-size:16px; line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0; font-weight:700; letter-spacing:-.02em; line-height:1.14; text-wrap:balance}
+.serif{font-family:Literata,Georgia,serif}
+.mono,.lbl{font-family:"IBM Plex Mono",ui-monospace,monospace}
+.lbl{font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--sub);
+  display:block; margin-bottom:9px}
+p{margin:0 0 15px; max-width:60ch}
+strong{font-weight:600}
+
+.wrap{max-width:880px; margin:0 auto; padding:0 24px}
+
+/* ── шапка ── */
+header{padding:64px 0 18px}
+header .q{font-family:Literata,Georgia,serif; font-size:clamp(30px,5.4vw,50px);
+  font-weight:400; font-style:italic; letter-spacing:-.02em; line-height:1.12;
+  margin:0 0 20px; max-width:16ch}
+header .sub{font-size:18px; color:var(--ink2); max-width:56ch; margin:0}
+.rule{height:1px; background:var(--line); margin:44px 0}
+
+section{margin:0 0 60px}
+h2{font-size:27px; margin:0 0 12px}
+h3{font-size:18px; margin:0 0 6px}
+.big-say{font-family:Literata,Georgia,serif; font-size:21px; line-height:1.45;
+  color:var(--ink); max-width:52ch; margin:0 0 16px}
+
+/* ── две стороны ── */
+.sides{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin:22px 0}
+.side{border-radius:16px; padding:22px 24px}
+.side.cap{background:var(--warn-s); border:1px solid var(--warn-b)}
+.side.grow{background:var(--src-s); border:1px solid var(--src)}
+.side h3{margin-bottom:8px}
+.side.cap h3{color:var(--warn)} .side.grow h3{color:var(--src)}
+.side p{font-size:15px; color:var(--ink2); margin:0 0 10px}
+.side ul{margin:12px 0 0; padding-left:19px; font-size:14.5px; color:var(--ink2)}
+.side li{margin-bottom:5px}
+
+/* ── калькулятор ── */
+.calc{background:var(--card); border:1px solid var(--line2); border-radius:20px;
+  box-shadow:var(--sh); overflow:hidden; margin:26px 0}
+.calc .head{padding:22px 26px 18px; border-bottom:1px solid var(--line);
+  display:flex; gap:26px; align-items:center; flex-wrap:wrap}
+.gauge{flex:none; text-align:center; min-width:118px}
+.gauge .num{font-size:56px; font-weight:800; letter-spacing:-.045em; line-height:.95;
+  font-variant-numeric:tabular-nums; color:var(--d5)}
+.gauge .cap{font-size:11.5px; color:var(--sub); margin-top:5px}
+.verdict{flex:1; min-width:210px}
+.verdict .v{font-size:20px; font-weight:700; letter-spacing:-.02em; margin-bottom:5px}
+.verdict .d{font-size:14.5px; color:var(--ink2); line-height:1.45}
+.bar{height:9px; border-radius:5px; background:var(--card2); overflow:hidden;
+  margin-top:12px; position:relative}
+.bar i{display:block; height:100%; background:var(--d5); border-radius:5px;
+  transition:width .28s ease}
+.bar .t80{position:absolute; left:80%; top:-3px; bottom:-3px; width:2px; background:var(--line2)}
+
+.rows{padding:8px 26px 4px}
+.r{display:grid; grid-template-columns:1fr 116px; gap:14px; align-items:center;
+  padding:13px 0; border-bottom:1px solid var(--line)}
+.r:last-of-type{border-bottom:0}
+.r .nm{font-size:15px; font-weight:600; display:flex; align-items:center; gap:9px}
+.r .nm i{width:10px; height:10px; border-radius:3px; flex:none}
+.r .hint{font-size:12.5px; color:var(--sub); font-weight:400; margin-top:2px; display:block}
+.r .val{text-align:right; font-family:"IBM Plex Mono",monospace; font-size:13px;
+  color:var(--ink2); font-variant-numeric:tabular-nums}
+.r .val b{display:block; font-size:15px; color:var(--ink); font-weight:600}
+input[type=range]{width:100%; margin:9px 0 0; accent-color:var(--src); height:20px}
+input[type=range]:focus-visible{outline:2px solid var(--src); outline-offset:3px}
+
+.gate{padding:18px 26px 22px; background:var(--card2); border-top:1px solid var(--line)}
+.seg{display:flex; gap:5px; margin-top:9px; flex-wrap:wrap}
+.seg button{appearance:none; border:1px solid var(--line2); background:var(--card);
+  color:var(--ink2); font-family:Onest,Arial,sans-serif; font-size:13px; font-weight:500;
+  padding:7px 13px; border-radius:9px; cursor:pointer; transition:.15s}
+.seg button:hover{border-color:var(--warn-b)}
+.seg button[aria-pressed=true]{background:var(--warn); border-color:var(--warn); color:var(--bg);
+  font-weight:600}
+.seg button:focus-visible{outline:2px solid var(--src); outline-offset:2px}
+
+.out{padding:20px 26px 24px; border-top:1px solid var(--line)}
+.out .lbl{margin-bottom:11px}
+.tip{display:flex; gap:13px; align-items:flex-start; padding:13px 15px; border-radius:12px;
+  background:var(--src-s); margin-bottom:8px}
+.tip.dim{background:transparent; border:1px solid var(--line)}
+.tip .g{font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600;
+  color:var(--src); flex:none; width:46px; text-align:right; padding-top:1px;
+  font-variant-numeric:tabular-nums}
+.tip.dim .g{color:var(--sub)}
+.tip .tx{flex:1; font-size:14.5px; line-height:1.45}
+.tip .tx b{display:block; font-weight:600}
+.tip .tx span{color:var(--sub); font-size:13px}
+
+.mathline{padding:14px 26px 20px; font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+  color:var(--sub); border-top:1px solid var(--line); font-variant-numeric:tabular-nums}
+.mathline b{color:var(--ink2); font-weight:600}
+
+/* ── карточки-мысли ── */
+.thoughts{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:1px; background:var(--line); border:1px solid var(--line); border-radius:16px;
+  overflow:hidden; margin:22px 0}
+.thoughts div{background:var(--card); padding:20px 22px}
+.thoughts h3{font-size:16px; margin-bottom:7px}
+.thoughts p{font-size:14.5px; color:var(--ink2); margin:0}
+
+.pull{border-left:3px solid var(--d5); padding:4px 0 4px 20px; margin:26px 0}
+.pull .t{font-family:Literata,Georgia,serif; font-size:20px; line-height:1.4;
+  font-style:italic; max-width:44ch}
+.pull .a{font-size:13.5px; color:var(--sub); margin-top:8px}
+
+.fine{background:var(--card); border:1px solid var(--line); border-radius:16px;
+  padding:22px 24px; margin:22px 0}
+.fine ul{margin:0; padding-left:19px}
+.fine li{font-size:14.5px; color:var(--ink2); margin-bottom:8px}
+.fine li:last-child{margin-bottom:0}
+.fine li strong{color:var(--ink)}
+
+footer{border-top:1px solid var(--line); padding:26px 0 70px; font-size:13.5px;
+  color:var(--sub); max-width:64ch}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:560px){
+  .calc .head{gap:16px; padding:20px}
+  .rows,.gate,.out,.mathline{padding-left:20px; padding-right:20px}
+  .r{grid-template-columns:1fr 92px}
+  header{padding-top:44px}
+}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="lbl">Pet ID · как мы считаем благополучие</div>
+  <p class="q">Сегодня было достаточно?</p>
+  <p class="sub">Вечером этот вопрос задаёт себе каждый, у кого есть собака.
+  Мы научились на него отвечать — и показываем, как именно, чтобы вы могли
+  проверить нас на бумаге.</p>
+</header>
+<div class="rule"></div>
+
+<section>
+  <h2>Благополучие живёт в голове у животного</h2>
+  <p class="big-say serif">Еда, дом, здоровье и то, чем собака занята, — это <em>причины</em>.
+  А то, как ей на самом деле живётся, — <em>следствие</em>. Считать надо следствие.</p>
+  <p>Это не наша выдумка: так устроена международная модель оценки благополучия животных,
+  которой пользуются ветеринары и зоопсихологи. В ней пять частей. Четыре — источники.
+  Пятая — то, что из них получается.</p>
+  <p>Но источники неодинаковы, и в этом вся соль.</p>
+
+  <div class="sides">
+    <div class="side cap">
+      <h3>Не добавляют — снимают потолок</h3>
+      <p>Голод, боль, холод, страх. Их можно только убрать.</p>
+      <p>Сытая собака не становится вдвое счастливее от второй миски — она становится
+      толще. А больная не станет счастливее от лишней прогулки.</p>
+      <ul>
+        <li>Еда и вода</li>
+        <li>Тепло, покой, своё место</li>
+        <li>Здоровье и отсутствие боли</li>
+        <li>Отсутствие страха</li>
+      </ul>
+    </div>
+    <div class="side grow">
+      <h3>Вот это набирает баллы</h3>
+      <p>Всё, где собака что-то <strong>сама выбирает и делает</strong>.</p>
+      <p>Любопытство, игра, привязанность, уверенность в себе. Именно из этого
+      складывается хорошая жизнь, а не из километров.</p>
+      <ul>
+        <li>Свобода выбора на прогулке</li>
+        <li>Работа носом</li>
+        <li>Общение — с вами и с другими</li>
+        <li>Движение</li>
+        <li>Новые места и задачи</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pull">
+    <div class="t serif">Здоровье не добавляет баллов. Оно снимает потолок.</div>
+    <div class="a">Одна фраза, которая объясняет всю формулу</div>
+  </div>
+</section>
+
+<section>
+  <h2>Попробуйте сами</h2>
+  <p>Ниже — настоящий расчёт, тот же самый, что в приложении. Подвигайте ползунки
+  и посмотрите, что на самом деле меняет цифру.</p>
+
+  <div class="calc">
+    <div class="head">
+      <div class="gauge">
+        <div class="num" id="score">—</div>
+        <div class="cap" id="scap">из 100</div>
+      </div>
+      <div class="verdict">
+        <div class="v" id="vtitle">—</div>
+        <div class="d" id="vdesc">—</div>
+        <div class="bar"><i id="vbar" style="width:0%"></i><span class="t80"></span></div>
+      </div>
+    </div>
+
+    <div class="rows" id="rows"></div>
+
+    <div class="gate">
+      <span class="lbl">Как Рекс себя чувствует</span>
+      <div class="seg" role="group" aria-label="Самочувствие" id="gates">
+        <button data-g="A" aria-pressed="true">Здоров</button>
+        <button data-g="B" aria-pressed="false">Просрочена обработка</button>
+        <button data-g="C" aria-pressed="false">Хромает</button>
+        <button data-g="D" aria-pressed="false">Больно, отказывается гулять</button>
+      </div>
+    </div>
+
+    <div class="out">
+      <span class="lbl">Что дешевле всего добрать</span>
+      <div id="tips"></div>
+    </div>
+
+    <div class="mathline" id="math"></div>
+  </div>
+
+  <p style="font-size:14.5px;color:var(--sub);max-width:64ch">Заметьте: если поставить
+  «хромает», цифра падает, а список советов не меняется — потому что добирать прогулками
+  тут бессмысленно. Приложение в этом случае говорит другое: сходите к врачу.</p>
+</section>
+
+<section>
+  <h2>Три правила, которые мы соблюдаем</h2>
+  <div class="thoughts">
+    <div>
+      <h3>Дело можно закрыть, но нельзя перезакрыть</h3>
+      <p>Три часа ходьбы засчитываются ровно как час. Не потому, что мы жадные, —
+      просто собаке нужно <strong>разное</strong>, а не много одного. Сто набирается
+      только разнообразием.</p>
+    </div>
+    <div>
+      <h3>Не отметили — значит «не знаем»</h3>
+      <p>А не «не было». Если мы знаем меньше чем про половину дня, мы не ставим
+      оценку вообще — просто спрашиваем одну вещь. Приложение не имеет права
+      обвинять вас в том, чего не видело.</p>
+    </div>
+    <div>
+      <h3>Один день ничего не значит</h3>
+      <p>Крупная цифра — это среднее за неделю. Плохая суббота бывает у всех
+      и на неделе почти не видна. У отдельного дня нет приговора, есть только
+      «чего не хватило».</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Восемьдесят — это хорошая жизнь</h2>
+  <p class="big-say serif">Сто не нужно. Никому. Мы специально сделали так, чтобы
+  до ста было трудно дотянуться, — иначе получился бы ещё один счётчик,
+  по которому вы всегда недотягиваете.</p>
+  <p>Смысл не в том, чтобы выиграть у приложения. Смысл в том, чтобы вечером
+  знать наверняка: сегодня было нормально — и спокойно лечь спать.</p>
+</section>
+
+<section>
+  <h2>Чего мы не делаем</h2>
+  <div class="fine">
+    <ul>
+      <li><strong>Не сравниваем вас с другими владельцами.</strong> Никаких мест
+        в рейтинге и «вы хуже, чем 60% хозяев бордер-колли». Сравнение —
+        только с собой в прошлом.</li>
+      <li><strong>Не ставим диагнозов.</strong> Потолок по здоровью берётся из того,
+        что уже записано в карте или отмечено вами. Приложение не решает,
+        чем болеет собака.</li>
+      <li><strong>Не наказываем за пропуски.</strong> Нет серий, которые обидно прерывать,
+        нет падающих очков за бездействие. Пропущенный день — это просто день
+        без данных.</li>
+      <li><strong>Не прячем формулу.</strong> Любую цифру можно раскрыть до строчки:
+        «22 минуты обнюхивания — это ваша отметка в 19:40». Число, происхождение
+        которого нельзя посмотреть, мы не показываем.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  Расчёт основан на международной модели оценки благополучия животных
+  (Five Domains, редакции 2015 и 2020 годов) — той же, которой пользуются
+  ветеринарные специалисты. Нормы и веса подбираются под вид, породу, возраст
+  и подлежат уточнению вместе с вашим врачом. Данные на этой странице — пример,
+  а не чей-то реальный питомец.
+</footer>
+
+</div>
+
+<script>
+(function(){
+  // Та же модель, что в d5_model.py
+  var CH=[
+    {k:'choice', n:'Свобода выбора', hint:'сама выбирает, куда идти и что нюхать',
+     w:25, norm:30, unit:'мин', eff:0.1, c:'var(--s1)', v:14,
+     act:'Не тяните поводок — дайте выбрать маршрут', sub:'времени не нужно вообще'},
+    {k:'nose',   n:'Работа носом', hint:'поиск, обнюхивание, нюхательный коврик',
+     w:20, norm:20, unit:'мин', eff:0.3, c:'var(--s2)', v:22,
+     act:'Рассыпьте корм по коврику или по траве', sub:'можно дома'},
+    {k:'social', n:'Общение', hint:'с вами и с другими собаками',
+     w:20, norm:45, unit:'мин', eff:0.6, c:'var(--s3)', v:30,
+     act:'Побудьте рядом без телефона', sub:'нужно ваше внимание'},
+    {k:'move',   n:'Движение', hint:'активная ходьба, бег, игра',
+     w:20, norm:60, unit:'мин', eff:1.0, c:'var(--s4)', v:22,
+     act:'Ещё немного погулять', sub:'самое дорогое из всего'},
+    {k:'novel',  n:'Новое за неделю', hint:'незнакомый двор, новый маршрут, задача',
+     w:15, norm:3,  unit:'раз', eff:1.4, c:'var(--s5)', v:2,
+     act:'Свернуть в незнакомый двор', sub:'закроется за неделю'}
+  ];
+  var GATES={A:{k:1,t:'Здоров'},B:{k:.85,t:'Просрочена обработка'},
+             C:{k:.65,t:'Хромает'},D:{k:.40,t:'Больно'}};
+  var gate='A';
+
+  var rowsEl=document.getElementById('rows');
+  CH.forEach(function(c,i){
+    var r=document.createElement('div'); r.className='r';
+    r.innerHTML='<div><div class="nm"><i style="background:'+c.c+'"></i>'+c.n+'</div>'+
+      '<span class="hint">'+c.hint+'</span>'+
+      '<input type="range" min="0" max="'+(c.norm*2)+'" step="'+(c.unit==='раз'?1:1)+
+      '" value="'+c.v+'" aria-label="'+c.n+'"></div>'+
+      '<div class="val"><b><span class="cur">'+c.v+'</span> '+c.unit+'</b>'+
+      'норма '+c.norm+'</div>';
+    rowsEl.appendChild(r);
+    var inp=r.querySelector('input'), cur=r.querySelector('.cur');
+    inp.addEventListener('input',function(){ c.v=+inp.value; cur.textContent=c.v; render(); });
+  });
+
+  var gEls=[].slice.call(document.querySelectorAll('#gates button'));
+  gEls.forEach(function(b){
+    b.addEventListener('click',function(){
+      gate=b.dataset.g;
+      gEls.forEach(function(x){x.setAttribute('aria-pressed', x===b?'true':'false');});
+      render();
+    });
+  });
+
+  function calc(){
+    var exp=0;
+    CH.forEach(function(c){ exp += c.w*Math.min(1, c.v/c.norm); });
+    var k=GATES[gate].k;
+    return {exp:exp, k:k, score:exp*k};
+  }
+
+  function band(s,k){
+    if(k<=0.4) return ['Сначала к врачу',
+      'Пока Рексу больно, всё остальное почти не работает. Прогулки этого не исправят.'];
+    if(s>=80) return ['Сегодня достаточно',
+      'Так и живите. Дотягивать до ста не нужно — это не цель.'];
+    if(s>=60) return ['Почти',
+      'Одно небольшое действие закроет разницу. Ниже — самое дешёвое.'];
+    if(s>=40) return ['Недобрали',
+      'День вышел скудным. Ничего страшного, если такое не каждый день.'];
+    return ['Тяжёлый день',
+      'Бывает. Посмотрите, что можно добрать за пять минут прямо сейчас.'];
+  }
+
+  function render(){
+    var r=calc(), s=Math.round(r.score);
+    document.getElementById('score').textContent=s;
+    document.getElementById('vbar').style.width=Math.min(100,s)+'%';
+    var b=band(r.score, r.k);
+    document.getElementById('vtitle').textContent=b[0];
+    document.getElementById('vdesc').textContent=b[1];
+    document.getElementById('scap').textContent = r.k<1
+      ? 'потолок '+Math.round(r.k*100)+'%' : 'из 100';
+
+    // советы: ранжирование по баллам на единицу усилия хозяина
+    var tips=CH.filter(function(c){ return c.v < c.norm; }).map(function(c){
+      var perUnit=(c.w/c.norm)*r.k;
+      var need=Math.max(0, 80-r.score);
+      var units=Math.min(c.norm-c.v, need/perUnit);
+      if(c.unit==='мин') units=Math.max(5, Math.round(units/5)*5);
+      else units=Math.max(1, Math.round(units));
+      units=Math.min(units, c.norm-c.v);
+      return {c:c, units:units, gain:units*perUnit, rank:perUnit/c.eff};
+    }).sort(function(a,b){ return b.rank-a.rank; });
+
+    var out=document.getElementById('tips');
+    if(!tips.length){
+      out.innerHTML='<div class="tip dim"><span class="g">—</span><span class="tx">'+
+        '<b>Всё закрыто</b><span>Добирать нечего. Отдыхайте.</span></span></div>';
+    } else {
+      out.innerHTML=tips.slice(0,3).map(function(t,i){
+        return '<div class="tip'+(i?' dim':'')+'"><span class="g">+'+
+          t.gain.toFixed(1)+'</span><span class="tx"><b>'+t.c.act+'</b><span>+'+
+          t.units+' '+t.c.unit+' · '+t.c.sub+'</span></span></div>';
+      }).join('');
+    }
+
+    document.getElementById('math').innerHTML =
+      'опыт <b>'+r.exp.toFixed(1)+'</b> × потолок <b>'+Math.round(r.k*100)+'%</b>'+
+      ' = <b>'+r.score.toFixed(1)+'</b>' +
+      (r.k<1 ? '  ←  '+GATES[gate].t.toLowerCase() : '');
+  }
+  render();
+})();
+</script>
+</body>
+</html>
