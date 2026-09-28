@@ -10,6 +10,7 @@ import * as cm from './community.js';
 import * as ai from './ai.js';
 import * as ex from './extras.js';
 import * as pr from './proto.js';
+import * as cr from './care.js';
 
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
@@ -26,7 +27,7 @@ const TITLES = {
   'v-feed': 'Сообщество', 'v-expert': 'Экспертный совет', 'v-question': 'Вопрос', 'v-heroes': 'Команда Героев', 'v-alertform': 'Питомец пропал',
   'v-ai': 'Помощник', 'v-aichat': 'Помощник', 'v-kb': 'База знаний', 'v-kbdomains': 'Пять доменов', 'v-status': 'Статусы', 'v-course': 'Курс новичка',
   'v-support': 'Поддержка', 'v-referral': 'Пригласить друга', 'v-paywall': 'Premium', 'v-notracker': 'Без трекера', 'v-partners': 'Партнёры', 'v-demo': 'Демо',
-  'v-demotour': 'Демо-режим', 'v-proto': 'Прототип', 'v-owner': 'Профиль'
+  'v-demotour': 'Демо-режим', 'v-proto': 'Прототип', 'v-owner': 'Профиль', 'v-planedit': 'Свой режим', 'v-gallery': 'Фото', 'v-photo': 'Фото', 'v-nutrition': 'Питание'
 };
 const BACK = { 'v-newpet': 'v-pets', 'v-pet': 'v-pets', 'v-day': 'v-pet', 'v-calc': 'v-day', 'v-how': 'v-day',
   'v-walks': 'v-pet', 'v-wstart': 'v-walks', 'v-walk': 'v-walks', 'v-map': 'v-walks',
@@ -34,7 +35,7 @@ const BACK = { 'v-newpet': 'v-pets', 'v-pet': 'v-pets', 'v-day': 'v-pet', 'v-cal
   'v-evform': 'x', 'v-calset': 'x', 'v-money': 'v-pet', 'v-qr': 'v-pet', 'v-moneyadd': 'x', 'v-tco': 'x',
   'v-feed': 'v-pets', 'v-expert': 'v-pets', 'v-question': 'x', 'v-heroes': 'v-pets', 'v-alertform': 'x', 'v-ai': 'v-back', 'v-aichat': 'x',
   'v-kb': 'v-pets', 'v-kbdomains': 'x', 'v-status': 'v-pet', 'v-course': 'v-pets', 'v-support': 'v-pets', 'v-referral': 'v-pets',
-  'v-paywall': 'v-pets', 'v-notracker': 'v-pets', 'v-partners': 'v-pets', 'v-demo': 'x', 'v-demotour': 'v-pets', 'v-proto': 'x', 'v-owner': 'v-pets' };
+  'v-paywall': 'v-pets', 'v-notracker': 'v-pets', 'v-partners': 'v-pets', 'v-demo': 'x', 'v-demotour': 'v-pets', 'v-proto': 'x', 'v-owner': 'v-pets', 'v-planedit': 'x', 'v-gallery': 'v-pet', 'v-photo': 'x', 'v-nutrition': 'v-pet' };
 
 const state = { view: 'v-boot', profile: null, pet: null, mode: 'in', members: [], role: null };
 
@@ -383,6 +384,8 @@ function openDemoTour() {
 
 document.querySelectorAll('#sections [data-go]').forEach(b => b.onclick = () => { state.aiFrom = 'pets'; cm.fromSections(); go(b.dataset.go); });
 $('#open-status').onclick = () => go('status');
+$('#open-food').onclick = () => cr.openNutrition(state.pet, state.role);
+$('#open-photos').onclick = () => cr.openGallery(state.pet, state.role);
 $('#open-ai').onclick = () => { state.aiFrom = 'pet'; go('ai'); };
 
 $('#back').onclick = () => {
@@ -395,6 +398,7 @@ $('#back').onclick = () => {
   if (ai.back(state.view)) return;
   if (ex.back(state.view)) return;
   if (pr.back(state.view)) return;
+  if (cr.back(state.view)) return;
   const b = BACK[state.view];
   if (b === 'v-back') { if (state.aiFrom === 'pet') openPet(state.pet); else openPets(); return; }
   if (b === 'v-pets') openPets(); else if (b === 'v-pet') openPet(state.pet); else if (b) show(b);
@@ -411,6 +415,7 @@ cm.init({ show, say });
 ai.init({ show, say });
 ex.init({ show, say, go });
 pr.init({ show, say, go });
+cr.init({ show, say, openDocs: () => hl.openDocs(state.pet, state.role, state.members), openDay: () => wb.openDay(state.pet, state.role, state.members) });
 
 /* ── старт ─────────────────────────────────────────────── */
 

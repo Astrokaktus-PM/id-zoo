@@ -25,6 +25,8 @@ export function humanError(e) {
     [/email address .* is invalid/i, 'Логин содержит недопустимые символы'],
     [/for security purposes/i, 'Слишком часто. Подождите несколько секунд'],
     [/failed to fetch|networkerror/i, 'Нет связи с сервером'],
+    [/permission denied for table/i, 'Нет прав на это действие'],
+    [/food_exclusions_item/i, 'Это уже есть в списке'],
     [/row-level security/i, 'Нет прав на это действие: у вашей роли только просмотр, или дата старше 30 дней'],
     [/(does not exist|schema cache).*|could not find the (table|function)/i,'База не обновлена: выполните в Supabase недостающие скрипты из папки sql/'],
   ];
@@ -562,4 +564,98 @@ export async function courseDone() {
 export async function markLesson(id) {
   const { error } = await sb.from('course_progress').upsert({ user_id: await myId(), lesson_id: id }, { onConflict: 'user_id,lesson_id' });
   if (error) throw error;
+}
+
+/* ── П11: свой режим, фото, питание (sql/010) ───────────── */
+
+export async function customModes(petId) {
+  const { data, error } = await sb.from('custom_modes')
+    .select('id, code, name, icon, weekdays, items, updated_at')
+    .eq('pet_id', petId).order('created_at', { ascending: true });
+  if (error) throw error;
+  return data;
+}
+
+// Новый режим — insert с кодом; правка — update только разрешённых колонок (права в 010).
+export async function saveCustomMode(petId, m) {
+  const me = await myId();
+  const body = { name: m.name, icon: m.icon || '✎', weekdays: m.weekdays, items: m.items, updated_by: me };
+  if (m.id) {
+    const { data, error } = await sb.from('custom_modes').update(body).eq('id', m.id).select('id');
+    if (error) throw error;
+    if (!data.length) throw new Error('Сохранить не получилось: править режимы может владелец или совладелец');
+    return m.id;
+  }
+  const code = 'c_' + crypto.randomUUID().replace(/-/g, '').slice(0, 10);
+  const { data, error } = await sb.from('custom_modes').insert({ pet_id: petId, code, ...body }).select('id').single();
+  if (error) throw error;
+  return data.id;
+}
+
+export async function deleteCustomMode(id) {
+  const { data, error } = await sb.from('custom_modes').delete().eq('id', id).select('id');
+  if (error) throw error;
+  if (!data.length) throw new Error('Удалить не получилось: удалять режимы может владелец или совладелец');
+}
+
+export async function photos(petId) {
+  const { data, error } = await sb.from('pet_photos')
+    .select('id, path, taken_on, tag, caption, created_by, created_at')
+    .eq('pet_id', petId).order('taken_on', { ascending: false }).order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function addPhoto(petId, file, meta) {
+  const path = `${petId}/photos/${crypto.randomUUID()}.jpg`;
+  const up = await sb.storage.from(BUCKET).upload(path, file, { contentType: 'image/jpeg', upsert: false });
+  if (up.error) throw up.error;
+  const { error } = await sb.from('pet_photos').insert({ pet_id: petId, path, ...meta });
+  if (error) { await sb.storage.from(BUCKET).remove([path]); throw error; }
+}
+
+export async function deletePhoto(p) {
+  const { data, error } = await sb.from('pet_photos').delete().eq('id', p.id).select('id');
+  if (error) throw error;
+  if (!data.length) throw new Error('Удалить не получилось: удалять может автор фото или владелец');
+  const { error: e } = await sb.storage.from(BUCKET).remove([p.path]);
+  if (e) throw new Error('Фото удалено из альбома, но файл остался в хранилище: ' + e.message);
+}
+
+export async function diets(petId) {
+  const { data, error } = await sb.from('diets')
+    .select('id, started_on, food, kind, grams_per_day, meals_per_day, kcal_per_day, pack_kg, pack_opened_on, note, created_by, created_at')
+    .eq('pet_id', petId).order('started_on', { ascending: false }).order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function addDiet(d) {
+  const { error } = await sb.from('diets').insert(d);
+  if (error) throw error;
+}
+
+export async function deleteDiet(id) {
+  const { data, error } = await sb.from('diets').delete().eq('id', id).select('id');
+  if (error) throw error;
+  if (!data.length) throw new Error('Удалить не получилось: удалять может автор записи или владелец');
+}
+
+export async function exclusions(petId) {
+  const { data, error } = await sb.from('food_exclusions')
+    .select('id, item, reason, confirmed, noted_on, created_by')
+    .eq('pet_id', petId).order('noted_on', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function addExclusion(x) {
+  const { error } = await sb.from('food_exclusions').insert(x);
+  if (error) throw error;
+}
+
+export async function deleteExclusion(id) {
+  const { data, error } = await sb.from('food_exclusions').delete().eq('id', id).select('id');
+  if (error) throw error;
+  if (!data.length) throw new Error('Удалить не получилось: удалять может автор записи или владелец');
 }

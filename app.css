@@ -510,3 +510,25 @@ input[type=date],input[type=time]{min-width:0; max-width:100%}
   .lesson{flex-wrap:wrap}
   .lesson > div{flex-basis:calc(100% - 50px)}
 }
+
+/* ── П11: фото, питание, свой режим ─────────────────────── */
+.phgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:10px}
+.ph{display:flex; flex-direction:column; gap:3px; border:0; background:transparent; padding:0; cursor:pointer; text-align:left; min-width:0}
+.ph img{width:100%; aspect-ratio:1; object-fit:cover; border-radius:10px; background:var(--card2); border:1px solid var(--line)}
+.ph span{font-size:11.5px; color:var(--sub); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.photo-big{width:100%; border-radius:var(--r); border:1px solid var(--line); margin-bottom:10px; background:var(--card2); min-height:120px}
+.linkbtn.danger{color:var(--bad)}
+.wchart{width:100%; height:auto; display:block; margin:6px 0 2px}
+.wc-axis{stroke:var(--line); stroke-width:1}
+.wc-line{fill:none; stroke:var(--a); stroke-width:2; stroke-linejoin:round; stroke-linecap:round}
+.wc-dot{fill:var(--a); stroke:var(--card); stroke-width:2}
+.wc-dot:hover{r:6}
+.wc-lab{font-size:11px; fill:var(--ink2); font-variant-numeric:tabular-nums}
+.wc-date{font-size:10px; fill:var(--sub)}
+.st-grid .f{margin:0; min-width:0}
+.st-grid .f label{font-size:11.5px}
+.card.flat{box-shadow:none}
+.mode.add{border-style:dashed; color:var(--a)}
+.seg.one{flex-wrap:wrap}
+.seg.one button{flex:1 1 auto; padding:6px 8px}
+input[type=file]{max-width:100%; font-size:13px}

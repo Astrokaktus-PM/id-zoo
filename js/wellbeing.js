@@ -5,6 +5,7 @@ import { humanError } from './db.js';
 import { CH, GATES, GRADE, d5, dayCard, pyRound, weekText } from './d5.js';
 import { MODES, defaultMode, findMode } from './modes.js';
 import { autoHealth, worse, dueOf } from './hstatus.js';
+import { openModeEdit } from './care.js';
 
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
@@ -12,6 +13,7 @@ const fmt = x => String(x).replace('.', ',');
 
 let ui = null;          // { show, say }
 const S = {
+  custom: [],
   pet: null, role: null, me: null, members: {}, day: null,
   entries: [], gates: [], modes: [], walks: {}, health: [], skip: new Set(), answering: null,
 };
@@ -69,9 +71,17 @@ function gateSource(X, gate) {
   return last;
 }
 
+// Свои режимы (sql/010) приводятся к виду встроенных: id = code.
+const asMode = c => ({ id: c.code, icon: c.icon, name: c.name, about: 'Свой режим', items: c.items, custom: c });
+const modeById = id => findMode(S.pet.species, id) || (S.custom.find(c => c.code === id) && asMode(S.custom.find(c => c.code === id))) || null;
+
+// Порядок: выбранный на день → свой режим по дням недели → встроенный по умолчанию.
 function modeFor(X) {
   const rows = S.modes.filter(m => m.day === X);
   if (rows.length) return { id: rows[rows.length - 1].mode, auto: false };
+  const wdX = new Date(X + 'T12:00:00').getDay();
+  const byDay = S.custom.find(c => (c.weekdays || []).includes(wdX));
+  if (byDay) return { id: byDay.code, auto: true, byDay: true };
   const id = defaultMode(S.pet.species, X);
   return id ? { id, auto: true } : null;
 }
@@ -117,6 +127,8 @@ async function reload() {
     db.healthRecords(S.pet.id).catch(() => []),
   ]);
   S.entries = entries; S.gates = gates; S.modes = modes;
+  // Нет таблицы (010 не выполнен) — просто без своих режимов.
+  S.custom = await db.customModes(S.pet.id).catch(() => []);
   S.walks = Object.fromEntries(walks.map(w => [w.id, w]));
   S.health = health;
 }
@@ -201,7 +213,7 @@ function renderDay() {
   box.append(renderDayCard(card));
 
   // 4. Режим дня (только если для вида есть режимы).
-  if ((MODES[sp] || []).length) box.append(...renderMode(X));
+  if ((MODES[sp] || []).length || S.custom.length || canManage()) box.append(...renderMode(X));
 
   // 5. Отметки.
   box.append(el('div', 'sec', 'Отметки за день'));
@@ -349,20 +361,34 @@ function renderQuestion(q) {
 function renderMode(X) {
   const sp = S.pet.species;
   const cur = modeFor(X);
-  const mode = cur && findMode(sp, cur.id);
+  const mode = cur && modeById(cur.id);
   const out = [el('div', 'sec', 'Режим дня')];
   const c = el('div', 'card');
 
   const sel = el('div', 'modes');
-  for (const m of MODES[sp]) {
+  for (const m of [...MODES[sp], ...S.custom.map(asMode)]) {
     const b = el('button', 'mode' + (mode && m.id === mode.id ? ' on' : ''));
     b.append(el('span', null, m.icon), el('b', null, m.name));
     b.disabled = !canWrite();
     b.onclick = () => { if (!mode || m.id !== mode.id || cur.auto) act(() => db.setMode(S.pet.id, X, m.id)); };
     sel.append(b);
   }
+  if (canManage()) {
+    const add = el('button', 'mode add'); add.append(el('span', null, '＋'), el('b', null, 'Свой режим'));
+    add.onclick = () => openModeEdit(S.pet, S.role, null, () => openDay());
+    sel.append(add);
+  }
   c.append(sel);
-  if (!mode) { out.push(c); return out; }
+  if (!mode) {
+    if (cur && !mode) c.append(el('p', 'hint', 'Режим, выбранный на этот день, удалён.'));
+    if (!MODES[sp].length && !S.custom.length) c.append(el('p', 'hint', sp === 'cat' ? 'Готовых режимов для кошек нет: в спецификации модели их нет, выдумывать не стали. Соберите свой из пунктов с вашими минутами.' : 'Режимов пока нет.'));
+    out.push(c); return out;
+  }
+  if (mode.custom && canManage()) {
+    const ed = el('button', 'linkbtn sm', `Изменить «${mode.name}»`);
+    ed.onclick = () => openModeEdit(S.pet, S.role, mode.custom, () => openDay());
+    c.append(ed);
+  }
 
   // Что даст план по той же модели — чтобы режим был выполнимым, а не идеальным.
   const t = {}, wk = {};
@@ -374,7 +400,7 @@ function renderMode(X) {
   const mins = mode.items.reduce((a, it) => a + it.min, 0);
   c.append(el('p', 'hint', `${mode.about}. ${mins} мин вашего участия. ` +
     `Если выполнить весь план, по модели выйдет ${fmt(plan.exp)} при полноте ${plan.cov}%` +
-    (cur.auto ? ' · выбран автоматически: будни — «Работаю из дома», выходные — «Выходной».' : '.')));
+    (cur.byDay ? ' · включён сам: свой режим на этот день недели.' : cur.auto ? ' · выбран автоматически: будни — «Работаю из дома», выходные — «Выходной».' : '.')));
 
   for (const it of mode.items) {
     const tag = `${mode.id}:${it.id}`;
@@ -383,7 +409,7 @@ function renderMode(X) {
     const row = el('button', 'plan' + (done ? ' done' : ''));
     row.disabled = !canWrite();
     const mid = el('div');
-    mid.append(el('b', null, `${it.at} · ${it.text}`));
+    mid.append(el('b', null, `${it.at ? it.at + ' · ' : ''}${it.text}`));
     const chs = Object.entries(it.ch).map(([k, v]) => {
       const row = CH[sp].find(x => x[0] === k);
       return `${row[1].toLowerCase()} ${v} ${unitShort(row[4])}`;
@@ -582,6 +608,6 @@ function openHow() {
 export function back(view) {
   // «Назад» со вступления равно «Понятно»: иначе openDay снова показывает вступление.
   if (view === 'v-how') { try { localStorage.setItem(HOW_KEY, '1'); } catch (_) { /* приватный режим */ } openDay(); return true; }
-  if (view === 'v-calc') { openDay(); return true; }
+  if (view === 'v-calc' || view === 'v-planedit') { openDay(); return true; }
   return false;
 }

@@ -24,6 +24,7 @@ function seed() {
     document_pages: [], calendar_events: [], reminder_rules: [], expenses: [], pet_tags: [], found_reports: [],
     posts: [], post_likes: [], follows: [], questions: [], answers: [], expert_optin: [], lost_alerts: [], hero_responses: [],
     hero_settings: [], pet_statuses: [], interest_events: [], referrals: [], support_requests: [], course_progress: [], content_reports: [],
+    custom_modes: [], pet_photos: [], diets: [], food_exclusions: [],
   };
   const E = (pet, d, channel, value, extra = {}) => DB.domain_entries.push({ id: uid(), pet_id: pet, day: day(d), channel, value, source: 'manual', plan_item: null, walk_id: null, created_by: ME, created_at: at(d, 19), ...extra });
   // Две недели Рекса: разные дни, в середине — хромота, степень C.
@@ -66,9 +67,21 @@ function seed() {
   DB.posts.push({ id: uid(), author_id: ME, author_login: 'demo', pet_id: REX, pet_name: 'Рекс', body: 'Сорок минут в парке, половину времени Рекс сам выбирал, куда идти.', hidden: false, created_at: at(-1, 9) });
   DB.questions.push({ id: uid(), author_id: OLGA, author_login: 'olga', breed: 'бордер-колли', city: null, scope: 'country', title: 'Нормально ли столько линять весной?', body: null, hidden: false, created_at: at(-2, 12) });
   DB.lost_alerts.push({ id: uid(), pet_id: uid(), author_id: OLGA, pet_name: 'Барсик', species: 'cat', description: 'Рыжий кот, без ошейника, боится людей.', lat: 55.7930, lon: 37.5600, hidden: false, resolved_at: null, created_at: at(0, 5) });
+  // П11: рацион, исключение, свой режим у кошки, фото (картинки — нарисованные заглушки).
+  DB.diets.push({ id: uid(), pet_id: REX, started_on: day(-40), food: 'Сухой корм, ягнёнок', kind: 'dry', grams_per_day: 320, meals_per_day: 2, kcal_per_day: null, pack_kg: 12, pack_opened_on: day(-30), note: null, created_by: ME, created_at: at(-40, 9) });
+  DB.food_exclusions.push({ id: uid(), pet_id: REX, item: 'курица', reason: 'allergy', confirmed: 'ветклиника «Свой доктор»', noted_on: day(-330), created_by: ME });
+  DB.custom_modes.push({ id: uid(), pet_id: MUSYA, code: 'c_d3m0d3m0aa', name: 'Вечер с удочкой', icon: '🎣', weekdays: [1, 3, 5],
+    items: [{ id: 'hunt', at: '20:00', text: 'Удочка: три подхода по пять минут', min: 15, ch: { hunt: 15, social: 5 } }, { id: 'shelf', text: 'Полка у окна открыта весь день', min: 0, ch: { terr: 30, choice: 60 } }],
+    created_by: ME, created_at: at(-20, 9), updated_at: at(-20, 9) });
+  for (const [d, tag, cap, em] of [[-1, 'walk', 'Парк, первый снег', '🌳'], [-6, 'care', 'После груминга', '✂️'], [-12, 'walk', 'Новое место — набережная', '🌊'], [-40, 'health', 'Повязка после растяжения', '🩹']]) {
+    const path = `${REX}/photos/demo${d}.jpg`;
+    FILES.set(path, 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><rect width="100%" height="100%" fill="#dbedea"/><text x="50%" y="46%" text-anchor="middle" font-size="160">${em}</text><text x="50%" y="75%" text-anchor="middle" font-family="sans-serif" font-size="30" fill="#3d4b52">демо-снимок</text></svg>`));
+    DB.pet_photos.push({ id: uid(), pet_id: REX, path, taken_on: day(d), tag, caption: cap, created_by: ME, created_at: at(d, 18) });
+  }
   return DB;
 }
 
+const FILES = new Map();
 const DB = seed();
 
 // Простое сопоставление имён колонок из select для встроенных связей (documents → document_pages).
@@ -154,9 +167,10 @@ export function createClient() {
     from: t => new Q(t),
     rpc: async (name, args) => { try { const f = RPC[name]; if (!f) return { data: null, error: { message: 'В демо недоступно' } }; return { data: f(args || {}), error: null }; } catch (e) { return { data: null, error: { message: e.message } }; } },
     storage: { from: () => ({
-      upload: async () => ({ data: {}, error: null }),
-      createSignedUrl: async () => ({ data: { signedUrl: PLACEHOLDER }, error: null }),
-      remove: async () => ({ data: [], error: null }),
+      // Загруженное в демо живёт как blob-ссылка до перезагрузки вкладки.
+      upload: async (path, f) => { try { FILES.set(path, URL.createObjectURL(f)); } catch (_) { /* не файл */ } return { data: {}, error: null }; },
+      createSignedUrl: async path => ({ data: { signedUrl: FILES.get(path) || PLACEHOLDER }, error: null }),
+      remove: async paths => { for (const p of paths || []) FILES.delete(p); return { data: [], error: null }; },
     }) },
   };
 }
