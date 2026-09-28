@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pet ID — материалы проекта</title>
+<meta name="description" content="Сводная страница проектных материалов Pet ID: макет экранов, скрипт интервью, веб-макет.">
+<style>
+:root{
+  --bg:#F5F6F3; --card:#FFFFFF; --line:#D8DCD3; --ink:#18242A; --ink2:#3D4B52; --sub:#69787D;
+  --a:#00706A; --a-s:#DBEDEA; --a-b:#9CCFC8;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1417; --card:#141E22; --line:#293539; --ink:#E3EAE8; --ink2:#B2C0BF; --sub:#7C8E92;
+    --a:#52C0B1; --a-s:#11302D; --a-b:#2E6660;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1417; --card:#141E22; --line:#293539; --ink:#E3EAE8; --ink2:#B2C0BF; --sub:#7C8E92;
+  --a:#52C0B1; --a-s:#11302D; --a-b:#2E6660;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:760px; margin:0 auto; padding:40px 16px 56px}
+.eyebrow{font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--sub); margin:0 0 10px}
+h1{font-size:30px; line-height:1.15; letter-spacing:-.02em; margin:0 0 10px}
+.lede{color:var(--ink2); margin:0 0 32px; max-width:60ch}
+h2{font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--sub); margin:32px 0 12px}
+.list{display:grid; gap:10px}
+a.doc{display:grid; grid-template-columns:44px 1fr auto; gap:14px; align-items:start; text-decoration:none; color:inherit;
+  background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px}
+a.doc:hover{border-color:var(--a-b)}
+a.doc:focus-visible{outline:2px solid var(--a); outline-offset:2px}
+.ic{width:44px; height:44px; border-radius:12px; background:var(--a-s); color:var(--a); display:grid; place-items:center; font-size:21px}
+.doc b{display:block; font-size:17px; line-height:1.3}
+.doc p{margin:5px 0 8px; color:var(--ink2); font-size:14.5px}
+.meta{display:flex; flex-wrap:wrap; gap:6px}
+.meta span{font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--sub); border:1px solid var(--line); border-radius:6px; padding:4px 7px}
+.go{color:var(--a); font-size:13px; white-space:nowrap; padding-top:3px}
+.foot{margin-top:36px; font-size:13px; color:var(--sub)}
+@media (max-width:480px){ a.doc{grid-template-columns:36px 1fr} .ic{width:36px; height:36px; font-size:18px} .go{display:none} h1{font-size:25px} }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Pet ID · материалы проекта</p>
+  <h1>Документы проектирования</h1>
+  <p class="lede">Все материалы открываются в новой вкладке. В каждом документе есть ссылка обратно на эту страницу.</p>
+
+  <h2>Проектирование</h2>
+  <div class="list" id="docs">
+    <a class="doc" href="maket-pet-id-v15.html" target="_blank" rel="noopener">
+      <span class="ic" aria-hidden="true">▣</span>
+      <span>
+        <b>Макет приложения v1.5</b>
+        <p>Интерактивный кликабельный макет: 61 экран в рамке телефона с навигацией по потокам. Эталон, по которому собирается веб-макет, и источник сверки экранов.</p>
+        <span class="meta"><span>61 экран</span><span>светлая и тёмная тема</span><span>maket-pet-id-v15.html</span></span>
+      </span>
+      <span class="go">Открыть ↗</span>
+    </a>
+    <a class="doc" href="skript-intervyu.html" target="_blank" rel="noopener">
+      <span class="ic" aria-hidden="true">✎</span>
+      <span>
+        <b>Скрипт проблемных интервью с владельцами</b>
+        <p>Рабочий документ интервьюера: что проверяют интервью и чего нет, правила разговора, гипотезы уровня проблемы И1–И13, отбор участников, ход 60-минутной беседы, банк вопросов, коммитменты и подсчёт результата.</p>
+        <span class="meta"><span>13 гипотез</span><span>15 блоков вопросов</span><span>60 минут</span><span>skript-intervyu.html</span></span>
+      </span>
+      <span class="go">Открыть ↗</span>
+    </a>
+  </div>
+
+  <h2>Веб-макет</h2>
+  <div class="list">
+    <a class="doc" href="../index.html" target="_blank" rel="noopener">
+      <span class="ic" aria-hidden="true">⌂</span>
+      <span>
+        <b>Вход и регистрация в веб-макете</b>
+        <p>Рабочая версия приложения на живой базе: регистрация по логину без почты, вход, демо-режим без регистрации.</p>
+        <span class="meta"><span>astrokaktus-pm.github.io/id-zoo</span></span>
+      </span>
+      <span class="go">Открыть ↗</span>
+    </a>
+  </div>
+
+  <p class="foot">Страница лежит в папке <code>design/</code> репозитория. Новый документ добавляется сюда отдельной карточкой, а в сам документ — ссылка «Все материалы проекта».</p>
+</main>
+</body>
+</html>
