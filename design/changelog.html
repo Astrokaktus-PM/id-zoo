@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pet ID — журнал изменений</title>
+<meta name="description" content="Журнал изменений веб-макета Pet ID: выпуски, SQL-скрипты, проверки, известные уязвимости и открытые вопросы.">
+<style>
+:root{
+  --bg:#F6F3EE; --panel:#FFFDF9; --line:#E8E1D6; --ink:#3B4244; --ink2:#566062; --sub:#6C7472;
+  --c:#7A6FA6; --cs:#ECE8F6;
+  --ok:#5B8C7B; --ok-s:#E1EFE8; --warn:#B07A3A; --warn-s:#F6EAD9; --bad:#B25E63; --bad-s:#F6E3E4; --info:#4F7EA0; --info-s:#E1ECF4;
+  --shadow:0 1px 2px rgba(59,66,68,.04), 0 8px 24px -16px rgba(59,66,68,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1E2224; --panel:#262B2E; --line:#343A3D; --ink:#E4E2DC; --ink2:#C3C4BE; --sub:#A2A6A2;
+    --c:#B3A8DA; --cs:#2E2B3A;
+    --ok:#8EC1AE; --ok-s:#26332E; --warn:#DDB07A; --warn-s:#3A3024; --bad:#E0A0A4; --bad-s:#3A2729; --info:#8FB6D3; --info-s:#26313A;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -16px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1E2224; --panel:#262B2E; --line:#343A3D; --ink:#E4E2DC; --ink2:#C3C4BE; --sub:#A2A6A2;
+  --c:#B3A8DA; --cs:#2E2B3A;
+  --ok:#8EC1AE; --ok-s:#26332E; --warn:#DDB07A; --warn-s:#3A3024; --bad:#E0A0A4; --bad-s:#3A2729; --info:#8FB6D3; --info-s:#26313A;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -16px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink); font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:900px; margin:0 auto; padding:28px 16px 72px}
+.eyebrow{font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--sub); margin:0 0 8px}
+h1{font-size:26px; line-height:1.2; margin:0 0 6px; font-weight:650}
+.lede{color:var(--ink2); margin:0 0 18px; max-width:66ch}
+.tabs{display:flex; gap:6px; flex-wrap:wrap; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:5px; box-shadow:var(--shadow); margin-bottom:16px; position:sticky; top:8px; z-index:2}
+.tab{appearance:none; border:0; background:transparent; color:var(--ink2); font:inherit; font-size:14.5px; font-weight:560; padding:9px 14px; border-radius:10px; cursor:pointer}
+.tab .n{font-size:12px; color:var(--sub); margin-left:6px; font-variant-numeric:tabular-nums}
+.tab[aria-selected="true"]{background:var(--cs); color:var(--ink)}
+.tab:focus-visible{outline:2px solid var(--c); outline-offset:2px}
+.panel{display:none} .panel.on{display:block}
+.card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:12px}
+.rel-h{display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 12px; margin-bottom:6px}
+.rel-h b{font-size:16.5px; font-weight:640}
+.ver{font:600 12.5px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--c); background:var(--cs); border-radius:6px; padding:5px 7px}
+.when{font-size:13px; color:var(--sub)}
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0}
+.chip{font:500 11.5px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; border-radius:6px; padding:5px 7px; background:var(--bg); color:var(--sub)}
+.chip.sql{background:var(--info-s); color:var(--info)}
+.chip.fix{background:var(--ok-s); color:var(--ok)}
+ul{margin:6px 0 0; padding-left:20px} li{margin:3px 0; color:var(--ink2)}
+.checks{font-size:13px; color:var(--sub); margin:8px 0 0}
+.filters{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px}
+.filters button{appearance:none; font:inherit; font-size:13.5px; border:1px solid var(--line); background:var(--panel); color:var(--ink2); border-radius:999px; padding:6px 12px; cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--cs); border-color:transparent; color:var(--ink)}
+.iss{border-left:4px solid var(--k)}
+.iss .top{display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; margin-bottom:4px}
+.iss b{font-size:15.5px; font-weight:620}
+.tag{font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; letter-spacing:.04em; border-radius:6px; padding:5px 7px; background:var(--ks); color:var(--k)}
+.iss p{margin:4px 0 0; color:var(--ink2); font-size:14.5px}
+.iss .fixn{font-size:13px; color:var(--sub)}
+[data-kind="vuln"]{--k:var(--bad); --ks:var(--bad-s)}
+[data-kind="integrity"]{--k:var(--warn); --ks:var(--warn-s)}
+[data-kind="limit"]{--k:var(--info); --ks:var(--info-s)}
+[data-kind="unconfirmed"]{--k:var(--c); --ks:var(--cs)}
+[data-kind="decision"]{--k:var(--warn); --ks:var(--warn-s)}
+[data-kind="estimate"]{--k:var(--sub); --ks:var(--bg)}
+.iss.closed{opacity:.8; --k:var(--ok); --ks:var(--ok-s)}
+.hint{font-size:13px; color:var(--sub)}
+code{font-size:.92em}
+/* Ссылка на сводную страницу материалов (design/index.html). */
+.hub-back{position:fixed; right:12px; bottom:12px; z-index:2147483000; display:inline-flex; align-items:center; gap:6px;
+  padding:8px 12px; border-radius:999px; font:600 13px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  text-decoration:none; background:var(--panel); color:var(--c); border:1px solid var(--line); box-shadow:var(--shadow)}
+.hub-back:hover{background:var(--cs)}
+@media print{ .hub-back,.tabs{display:none} .panel{display:block} }
+@media (max-width:560px){ h1{font-size:22px} .card{padding:14px} }
+</style>
+</head>
+<body>
+<a class="hub-back" href="index.html">← Все материалы проекта</a>
+<div class="wrap">
+  <p class="eyebrow">Pet ID · веб-макет</p>
+  <h1>Журнал изменений</h1>
+  <p class="lede">Что выкладывалось, какие SQL-скрипты нужны и как проверено. Отдельно — известные уязвимости, ограничения и то, что не подтверждено. Журнал пополняется с каждым выпуском в том же коммите, что и сам выпуск.</p>
+
+  <nav class="tabs" role="tablist" aria-label="Разделы журнала">
+    <button class="tab" role="tab" id="t-rel" aria-controls="p-rel">Выпуски<span class="n" id="n-rel"></span></button>
+    <button class="tab" role="tab" id="t-iss" aria-controls="p-iss">Открытые вопросы<span class="n" id="n-iss"></span></button>
+  </nav>
+
+  <section class="panel" role="tabpanel" id="p-rel" aria-labelledby="t-rel"></section>
+  <section class="panel" role="tabpanel" id="p-iss" aria-labelledby="t-iss">
+    <div class="filters" id="filters"></div>
+    <div id="iss-list"></div>
+    <p class="hint">Важность — оценка команды, не данные. Закрытые пункты остаются в журнале с указанием, чем закрыты и как проверены.</p>
+  </section>
+</div>
+
+<!--
+  ДАННЫЕ ЖУРНАЛА. Новый выпуск — новый объект В НАЧАЛО releases; вопрос — в issues.
+  Закрытый вопрос не удаляется: status = "closed", closed = чем закрыт.
+  kind: vuln — уязвимость; integrity — целостность данных; limit — ограничение;
+        unconfirmed — не подтверждено; decision — ждёт решения; estimate — оценка, не данные.
+-->
+<script type="application/json" id="data">
+{
+  "releases": [
+    { "ver": "журнал", "when": "28.09.2026 14:50", "title": "Журнал изменений",
+      "items": ["Этот документ: выпуски, SQL-скрипты, проверки, открытые вопросы и уязвимости.", "Добавлен в сводную страницу материалов отдельной вкладкой."] },
+    { "ver": "материалы", "when": "28.09.2026 14:39", "title": "Сводная страница: вкладки и пастельная палитра", "commit": "b0ef20f",
+      "items": ["Вкладки по темам вместо длинной ленты; вкладка помещается в экран без прокрутки от 360×740 и шире.", "Добавлены PRD (27.09.2026) и рыночный профиль (27.09.2026) с обратными ссылками.", "Дубликат спецификации пятого домена скрыт со страницы; файл остался в папке."],
+      "checks": "9 ссылок — 200, все в новой вкладке; обратная ссылка во всех 9 документах." },
+    { "ver": "0.10.0", "when": "28.09.2026 14:33", "title": "П12: замечания коллег", "commit": "e5f570d", "sql": ["012_p12.sql"],
+      "items": ["Переполнение плиток карточки питомца на 320 px.", "Координаты города пишутся в профиль после первого ответа Nominatim; повторных запросов нет; отказ геокодера экран не ломает.", "Новый текст вступления «Как мы считаем».", "Базовые режимы «Будни, дома никого» / «дома кто-то есть» / «Выходной»; остальные — ситуативные. Одиночество не снижает потолок.", "Распорядок питомца: подъём, три прогулки, 2–3 кормления; пункты режимов ставятся от них, непоместившиеся скрываются.", "Анкета ограничителей после заведения питомца, «Заполню потом», переспрос раз в две недели. Вода и еда со стола — вход в ограничитель «еда», баллов не дают.", "Отпуск: дни в зоогостинице и у ситтера вне приложения не входят в недельное среднее; снятие доступа ситтера; «С возвращением».", "Геймификация без наказаний: полнота недели, один следующий шаг, достижения за полноту, которые нельзя потерять, факт недели от питомца.", "Контрольная метрика «отметки одной пачкой» — analytics.batch_share."],
+      "checks": "SQL 35/35 локально; живьём 19/19; демо 31/31 локально и на сайте; регрессия П5 37/37, П8 36/36, П10 14/14, П11 15/15; обход 82 экрана без ошибок." },
+    { "ver": "SQL 011", "when": "28.09.2026 13:56", "title": "Права на удаление файлов", "commit": "915b66d", "sql": ["011_storage_delete.sql"], "fix": true,
+      "items": ["Файл в хранилище удаляет владелец, совладелец или автор строки, которая на него ссылается; файл без строки — любой пишущий участник."],
+      "checks": "Локально 8/8; живьём 7/7." },
+    { "ver": "материалы", "when": "28.09.2026 13:57", "title": "Сводная страница материалов", "commit": "a2ed7f8",
+      "items": ["design/index.html со ссылками на документы и вход в веб-макет; во всех документах — «← Все материалы проекта»."] },
+    { "ver": "0.9.0", "when": "28.09.2026 08:00", "title": "П11: свой режим дня, фото, питание", "commit": "0f7c2a2", "sql": ["010_modes_photos_nutrition.sql"],
+      "items": ["Свой режим дня: пункты, вклад в каналы, дни недели, итог той же моделью; работает и для кошек.", "Фотоальбом: снимок ужимается до 1600 px, координаты съёмки не сохраняются.", "Питание: рацион журналом, остаток упаковки, покупка в календарь, «нельзя давать», вес из карты здоровья."],
+      "checks": "SQL 41/41; демо 38/38; живьём 15/15 и 13/13 через API." },
+    { "ver": "0.8.0", "when": "28.09.2026 01:50", "title": "П10: сквозная проверка", "commit": "2e993c7", "sql": ["009_column_guards.sql"], "fix": true,
+      "items": ["Сверка 61 экрана эталона (test/screens_map.py).", "Права на колонки: совладелец не может стать владельцем, вид питомца и логин не меняются из клиента.", "Профиль владельца и правка данных питомца.", "Атрибут hidden перебивался классами — у кошки была видна кнопка «Прогулки»; переполнение форм на 320 px."],
+      "checks": "SQL 11/11; живьём 009 — 5/5, П10 14/14; обход 69 экранов." },
+    { "ver": "0.7.0", "when": "28.09.2026 00:58", "title": "П9: прототипы уровня C", "commit": "cbcf229",
+      "items": ["Трекер, «Спасите», «Снюхаться», маршруты, камеры, поведение, онлайн-консультация — на фиксированных данных, с плашкой «Прототип»."],
+      "checks": "Демо 27/27 локально и на сайте." },
+    { "ver": "0.6.0", "when": "28.09.2026 00:37", "title": "П8: уровень B", "commit": "7129af7", "sql": ["008_community.sql"],
+      "items": ["Лента, экспертный совет, «Команда Героев», скрытие по двум жалобам.", "Помощник по правилам с источниками (AVMA, Merck), пометка «Не ИИ».", "Статусы, курс, поддержка, приглашения, Premium — фейковая дверь, база знаний с источниками, демо-режим."],
+      "checks": "SQL 63/63; живьём 36/36; демо 23/23." },
+    { "ver": "0.5.0", "when": "27.09.2026 10:29", "title": "П7: расходы и жетон", "commit": "e5dc3b3", "sql": ["007_money_found.sql"],
+      "items": ["Расходы и стоимость содержания по своим записям.", "QR-жетон и страница находки без входа, сообщения нашедших."],
+      "checks": "SQL 40/40; живьём 32/32." },
+    { "ver": "0.4.0", "when": "27.09.2026 10:14", "title": "П6: здоровье, документы, календарь", "commit": "0c94564", "sql": ["006_health_docs_calendar.sql"],
+      "items": ["Карта здоровья, просрочка прививки или обработки → степень B.", "Банк документов со снимками, календарь, правила напоминаний."],
+      "checks": "SQL 39/39; живьём 26/26." },
+    { "ver": "0.3.0", "when": "25.09.2026 05:41", "title": "П5: прогулки и карта", "commit": "c5f4eea", "sql": ["005_walks.sql"],
+      "items": ["Запись прогулки по GPS телефона, приватная зона 150 м вокруг дома, подтверждение вклада в каналы, «Рядом» с демо-метками."],
+      "checks": "Живьём 37/37." },
+    { "ver": "0.2.0", "when": "25.09.2026 04:33", "title": "Ф2: ядро пяти доменов", "commit": "ee22ed6", "sql": ["003_domains.sql", "004_channel_species.sql"],
+      "items": ["d5.js — порт d5_model.py (300 случаев без расхождений); отметки, степени, недельное среднее, режимы дня, разбор расчёта."] },
+    { "ver": "0.1.1", "when": "25.09.2026 04:21", "title": "Ф1: исправления", "commit": "9e3bb25", "sql": ["002_fix_rls_and_invite.sql"], "fix": true,
+      "items": ["RLS pets_select и проверка роли в invite_member."] },
+    { "ver": "0.1.0", "when": "25.09.2026 03:29", "title": "Ф1: каркас", "commit": "1cc587a", "sql": ["001_init.sql"],
+      "items": ["Вход по логину без почты, профиль, питомцы, четыре роли, PWA."] }
+  ],
+  "issues": [
+    { "kind": "vuln", "sev": "средняя", "status": "open", "since": "0.1.0", "title": "Библиотека входа грузится с CDN без закреплённой версии",
+      "text": "supabase-js подключается как @supabase/supabase-js@2 с cdn.jsdelivr.net — любое обновление мажорной ветки или подмена пакета меняет код входа без нашего ведома. Leaflet 1.9.4 и qrcode-generator 1.4.4 закреплены по версии, но без проверки целостности (SRI).",
+      "fixn": "Закрепить точную версию и добавить SRI или положить файлы в репозиторий." },
+    { "kind": "integrity", "sev": "низкая", "status": "open", "since": "0.10.0", "title": "Достижения вносит клиент",
+      "text": "Участник с правом записи может через API внести любое достижение своему питомцу. Чужим питомцам — нельзя (RLS). Влияет только на собственный экран и на метрики.",
+      "fixn": "Для когорты — выдавать достижения серверной функцией по данным." },
+    { "kind": "integrity", "sev": "низкая", "status": "open", "since": "0.10.0", "title": "Отпуском задним числом можно убрать неудачные дни из среднего",
+      "text": "Признак «дни не входят в среднее» задаёт клиент; владелец может отметить отпуск до 60 дней назад. Для макета приемлемо; для когорты искажает H3 и недельные оценки.",
+      "fixn": "Для когорты — ограничить задний срок и учитывать такие периоды в аналитике отдельно." },
+    { "kind": "limit", "sev": "низкая", "status": "open", "since": "0.10.0", "title": "Разбор недели помощника не исключает дни отпуска",
+      "text": "js/why.js сравнивает две недели без учёта периодов отсутствия.", "fixn": "Передать периоды в расчёт недели помощника." },
+    { "kind": "unconfirmed", "status": "open", "since": "0.3.0", "title": "Карты и геокодер OpenStreetMap из РФ",
+      "text": "Доступность tile.openstreetmap.org и nominatim.openstreetmap.org из России не проверена: все проверки шли через выход в Люксембурге. Проверка: открыть с телефона по мобильной сети https://tile.openstreetmap.org/0/0/0.png." },
+    { "kind": "unconfirmed", "status": "open", "since": "0.10.0", "title": "Идентификация клиента для Nominatim",
+      "text": "Политика требует собственный User-Agent или Referer. Браузер не даёт задать User-Agent; идентификация идёт только по Referer сайта. Достаточно ли этого для продукта — не подтверждено." },
+    { "kind": "unconfirmed", "status": "open", "since": "0.3.0", "title": "Поведение на реальном телефоне",
+      "text": "watchPosition, Wake Lock, съёмка камерой, снятие EXIF, сканирование QR с распечатки, navigator.share — проверены только в эмуляции." },
+    { "kind": "decision", "status": "open", "since": "0.7.0", "title": "Провайдер карт для продукта",
+      "text": "OSM без SLA и может заблокировать. Лицензия Яндекса запрещает отслеживание в реальном времени для мониторинга и хранение данных API. Решение 28.09.2026: в макете карту не трогаем." },
+    { "kind": "decision", "status": "open", "since": "0.10.0", "title": "Гипотеза H2 не проверена, онбординг стал длиннее",
+      "text": "Анкета ограничителей удлинила заведение питомца. Если конструкция непонятна, люди бросят анкету раньше — цена провала H2 выросла. Нужен модерируемый тест на 8–10 людях." },
+    { "kind": "limit", "status": "open", "since": "0.1.0", "title": "Восстановление пароля невозможно", "text": "Вход по логину без почты — осознанное решение; предупреждение есть на экране регистрации." },
+    { "kind": "limit", "status": "open", "since": "0.1.0", "title": "Зарубежный хостинг, только выдуманные данные", "text": "GitHub Pages и Supabase (Франкфурт). Перед когортой — переезд и соответствие 152-ФЗ." },
+    { "kind": "limit", "status": "open", "since": "0.4.0", "title": "Напоминания и уведомления не рассылаются", "text": "Нет сервера рассылки: правила напоминаний сохраняются, push и почта не уходят; «Героям» объявления видны только при открытии экрана." },
+    { "kind": "limit", "status": "open", "since": "0.2.0", "title": "Погодное правило не сделано", "text": "«Дождь сильнее 3 мм/ч → Плохая погода» требует погодного сервиса." },
+    { "kind": "limit", "status": "open", "since": "0.6.0", "title": "Тестовые данные копятся", "text": "content_reports, interest_events, support_requests, course_progress, follows, expert_optin тестовых аккаунтов не удаляются политиками." },
+    { "kind": "estimate", "status": "open", "since": "0.2.0", "title": "Калибровка вместо измерения",
+      "text": "Веса и нормы модели, вклад пунктов режимов в каналы, пороги «еды со стола» и определение «пачечных отметок» — оценка команды, не данные. Пороги еды со стола — подтвердить у ветеринарного диетолога." },
+    { "kind": "vuln", "status": "closed", "since": "0.1.0", "title": "Совладелец мог стать владельцем и удалить питомца",
+      "text": "Политика pets_update пускала совладельца записать себе owner_id; из клиента менялись вид питомца и логин.", "closed": "SQL 009 (0.8.0), права на колонки; живьём 5/5." },
+    { "kind": "vuln", "status": "closed", "since": "0.4.0", "title": "Помощник мог удалить файл чужого документа или фото",
+      "text": "Политика удаления файлов бакета пускала любого пишущего участника.", "closed": "SQL 011; живьём 7/7." },
+    { "kind": "vuln", "status": "closed", "since": "0.5.0", "title": "Аноним мог вызвать ensure_pet_tag",
+      "text": "Supabase по умолчанию даёт execute новым функциям и роли anon.", "closed": "Явный revoke в 007 до выкладки." },
+    { "kind": "vuln", "status": "closed", "since": "0.1.0", "title": "RLS pets_select и проверка роли в invite_member", "text": "Найдено на Ф1.", "closed": "SQL 002 (0.1.1)." },
+    { "kind": "limit", "status": "closed", "since": "0.3.0", "title": "Частые запросы к геокодеру", "text": "Координаты города запрашивались при каждом открытии карты (кэш только в браузере).", "closed": "0.10.0: координаты в профиле, не чаще 1 запроса в секунду; живьём проверено." },
+    { "kind": "limit", "status": "closed", "since": "0.5.0", "title": "Переполнение на ширине 320 px", "text": "Формы записи, события, документа, курс (0.8.0); плитки карточки питомца (0.10.0).", "closed": "Обход с проверкой внутренних блоков — переполнений нет." }
+  ]
+}
+</script>
+
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById('data').textContent);
+  const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
+  const KIND = { vuln: 'уязвимость', integrity: 'целостность данных', limit: 'ограничение', unconfirmed: 'не подтверждено', decision: 'ждёт решения', estimate: 'оценка, не данные' };
+
+  // Выпуски
+  const rel = document.getElementById('p-rel');
+  for (const r of D.releases) {
+    const c = el('article', 'card');
+    const h = el('div', 'rel-h'); h.append(el('span', 'ver', r.ver), el('b', null, r.title), el('span', 'when', r.when + (r.commit ? ' · ' + r.commit : '')));
+    c.append(h);
+    if ((r.sql && r.sql.length) || r.fix) {
+      const ch = el('div', 'chips');
+      for (const s of r.sql || []) ch.append(el('span', 'chip sql', 'sql/' + s));
+      if (r.fix) ch.append(el('span', 'chip fix', 'исправление безопасности'));
+      c.append(ch);
+    }
+    const ul = el('ul'); for (const it of r.items) ul.append(el('li', null, it)); c.append(ul);
+    if (r.checks) c.append(el('p', 'checks', 'Проверка: ' + r.checks));
+    rel.append(c);
+  }
+  document.getElementById('n-rel').textContent = D.releases.length;
+
+  // Вопросы
+  const open = D.issues.filter(i => i.status === 'open');
+  document.getElementById('n-iss').textContent = open.length;
+  const flt = document.getElementById('filters'), list = document.getElementById('iss-list');
+  const opts = [['open', `Открытые · ${open.length}`], ['vuln', 'Уязвимости'], ['closed', `Закрытые · ${D.issues.length - open.length}`], ['all', 'Все']];
+  let cur = 'open';
+  const draw = () => {
+    flt.replaceChildren();
+    for (const [k, lab] of opts) { const b = el('button', null, lab); b.setAttribute('aria-pressed', k === cur); b.onclick = () => { cur = k; draw(); }; flt.append(b); }
+    list.replaceChildren();
+    const show = D.issues.filter(i => cur === 'all' || (cur === 'open' && i.status === 'open') || (cur === 'closed' && i.status === 'closed') || (cur === 'vuln' && ['vuln', 'integrity'].includes(i.kind)));
+    for (const i of show) {
+      const c = el('article', 'card iss' + (i.status === 'closed' ? ' closed' : '')); c.dataset.kind = i.kind;
+      const t = el('div', 'top'); t.append(el('span', 'tag', i.status === 'closed' ? 'закрыто' : KIND[i.kind]));
+      if (i.sev) t.append(el('span', 'chip', 'важность: ' + i.sev));
+      t.append(el('span', 'chip', 'с ' + i.since)); c.append(t);
+      c.append(el('b', null, i.title), el('p', null, i.text));
+      if (i.fixn) c.append(el('p', 'fixn', 'Что сделать: ' + i.fixn));
+      if (i.closed) c.append(el('p', 'fixn', 'Закрыто: ' + i.closed));
+      list.append(c);
+    }
+  };
+  draw();
+
+  // Вкладки
+  const tabs = [...document.querySelectorAll('.tab')];
+  const pick = (t, focus) => { for (const x of tabs) { const on = x === t; x.setAttribute('aria-selected', on); x.tabIndex = on ? 0 : -1; document.getElementById(x.getAttribute('aria-controls')).classList.toggle('on', on); } if (focus) t.focus(); try { history.replaceState(null, '', '#' + t.id.slice(2)); } catch (_) { /* file:// */ } };
+  tabs.forEach((t, i) => { t.onclick = () => pick(t); t.onkeydown = e => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') pick(tabs[(i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length], true); }; });
+  pick(tabs.find(t => '#' + t.id.slice(2) === location.hash) || tabs[0]);
+})();
+</script>
+</body>
+</html>
