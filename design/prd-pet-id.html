@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pet ID — PRD</title>
+<meta name="description" content="Сводный профиль продукта Pet ID: позиционирование, модель пяти доменов, роли, объём из 61 экрана, метрики, границы и риски.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F5F6F3; --card:#FFFFFF; --card2:#ECEEE9; --line:#D8DCD3; --line2:#BFC5B9;
+  --ink:#18242A; --ink2:#3D4B52; --sub:#69787D;
+  --a:#00706A; --a-s:#DBEDEA; --a-b:#9CCFC8;
+  --b:#2a78d6; --b-s:#E2ECFA; --b-b:#A8C6EE;
+  --c:#96530F; --c-s:#F5E8D8; --c-b:#DEBE92;
+  --bad:#9C2B39; --bad-s:#F6E0E2; --bad-b:#DFA7AD;
+  --key:#55428A; --key-s:#E8E3F3; --key-b:#BCACE0;
+  --sh:0 1px 2px rgba(24,36,42,.05), 0 7px 22px -14px rgba(24,36,42,.2);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1417; --card:#141E22; --card2:#1B272C; --line:#293539; --line2:#3A4B51;
+  --ink:#E3EAE8; --ink2:#B2C0BF; --sub:#7C8E92;
+  --a:#52C0B1; --a-s:#11302D; --a-b:#2E6660;
+  --b:#3987e5; --b-s:#131F2E; --b-b:#2B4A73;
+  --c:#D9954F; --c-s:#2F2310; --c-b:#6B4F27;
+  --bad:#E07C87; --bad-s:#31161A; --bad-b:#6E3239;
+  --key:#A88FDC; --key-s:#221C31; --key-b:#4B3E72;
+  --sh:0 1px 2px rgba(0,0,0,.4), 0 9px 26px -16px rgba(0,0,0,.8);
+}}
+*{box-sizing:border-box}
+html{color-scheme:light dark}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font-family:Literata,Georgia,serif; font-size:15.5px; line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{margin:0; font-family:Onest,"Helvetica Neue",Arial,sans-serif;
+  letter-spacing:-.02em; line-height:1.14; text-wrap:balance}
+.lbl,th,.tag,code,.n,.id{font-family:"IBM Plex Mono",ui-monospace,monospace}
+code{font-size:.9em; background:var(--card2); padding:2px 6px; border-radius:4px; border:1px solid var(--line)}
+.lbl{font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--sub);
+  display:block; margin-bottom:8px}
+p{margin:0 0 14px; max-width:72ch}
+a{color:var(--b)}
+.top{border-bottom:1px solid var(--line); background:var(--card)}
+.topin{max-width:1080px; margin:0 auto; padding:38px 26px 30px}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--a); margin-bottom:12px}
+h1{font-size:clamp(29px,4.4vw,44px); font-weight:800}
+.lede{margin:15px 0 0; max-width:66ch; font-size:17px; color:var(--ink2)}
+.meta{display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 0}
+.tag{font-size:11px; letter-spacing:.04em; padding:4px 9px; border-radius:4px;
+  background:var(--card2); color:var(--sub); border:1px solid var(--line)}
+main{max-width:1080px; margin:0 auto; padding:38px 26px 90px}
+section{margin:0 0 54px}
+h2{font-size:26px; font-weight:700; margin:0 0 10px}
+h2 .num{font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:500;
+  color:var(--a); margin-right:11px; letter-spacing:0}
+h3{font-size:18px; font-weight:700; margin:30px 0 8px}
+h4{font-size:15px; font-weight:700; margin:22px 0 6px}
+.intro{font-size:16.5px; color:var(--ink2); max-width:68ch; margin-bottom:22px}
+.tw{overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:var(--card);
+  margin:18px 0; box-shadow:var(--sh)}
+table{border-collapse:collapse; width:100%; min-width:660px; font-size:14px}
+th{font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--sub);
+  text-align:left; font-weight:500; padding:12px 15px; background:var(--card2);
+  border-bottom:1px solid var(--line); vertical-align:bottom}
+td{padding:12px 15px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink2)}
+tr:last-child td{border-bottom:0}
+td strong{color:var(--ink)}
+td.id{font-size:12.5px; color:var(--a); white-space:nowrap; font-weight:600}
+td.n,th.n{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+.note{border:1px solid var(--line); border-radius:12px; padding:18px 21px;
+  background:var(--card); margin:18px 0}
+.note.a{background:var(--a-s); border-color:var(--a-b)} .note.a .lbl{color:var(--a)}
+.note.bad{background:var(--bad-s); border-color:var(--bad-b)} .note.bad .lbl{color:var(--bad)}
+.note.c{background:var(--c-s); border-color:var(--c-b)} .note.c .lbl{color:var(--c)}
+.note.key{background:var(--key-s); border-color:var(--key-b)} .note.key .lbl{color:var(--key)}
+.note.b{background:var(--b-s); border-color:var(--b-b)} .note.b .lbl{color:var(--b)}
+.note p:last-child{margin-bottom:0}
+.note p{font-size:14.5px}
+.est{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--c); background:var(--c-s);
+  border:1px solid var(--c-b); border-radius:4px; padding:2px 6px; white-space:nowrap}
+.dat{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--a); background:var(--a-s);
+  border:1px solid var(--a-b); border-radius:4px; padding:2px 6px; white-space:nowrap}
+.nc{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--sub); background:var(--card2);
+  border:1px solid var(--line); border-radius:4px; padding:2px 6px; white-space:nowrap}
+.kpi{display:grid; grid-template-columns:repeat(auto-fit,minmax(178px,1fr)); gap:13px; margin:20px 0}
+.k{background:var(--card); border:1px solid var(--line); border-radius:13px; padding:16px 17px;
+  box-shadow:var(--sh)}
+.k b{display:block; font-family:Onest,Arial,sans-serif; font-size:26px; font-weight:700;
+  letter-spacing:-.02em; line-height:1.1; margin-bottom:5px}
+.k span{display:block; font-size:12.5px; color:var(--sub); line-height:1.4}
+.k.bad b{color:var(--bad)} .k.a b{color:var(--a)}
+ol.steps{counter-reset:s; list-style:none; padding:0; margin:16px 0}
+ol.steps>li{counter-increment:s; position:relative; padding-left:40px; margin-bottom:18px;
+  font-size:15px; color:var(--ink2); max-width:74ch}
+ol.steps>li::before{content:counter(s); position:absolute; left:0; top:0;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:600;
+  width:26px; height:26px; border-radius:8px; background:var(--a-s);
+  color:var(--a); display:grid; place-items:center}
+ol.steps>li strong{color:var(--ink)}
+ul.plain{list-style:none; padding:0; margin:14px 0}
+ul.plain li{position:relative; padding:8px 0 8px 24px; border-top:1px solid var(--line);
+  font-size:14.8px; color:var(--ink2); max-width:80ch}
+ul.plain li:first-child{border-top:0}
+ul.plain li::before{content:"—"; position:absolute; left:2px; top:8px; color:var(--line2)}
+ul.plain li strong{color:var(--ink)}
+.two{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:15px; margin:18px 0}
+footer{border-top:1px solid var(--line); margin-top:54px; padding-top:24px;
+  font-size:13px; color:var(--sub); max-width:80ch}
+footer h3{font-size:14px; margin:0 0 10px; color:var(--ink)}
+footer ul{padding-left:18px; margin:0 0 14px}
+footer li{margin-bottom:6px}
+@media (max-width:620px){ main{padding:28px 18px 70px} .topin{padding:28px 18px 24px} }
+</style>
+</head>
+<body>
+
+<div class="top"><div class="topin">
+  <div class="eyebrow">Pet ID · сводный профиль продукта</div>
+  <h1>PRD: что мы строим и чего не строим</h1>
+  <p class="lede">Один документ, из которого видно продукт целиком: зачем он, для кого, из чего состоит, какими числами измеряется и где проходят его границы. Всё, что в нём помечено как гипотеза, гипотезой и остаётся до проверки. Версия 1.0 от 27.09.2026.</p>
+  <div class="meta">
+    <span class="tag">веб-макет без трекеров</span>
+    <span class="tag">61 экран</span>
+    <span class="tag">13 экранов построено</span>
+    <span class="tag">версия 1.0</span>
+  </div>
+</div></div>
+
+<main>
+
+<section>
+  <h2><span class="num">01</span>Продукт в одном абзаце</h2>
+  <p class="intro">Pet ID отвечает владельцу на вопрос, который он задаёт себе вечером: <strong>сегодня питомцу было достаточно?</strong> Приложение собирает то, что владелец и так знает о дне — сколько гуляли, что ел, как себя чувствует, — и показывает одно число с объяснением, из чего оно сложилось и какое одно действие завтра изменит его сильнее всего.</p>
+  <div class="note key">
+    <span class="lbl">Что мы продаём</span>
+    <p>Не данные о питомце и не функции. <strong>Снятие вины.</strong> Число — это форма ответа, а не цель. Из этого следует всё остальное: у дня нет вердикта, есть «чего не хватило»; при нехватке данных оценки нет вообще; продукт никогда не сравнивает владельца с другими и не наказывает за пропуски.</p>
+    <p>Это утверждение — гипотеза <strong>H1</strong>, главная в реестре. Проверяется сплит-тестом двух пейволлов, не интервью. Пока не проверена.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">02</span>Для кого и почему это болит</h2>
+  <div class="tw"><table>
+    <thead><tr><th style="width:52px">#</th><th style="width:210px">Сегмент</th><th>Боль</th><th style="width:190px">Чем подтверждена</th></tr></thead>
+    <tbody>
+      <tr><td class="id">ЦА-1</td><td><strong>Городской владелец собаки</strong>, один питомец</td><td>Не знает, достаточно ли даёт. Судит по себе и по чужим словам, а не по состоянию животного.</td><td><span class="nc">не проверено</span> Гипотеза И1 из скрипта интервью</td></tr>
+      <tr><td class="id">ЦА-2</td><td><strong>Семья с распределённым уходом</strong></td><td>Рассинхрон: покормили дважды, не дали таблетку, оба думали, что выгулял другой.</td><td><span class="nc">не проверено</span> Гипотеза И4</td></tr>
+      <tr><td class="id">ЦА-3</td><td><strong>Владелец кошки</strong></td><td>То же, но каналы опыта другие: охота, территория, укрытия.</td><td>Кошки теряются в 1,5 раза чаще, трекеры у кошатников вдвое реже — Pet911 + Kaspersky, 14.05.2026</td></tr>
+      <tr><td class="id">ЦА-4</td><td><strong>Владелец, боящийся потери</strong></td><td>Страх побега. Главный вход в категорию у конкурентов.</td><td><span class="dat">данные</span> 54% опасаются свободного выгула, 41% боятся потерять — Kaspersky, 15.09.2025</td></tr>
+      <tr><td class="id">ЦА-5</td><td><strong>Владелец с проблемным поведением питомца</strong></td><td>Не понимает, почему животное так себя ведёт, и что с этим делать.</td><td><span class="dat">данные</span> 28% всех сдач в приют — поведение; спрос на кинологов +20% при предложении +11%</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note c">
+    <span class="lbl">Неудобный факт о входе в владение</span>
+    <p>В России <strong>35% находят животное на улице и 22% получают в подарок</strong> (ВЦИОМ, 01.2025). До половины владельцев к моменту появления питомца ничего не планировали и ни к чему не готовились. Это значит, что интеграция «в момент покупки» — у заводчика, в зоомагазине — охватывает меньшинство, а работающая точка входа это ветклиника, чипирование и городские сообщества.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">03</span>Ядро: модель пяти доменов</h2>
+  <p class="intro">Модель Мэллора (1994, ред. 2015/2020). Домены 1–4 — источники аффектов, пятый — то, что из них получается. Приложение считает пятый.</p>
+
+  <div class="tw"><table>
+    <thead><tr><th style="width:210px">Часть</th><th>Что это</th><th style="width:250px">Как считается</th></tr></thead>
+    <tbody>
+      <tr><td><strong>ОПЫТ</strong></td><td>Ситуационные аффекты: свобода выбора, работа носом, общение, движение, новизна. У кошки — охота, территория, укрытия. Они <strong>набирают баллы</strong>.</td><td><code>Σ весᵢ × min(1; фактᵢ / нормаᵢ)</code>, веса в сумме 100</td></tr>
+      <tr><td><strong>ПОТОЛОК</strong></td><td>Выживание: еда, среда, здоровье, страх. Они <strong>не добавляют баллов</strong> — больная собака не станет счастливее от лишней прогулки. Они ограничивают максимум.</td><td><code>min</code> из четырёх коэффициентов по шкале A–E: 1,00 / 0,85 / 0,65 / 0,40 / 0,15</td></tr>
+      <tr><td><strong>ПЯТЫЙ ДОМЕН</strong></td><td>Итог, который видит человек</td><td><code>ОПЫТ × ПОТОЛОК</code></td></tr>
+      <tr><td><strong>ПОЛНОТА</strong></td><td>Третье число, без которого первые два лгут. Непоставленная отметка — это «не знаем», а не «не было».</td><td>Доля весов, по которым есть данные. <strong>Ниже 50% приложение отказывается оценивать день.</strong></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note a">
+    <span class="lbl">Три правила, отличающие продукт от счётчика шагов</span>
+    <p><strong>Крупная цифра — среднее за 7 дней, а не за день.</strong> У отдельного дня нет приговора: есть «чего не хватило» и одно действие.</p>
+    <p><strong>Советы ранжируются по усилию владельца, а не по очкам.</strong> «Не тяните поводок» даёт больше, чем сорок минут лишней ходьбы, — и калькулятор это показывает руками, двигая ползунки.</p>
+    <p><strong>Степени D и E — не число, а текст «покажите врачу».</strong> Добирать прогулками то, что упирается в боль, бессмысленно и вредно.</p>
+  </div>
+
+  <p>Исполняемая спецификация — <code>d5_model.py</code>. Клиентская реализация <code>js/d5.js</code> сверяется с ней автоматически: <code>node test/d5_check.mjs</code>, 300 случайных случаев, расхождений ноль. <strong>Расхождение между ними считается ошибкой клиента, а не модели.</strong></p>
+  <p class="intro" style="margin-top:14px">Веса и нормы — калибровка команды, а не измерение. <span class="est">оценка, не данные</span></p>
+</section>
+
+<section>
+  <h2><span class="num">04</span>Роли и совместный уход</h2>
+  <p class="intro">Модель доступа заложена с первого дня, а не достроена потом: переделывать её на живых данных дорого.</p>
+  <div class="tw"><table>
+    <thead><tr><th style="width:150px">Роль</th><th>Может</th><th style="width:230px">Не может</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Владелец</strong></td><td>Всё. Приглашает участников, удаляет питомца.</td><td>—</td></tr>
+      <tr><td><strong>Совладелец</strong></td><td>Ведёт профиль, отмечает, правит данные питомца.</td><td>Удалить питомца, пригласить участника</td></tr>
+      <tr><td><strong>Помощник</strong></td><td>Ставит отметки, ведёт день, записывает прогулки.</td><td>Менять профиль питомца, приглашать</td></tr>
+      <tr><td><strong>Гость</strong></td><td>Смотрит.</td><td>Писать что-либо</td></tr>
+    </tbody>
+  </table></div>
+  <p>Приглашение — по логину, через серверную функцию с проверкой прав. Прямой записи в таблицу участников нет намеренно: иначе любой, знающий идентификатор питомца, мог бы приписать себя к нему.</p>
+</section>
+
+<section>
+  <h2><span class="num">05</span>Объём: 61 экран тремя слоями</h2>
+  <p class="intro">Не все экраны одинаковой глубины — и это решение, а не компромисс. Веб-макет должен показывать продукт целиком, но живой логикой обеспечены только те экраны, которые проверяют гипотезы.</p>
+  <div class="kpi">
+    <div class="k a"><b>25</b><span>Уровень A: живая логика, база и геолокация браузера</span></div>
+    <div class="k"><b>23</b><span>Уровень B: живая логика и база, без карты</span></div>
+    <div class="k"><b>13</b><span>Уровень C: демонстрация на фиксированных данных</span></div>
+    <div class="k"><b>13</b><span>Построено на 27.09.2026</span></div>
+  </div>
+
+  <h3>Что уже работает</h3>
+  <ul class="plain">
+    <li><strong>Ф1 — каркас.</strong> Регистрация и вход по логину без почты, профиль владельца с городом и районом, профили питомцев с расчётом возраста, совладение с четырьмя ролями и приглашением по логину, PWA.</li>
+    <li><strong>Ф2 — ядро пяти доменов.</strong> Отметки по каналам опыта, степени A–E по четырём ограничителям, расчёт на клиенте с раскрытием до строк, среднее за неделю, режимы дня, экран «Как это посчитано», отказ от оценки при полноте ниже 50%.</li>
+    <li><strong>П5 — прогулки.</strong> Схема в базе готова и проверена; клиент в работе. Ручная отметка основная, трек по GPS необязательный, приватная зона 150 м вокруг начала маршрута.</li>
+  </ul>
+
+  <h3>Что дальше по плану</h3>
+  <ul class="plain">
+    <li><strong>П6</strong> — здоровье, документы, календарь. Требует хранилища файлов и решения по распознаванию: его не будет, поля заполняются руками.</li>
+    <li><strong>П7</strong> — деньги и QR-жетон. Первый случай, когда часть данных читается без входа: публичная страница находки.</li>
+    <li><strong>П8</strong> — 23 экрана уровня B: база знаний, банк рекомендаций, страхование, поддержка, реферальная программа, ИИ-чат с эскалацией к врачу.</li>
+    <li><strong>П9</strong> — 13 экранов уровня C на фиксированных данных: трекер, «снюхаться», маршруты, камеры, телемедицина.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="num">06</span>Сценарии</h2>
+  <div class="tw"><table>
+    <thead><tr><th style="width:52px">#</th><th style="width:250px">Сценарий</th><th>Где ломается</th></tr></thead>
+    <tbody>
+      <tr><td class="id">S1</td><td>Первый запуск и заведение питомца</td><td>Онбординг обязан объяснить конструкцию пяти доменов за один раз. Это H2.</td></tr>
+      <tr><td class="id">S2</td><td>«Сегодня было достаточно» — ежедневный цикл</td><td>Ядро продукта. Если сюда не возвращаются, продукт не нужен.</td></tr>
+      <tr><td class="id">S3</td><td>Режим дня: пять готовых плюс свой</td><td>Автоподстановка режима по погоде и календарю — в бэклоге.</td></tr>
+      <tr><td class="id">S4</td><td>Расходы на питомца</td><td>Ручной ввод. Никакой интеграции с банками.</td></tr>
+      <tr><td class="id">S5</td><td>Прогулка, в том числе с несколькими питомцами</td><td>Браузер не пишет геолокацию в фоне — трек рвётся при гаснущем экране.</td></tr>
+      <tr><td class="id">S6</td><td>«Снюхаться» — подбор компании питомцу</td><td>В вебе невозможен: нужна фоновая геолокация. Требует нативного приложения.</td></tr>
+      <tr><td class="id">S7</td><td>Публичные статусы на карте: течка, зооагрессия, дружелюбие</td><td>Статус ставит сам владелец. Работает, только если ставят честно — это H7.</td></tr>
+      <tr><td class="id">S10</td><td>Процедура вручную или сканом документа</td><td>Распознавания не будет. Фото сохраняется, поля руками.</td></tr>
+      <tr><td class="id">S13</td><td>Питомца нашёл посторонний: QR-жетон</td><td>Публичная страница без персональных данных владельца. Единственный измеримый неплатный канал привлечения.</td></tr>
+      <tr><td class="id">S14</td><td>Режим «Спасите»</td><td>Без трекера повторяет то, что бесплатно делают городские чаты. Главное слепое пятно веб-версии.</td></tr>
+      <tr><td class="id">S15</td><td>Пользователь без трекера</td><td>Не запасной путь, а основной. Если ценность держится только на железе, у продукта нет входа для большинства.</td></tr>
+      <tr><td class="id">S16</td><td>Момент оплаты</td><td>Пейволл продаёт состояние, а не список функций. Это H1.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2><span class="num">07</span>Нефункциональные требования и их цена</h2>
+  <p class="intro">Каждое из этих решений что-то стоит. Цена названа рядом, чтобы её нельзя было забыть.</p>
+  <div class="tw"><table>
+    <thead><tr><th style="width:230px">Решение</th><th>Зачем</th><th style="width:270px">Чем заплатили</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Вход по логину без почты</strong></td><td>Не спрашивать почту на входе — меньше трения, нет лишних персональных данных</td><td><strong>Восстановить пароль невозможно.</strong> Написано прямо на экране регистрации</td></tr>
+      <tr><td><strong>RLS на каждой таблице с момента её создания</strong></td><td>Репозиторий публичный, ключ клиента виден всем. Защищает не ключ, а политика доступа</td><td>Каждая новая таблица требует продуманных политик до первой строки данных</td></tr>
+      <tr><td><strong>Расчёт на клиенте, в базе только сырьё</strong></td><td>Любое число раскрывается до строк расчёта. Человек видит, откуда оно взялось</td><td>Модель видна в исходниках; при смене весов пересчитываются все прошлые дни</td></tr>
+      <tr><td><strong>Журналы только на добавление</strong></td><td>У каждой цифры остаётся автор и время. «22 минуты — это отметка в 19:40» всегда правда</td><td>Исправление = удалить и поставить заново. Правки истории нет</td></tr>
+      <tr><td><strong>PWA, стратегия «сеть первична»</strong></td><td>Обновления доезжают до тех, кто добавил приложение на домашний экран</td><td>Офлайн работает хуже, чем при кэш-первом подходе</td></tr>
+      <tr><td><strong>Напоминания: push и почта</strong></td><td>Web Push на iOS работает только для PWA, добавленной на домашний экран</td><td>Почта — не дополнение, а основной канал. Это меняет тон и частоту напоминаний</td></tr>
+      <tr><td><strong>Зарубежный хостинг на время макета</strong></td><td>Скорость сборки, никаких согласований</td><td>Только выдуманные данные. Перед первой настоящей когортой — переезд и 152-ФЗ</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2><span class="num">08</span>Чего продукт не делает</h2>
+  <p class="intro">Граница — такая же часть продукта, как функция. Всё перечисленное не «пока не сделано», а решено не делать в этой версии.</p>
+  <div class="two">
+    <div class="note bad">
+      <span class="lbl">Технически невозможно в вебе</span>
+      <p>Фоновая запись прогулки. Геозоны вокруг дома. «Снюхаться» в реальном времени. Живая точка «кто гуляет рядом». Виртуальный забор. Push на iPhone без добавления на домашний экран.</p>
+      <p>Всё это требует нативного приложения: плюс 6–10 недель, две площадки, отдельная проверка разрешения на фоновую геолокацию в Google Play. <span class="est">оценка, не данные</span></p>
+    </div>
+    <div class="note bad">
+      <span class="lbl">Решено не делать</span>
+      <p>Распознавание документов. Восстановление пароля. Диагнозы и медицинские выводы — ИИ-чат доводит до «покажите врачу» и останавливается. Сравнение владельцев между собой. Рейтинги и наказание за пропуски. Машинное обучение в расчёте пятого домена.</p>
+      <p>Последнее — принципиально: на этом этапе важнее, чтобы человек понимал, откуда взялось число, чем чтобы число было точным.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">09</span>Чем измеряется успех</h2>
+  <p class="intro">Пороги выбраны до начала измерений. Менять их после того, как результат известен, нельзя.</p>
+  <div class="tw"><table>
+    <thead><tr><th style="width:52px">#</th><th style="width:250px">Утверждение</th><th style="width:230px">Порог опровержения</th><th>Метод</th></tr></thead>
+    <tbody>
+      <tr><td class="id">H1</td><td>Люди платят за снятие вины, а не за данные</td><td>Разница конверсии двух пейволлов меньше 2 п.п. при 400+ на ветку</td><td>Сплит-тест. <strong>Интервью не годятся</strong>: прогноз собственной оплаты завышен</td></tr>
+      <tr><td class="id">H2</td><td>Конструкция пяти доменов понятна за одно объяснение</td><td>Менее 6 из 10 верно пересказывают своими словами</td><td>Модерируемый тест на 8–10 людях. Протокол готов. <strong>Принята без проверки — риск зафиксирован</strong></td></tr>
+      <tr><td class="id">H3</td><td>Продукт удерживает без железа</td><td>Доля активных на 28-й день ниже 20%</td><td>Когорта 300–500 человек, 8 недель без правок продукта</td></tr>
+      <tr><td class="id">H5</td><td>Владельцы действительно грузят документы</td><td>Менее четверти активных загрузили 3+ документа за 30 дней</td><td>Продуктовая метрика на когорте</td></tr>
+      <tr><td class="id">H10</td><td>QR-жетон окупает привлечение лучше платного трафика</td><td>LTV/CAC по каналу жетона ниже 3</td><td>Когортный учёт по источнику с первого дня — задним числом не восстанавливается</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note key">
+    <span class="lbl">Слой под гипотезами</span>
+    <p>H1–H17 — утверждения о продукте. Под ними лежат 13 гипотез уровня проблемы (И1–И13): существует ли вообще та боль, ради которой всё строится. Если И1 — «сомнение достаточно ли я дал существует» — не подтвердится, рушится позиционирование целиком, а не пейволл. Скрипт интервью и критерии зачёта — в отдельном документе.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">10</span>Открытые решения и риски</h2>
+  <div class="tw"><table>
+    <thead><tr><th style="width:230px">Вопрос</th><th>Состояние</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Доступность карт из РФ</strong></td><td>Тайлы OpenStreetMap отвечают из облака, из РФ <span class="nc">не подтверждено</span>. Проверять до вёрстки экрана карты</td></tr>
+      <tr><td><strong>Доступ к ВетИС для верификации владения</strong></td><td>Заявка не подана. Без доступа слово «верифицированный» надо убрать из позиционирования, а не оставлять обещанием</td></tr>
+      <tr><td><strong>Обязательный учёт домашних животных</strong></td><td>Закона нет. Законопроекты внесены, к рассмотрению после выборов в Госдуму сентября 2026. Подробности — в рыночном профиле</td></tr>
+      <tr><td><strong>Экономика бесплатного слоя</strong></td><td>По расчёту от 25.08.2026 приложение без железа не окупает собственное привлечение: LTV/CAC 0,19–0,94. Значит платным трафиком его закупать нельзя — только органика и жетон</td></tr>
+      <tr><td><strong>Главное слепое пятно</strong></td><td>Веб-версия ничего не говорит о ценности живой точки на карте. Если вся ценность категории в потере питомца, этот макет этого не покажет</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>
+  <h3>Источники и статус документа</h3>
+  <ul>
+    <li>Модель пяти доменов: Mellor D.J., Five Domains Model (1994, ред. 2015 и 2020). Веса, нормы и коэффициенты степеней — калибровка команды, не измерение.</li>
+    <li>Данные о владельцах и болях: ВЦИОМ (01.2025, n=2604), ФОМ (10.2024, n=1500), Левада (11.2023, n=1625), Kaspersky (15.09.2025), Pet911 + Kaspersky (14.05.2026), Animals/MDPI (2 836 записей приютов, 2018–2023). Полные ссылки — в документе «Зачем заводят кошек и собак».</li>
+    <li>Состав экранов и сценариев: макет v1.5, 61 экран, фактический граф переходов.</li>
+    <li>Реестр гипотез H1–H17 — документ «Сценарии и путь к MVP», вкладка 05. Гипотезы уровня проблемы И1–И13 — «Скрипт проблемных интервью».</li>
+  </ul>
+  <p>Сроки, веса, нормы и оценки трудоёмкости помечены как оценка и не являются измеренными величинами. Документ описывает состояние на 27.09.2026 и требует обновления при каждом закрытии гипотезы.</p>
+</footer>
+
+</main>
+
+</body>
+</html>

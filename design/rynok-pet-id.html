@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pet ID — рыночный профиль</title>
+<meta name="description" content="Положение Pet ID на российском рынке: объём рынка, TAM/SAM/SOM с расчётом кодом, 16 конкурентов с цифрами и датами, регуляторика и процедура обновления.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F5F6F3; --card:#FFFFFF; --card2:#ECEEE9; --line:#D8DCD3; --line2:#BFC5B9;
+  --ink:#18242A; --ink2:#3D4B52; --sub:#69787D;
+  --a:#00706A; --a-s:#DBEDEA; --a-b:#9CCFC8;
+  --b:#2a78d6; --b-s:#E2ECFA; --b-b:#A8C6EE;
+  --c:#96530F; --c-s:#F5E8D8; --c-b:#DEBE92;
+  --bad:#9C2B39; --bad-s:#F6E0E2; --bad-b:#DFA7AD;
+  --key:#55428A; --key-s:#E8E3F3; --key-b:#BCACE0;
+  --sh:0 1px 2px rgba(24,36,42,.05), 0 7px 22px -14px rgba(24,36,42,.2);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1417; --card:#141E22; --card2:#1B272C; --line:#293539; --line2:#3A4B51;
+  --ink:#E3EAE8; --ink2:#B2C0BF; --sub:#7C8E92;
+  --a:#52C0B1; --a-s:#11302D; --a-b:#2E6660;
+  --b:#3987e5; --b-s:#131F2E; --b-b:#2B4A73;
+  --c:#D9954F; --c-s:#2F2310; --c-b:#6B4F27;
+  --bad:#E07C87; --bad-s:#31161A; --bad-b:#6E3239;
+  --key:#A88FDC; --key-s:#221C31; --key-b:#4B3E72;
+  --sh:0 1px 2px rgba(0,0,0,.4), 0 9px 26px -16px rgba(0,0,0,.8);
+}}
+*{box-sizing:border-box}
+html{color-scheme:light dark}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font-family:Literata,Georgia,serif; font-size:15.5px; line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{margin:0; font-family:Onest,"Helvetica Neue",Arial,sans-serif;
+  letter-spacing:-.02em; line-height:1.14; text-wrap:balance}
+.lbl,th,.tag,code,.n,.id{font-family:"IBM Plex Mono",ui-monospace,monospace}
+code{font-size:.9em; background:var(--card2); padding:2px 6px; border-radius:4px; border:1px solid var(--line)}
+.lbl{font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--sub);
+  display:block; margin-bottom:8px}
+p{margin:0 0 14px; max-width:72ch}
+a{color:var(--b)}
+.top{border-bottom:1px solid var(--line); background:var(--card)}
+.topin{max-width:1080px; margin:0 auto; padding:38px 26px 30px}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--a); margin-bottom:12px}
+h1{font-size:clamp(29px,4.4vw,44px); font-weight:800}
+.lede{margin:15px 0 0; max-width:66ch; font-size:17px; color:var(--ink2)}
+.meta{display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 0}
+.tag{font-size:11px; letter-spacing:.04em; padding:4px 9px; border-radius:4px;
+  background:var(--card2); color:var(--sub); border:1px solid var(--line)}
+main{max-width:1080px; margin:0 auto; padding:38px 26px 90px}
+section{margin:0 0 54px}
+h2{font-size:26px; font-weight:700; margin:0 0 10px}
+h2 .num{font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:500;
+  color:var(--a); margin-right:11px; letter-spacing:0}
+h3{font-size:18px; font-weight:700; margin:30px 0 8px}
+h4{font-size:15px; font-weight:700; margin:22px 0 6px}
+.intro{font-size:16.5px; color:var(--ink2); max-width:68ch; margin-bottom:22px}
+.tw{overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:var(--card);
+  margin:18px 0; box-shadow:var(--sh)}
+table{border-collapse:collapse; width:100%; min-width:660px; font-size:14px}
+th{font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--sub);
+  text-align:left; font-weight:500; padding:12px 15px; background:var(--card2);
+  border-bottom:1px solid var(--line); vertical-align:bottom}
+td{padding:12px 15px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink2)}
+tr:last-child td{border-bottom:0}
+td strong{color:var(--ink)}
+td.id{font-size:12.5px; color:var(--a); white-space:nowrap; font-weight:600}
+td.n,th.n{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+.note{border:1px solid var(--line); border-radius:12px; padding:18px 21px;
+  background:var(--card); margin:18px 0}
+.note.a{background:var(--a-s); border-color:var(--a-b)} .note.a .lbl{color:var(--a)}
+.note.bad{background:var(--bad-s); border-color:var(--bad-b)} .note.bad .lbl{color:var(--bad)}
+.note.c{background:var(--c-s); border-color:var(--c-b)} .note.c .lbl{color:var(--c)}
+.note.key{background:var(--key-s); border-color:var(--key-b)} .note.key .lbl{color:var(--key)}
+.note.b{background:var(--b-s); border-color:var(--b-b)} .note.b .lbl{color:var(--b)}
+.note p:last-child{margin-bottom:0}
+.note p{font-size:14.5px}
+.est{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--c); background:var(--c-s);
+  border:1px solid var(--c-b); border-radius:4px; padding:2px 6px; white-space:nowrap}
+.dat{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--a); background:var(--a-s);
+  border:1px solid var(--a-b); border-radius:4px; padding:2px 6px; white-space:nowrap}
+.nc{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--sub); background:var(--card2);
+  border:1px solid var(--line); border-radius:4px; padding:2px 6px; white-space:nowrap}
+.kpi{display:grid; grid-template-columns:repeat(auto-fit,minmax(178px,1fr)); gap:13px; margin:20px 0}
+.k{background:var(--card); border:1px solid var(--line); border-radius:13px; padding:16px 17px;
+  box-shadow:var(--sh)}
+.k b{display:block; font-family:Onest,Arial,sans-serif; font-size:26px; font-weight:700;
+  letter-spacing:-.02em; line-height:1.1; margin-bottom:5px}
+.k span{display:block; font-size:12.5px; color:var(--sub); line-height:1.4}
+.k.bad b{color:var(--bad)} .k.a b{color:var(--a)}
+ol.steps{counter-reset:s; list-style:none; padding:0; margin:16px 0}
+ol.steps>li{counter-increment:s; position:relative; padding-left:40px; margin-bottom:18px;
+  font-size:15px; color:var(--ink2); max-width:74ch}
+ol.steps>li::before{content:counter(s); position:absolute; left:0; top:0;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:600;
+  width:26px; height:26px; border-radius:8px; background:var(--a-s);
+  color:var(--a); display:grid; place-items:center}
+ol.steps>li strong{color:var(--ink)}
+ul.plain{list-style:none; padding:0; margin:14px 0}
+ul.plain li{position:relative; padding:8px 0 8px 24px; border-top:1px solid var(--line);
+  font-size:14.8px; color:var(--ink2); max-width:80ch}
+ul.plain li:first-child{border-top:0}
+ul.plain li::before{content:"—"; position:absolute; left:2px; top:8px; color:var(--line2)}
+ul.plain li strong{color:var(--ink)}
+.two{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:15px; margin:18px 0}
+footer{border-top:1px solid var(--line); margin-top:54px; padding-top:24px;
+  font-size:13px; color:var(--sub); max-width:80ch}
+footer h3{font-size:14px; margin:0 0 10px; color:var(--ink)}
+footer ul{padding-left:18px; margin:0 0 14px}
+footer li{margin-bottom:6px}
+@media (max-width:620px){ main{padding:28px 18px 70px} .topin{padding:28px 18px 24px} }
+</style>
+</head>
+<body>
+
+<div class="top"><div class="topin">
+  <div class="eyebrow">Pet ID · рыночный профиль</div>
+  <h1>Рынок, конкуренты и объём: что подтверждено цифрами</h1>
+  <p class="lede">Положение продукта на российском рынке домашних животных. Каждое число снабжено источником и датой проверки; расчёт объёма выполняется кодом, а не в уме. Документ рассчитан на регулярное обновление — процедура в последнем разделе. Состояние на 27.09.2026.</p>
+  <div class="meta">
+    <span class="tag">рынок зоотоваров 590 млрд ₽</span>
+    <span class="tag">TAM/SAM/SOM считается кодом</span>
+    <span class="tag">16 конкурентов</span>
+    <span class="tag">версия 1.0</span>
+  </div>
+</div></div>
+
+<main>
+
+<section>
+  <h2><span class="num">00</span>Как читать этот документ</h2>
+  <div class="note key">
+    <span class="lbl">Три пометки</span>
+    <p><span class="dat">данные</span> — измерено или отчётность, с указанием источника, выборки и даты.<br>
+       <span class="est">оценка</span> — расчёт или экспертное суждение. Не является данными и не может цитироваться как факт.<br>
+       <span class="nc">не подтверждено</span> — первоисточник не найден или недоступен.</p>
+    <p>Числа TAM, SAM и SOM берутся в этот документ <strong>из исполняемой модели</strong> <code>market_model.py</code>. Правка входных данных и повторный запуск пересчитывают документ. Разойтись текст и расчёт не могут.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">01</span>Рынок в четырёх числах</h2>
+  <div class="kpi">
+    <div class="k a"><b>590.0 млрд ₽</b><span>Рынок зоотоваров РФ, 2025, +15,8% г/г <span class="dat">данные</span> Ромир + НАЗ</span></div>
+    <div class="k"><b>4 482 ₽</b><span>Средние траты на одно животное в месяц <span class="dat">данные</span> Avito, n=10 000, 03.2026</span></div>
+    <div class="k"><b>49%</b><span>Россиян имеют хотя бы одну платную подписку <span class="dat">данные</span> ЮMoney, 12.2025</span></div>
+    <div class="k bad"><b>10.6 млрд ₽</b><span>Весь pet-tech РФ, 2025 <span class="est">оценка</span> Deep Market Insights</span></div>
+  </div>
+  <p>Рынок растёт деньгами быстрее, чем штуками: денежный рост 15,7% при натуральном 6% — то есть значительная часть роста это инфляция и премиализация, а не новые покупатели. Корма занимают более 80% рынка зоотоваров. В первом полугодии 2026 продажи зоотоваров выросли на 5–8% при падении бытовой техники на 10–25% и детских товаров на 8–14%: категория устойчива к сжатию спроса.</p>
+  <div class="note c">
+    <span class="lbl">Самое важное соотношение в документе</span>
+    <p>Рынок зоотоваров — 590.0 млрд ₽. Весь pet-tech в нём — 10.6 млрд ₽, то есть <strong>меньше двух процентов</strong>, и это оценка прогнозной конторы, а не измерение. Выручка лидера трекеров за 2025 — 112.0 млн ₽.</p>
+    <p>Категория «приложение для владельца питомца» в России пока не является рынком в том смысле, в каком им являются корма. Это надо держать в голове при чтении следующего раздела.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">02</span>Сколько в стране питомцев: цифры не сводятся</h2>
+  <p class="intro">Четыре источника дают четыре разных ответа, потому что меряют разное. Свести их в одно число нельзя, и попытка это сделать — типичная ошибка рыночных презентаций.</p>
+  <div class="tw"><table>
+    <thead><tr><th style="width:180px">Источник</th><th style="width:150px">Что измерено</th><th>База и метод</th><th style="width:96px">Дата</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Mars Petcare + Ipsos</strong></td><td>74,8 млн кошек и собак: 49,2 млн кошек, 25,5 млн собак</td><td>Животные. Экстраполяция опроса населения, волна 2023. Новой волны за 2025–2026 не найдено</td><td>18.04.2024</td></tr>
+      <tr><td><strong>Ромир + НАЗ</strong></td><td>61+ млн питомцев, +33% за 7 лет</td><td>Только <strong>городская</strong> Россия. Панель Ромир</td><td>14.10.2025</td></tr>
+      <tr><td><strong>НАЗ</strong></td><td>~80 млн животных; ~85% семей имеют кота или собаку</td><td>Все домохозяйства. <span class="nc">метод не раскрыт</span></td><td>26.08.2026</td></tr>
+      <tr><td><strong>ВЦИОМ</strong></td><td>70% россиян владеют питомцами; кошки 79%, собаки 48% среди владельцев</td><td>Люди 18+. Телефон, n=2604, ±2,5%</td><td>26.11.2025</td></tr>
+      <tr><td><strong>Левада</strong></td><td>57% владельцев</td><td>Люди. Face-to-face, n=1625, 50 регионов</td><td>11.2023</td></tr>
+      <tr><td><strong>ИНСОМАР</strong></td><td>68% имеют питомца; кошки 53%, собаки 30%</td><td>Люди. Телефон, n=1200</td><td>10.06.2026</td></tr>
+    </tbody>
+  </table></div>
+  <p>Разброс 57–85% объясняется формулировкой вопроса — «у вас есть» против «в вашей семье есть» — и базой: люди или домохозяйства. <strong>В расчёте ниже разброс не усредняется, а проводится через модель тремя сценариями.</strong></p>
+</section>
+
+<section>
+  <h2><span class="num">03</span>TAM, SAM, SOM</h2>
+  <p class="intro">Единица продажи — одна платная подписка на аккаунт владельца в год, 2 388 ₽ (199 ₽/мес). Железо в модель не входит: это отдельный поток с другой экономикой. Базой берутся домохозяйства, а не животные: подписка оформляется на человека.</p>
+
+  <h3>TAM — все домохозяйства РФ с кошкой или собакой</h3>
+  <div class="tw"><table>
+    <thead><tr><th style="width:180px">Сценарий доли владельцев</th><th class="n" style="width:170px">Домохозяйств</th><th class="n" style="width:150px">TAM в год</th><th>Источник доли</th></tr></thead>
+    <tbody>
+      <tr><td>Низкий — 57%</td><td class="n">37.68 млн</td><td class="n">90.0 млрд ₽</td><td>Левада, 11.2023</td></tr>
+      <tr><td><strong>Базовый — 70%</strong></td><td class="n"><strong>46.27 млн</strong></td><td class="n"><strong>110.5 млрд ₽</strong></td><td>ВЦИОМ, 01.2025</td></tr>
+      <tr><td>Высокий — 85%</td><td class="n">56.19 млн</td><td class="n">134.2 млрд ₽</td><td>НАЗ, 08.2026</td></tr>
+    </tbody>
+  </table></div>
+  <p>База: 66.10 млн домохозяйств в РФ по переписи 2021 года.</p>
+
+  <h3>SAM — городские, с питомцем, уже платящие хотя бы за одну подписку</h3>
+  <p>Два фильтра к TAM: только городские домохозяйства (51.50 млн из 66.10 млн) и только те, кто уже платит хотя бы за один цифровой сервис (49%, ЮMoney). Второй фильтр существеннее первого: человек, никогда не оформлявший подписку, не станет первым опытом ради приложения о собаке.</p>
+  <div class="tw"><table>
+    <thead><tr><th style="width:180px">Сценарий</th><th class="n" style="width:170px">Домохозяйств</th><th class="n" style="width:150px">SAM в год</th></tr></thead>
+    <tbody>
+      <tr><td>Низкий</td><td class="n">14.38 млн</td><td class="n">34.3 млрд ₽</td></tr>
+      <tr><td><strong>Базовый</strong></td><td class="n"><strong>17.66 млн</strong></td><td class="n"><strong>42.2 млрд ₽</strong></td></tr>
+      <tr><td>Высокий</td><td class="n">21.45 млн</td><td class="n">51.2 млрд ₽</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note bad">
+    <span class="lbl">Проверка на здравый смысл, которую обычно не делают</span>
+    <p>Базовый SAM — 42.2 млрд ₽ в год. Это <strong>в 377 раз больше выручки лидера категории</strong> (112.0 млн ₽ за 2025) и <strong>в 4.0 раза больше всего российского pet-tech</strong>.</p>
+    <p>Вывод из этого не «рынок огромен и недоосвоен». Вывод такой: <strong>SAM, посчитанный сверху вниз, здесь не описывает рынок.</strong> Он описывает арифметический потолок при допущении, что владельцы захотят платить за эту категорию так же, как платят за музыку и видео. Именно это допущение и есть непроверенная гипотеза H1. До её проверки SAM — не цель, а напоминание, что ограничение лежит не в размере рынка.</p>
+  </div>
+
+  <h3>SOM — три года, снизу вверх</h3>
+  <p>Якорь — Petsee: два года на рынке, 87 000 уникальных пользователей за 2025, выручка 112.0 млн ₽, и это преимущественно железо (валовая маржа 41,4%, у чистой подписки была бы 85–90%). Диапазон взят от 0,1% до 0,5% домохозяйств базового SAM. <span class="est">оценка, не данные</span></p>
+  <div class="tw"><table>
+    <thead><tr><th style="width:180px">Сценарий</th><th class="n" style="width:150px">Платящих</th><th class="n" style="width:160px">Выручка в год</th><th class="n">Нужно установок: freemium / hard paywall</th></tr></thead>
+    <tbody>
+      <tr><td>0,1% SAM</td><td class="n">17.7 тыс.</td><td class="n">42.2 млн ₽</td><td class="n">841.2 тыс. / 165.1 тыс.</td></tr>
+      <tr><td>0,5% SAM</td><td class="n">88.3 тыс.</td><td class="n">210.9 млн ₽</td><td class="n">4.21 млн / 825.4 тыс.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Конверсии — медианы RevenueCat State of Subscription Apps: 2,1% у freemium и 10,7% у жёсткого пейволла. Даже нижний сценарий SOM (0.38 от выручки Petsee) требует от 165 тысяч до 841 тысячи установок.</p>
+
+  <div class="note key">
+    <span class="lbl">Где на самом деле ограничение</span>
+    <p>Не в размере рынка и не в числе питомцев. В <strong>канале привлечения</strong>. По расчёту от 25.08.2026 приложение без железа даёт LTV/CAC от 0,19 (freemium) до 0,94 (жёсткий пейволл) при CPI 120 ₽ <span class="est">оценка</span> — то есть <strong>не окупает собственное привлечение ни при каких реалистичных параметрах</strong>.</p>
+    <p>Отсюда прямое продуктовое следствие, уже заложенное в план: бесплатный слой нельзя закупать платным трафиком. Работают только органика, QR-жетон и допродажа к железу. Гипотеза H10 про окупаемость жетона поэтому не «одна из», а критическая.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">04</span>Конкуренты: Россия</h2>
+  <div class="tw"><table>
+    <thead><tr><th style="width:150px">Игрок</th><th style="width:210px">Что делает</th><th>Цифры</th><th style="width:96px">Дата</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Petsee</strong><br><span class="nc">лидер</span></td><td>GPS-трекер + подписка. <strong>Регистрация в приложении без трекера невозможна</strong></td><td><span class="dat">данные</span> Выручка 112,0 млн ₽ (2025) против 16,8 млн ₽ (2024), ×6,7. Чистая прибыль 14,4 млн ₽. Валовая маржа 41,4% — то есть бизнес преимущественно на железе. Устройство 6 500 ₽, подписка 900 ₽/мес, 2 600 ₽/год, 7 300 ₽ навсегда. 87 000+ уникальных за 2025. Слабое место в отзывах — «срыв связи именно когда нужно»</td><td>27.09.2026</td></tr>
+      <tr><td><strong>«Зверолэнд»</strong><br>ООО «Айтипетс»</td><td>Экосистема: профиль здоровья, календарь, карта pet-friendly, онлайн-ветконсультации, ИИ-ассистент «Пончик», маркетплейс</td><td>Запуск 17.08.2026. Инвестиции и метрики не раскрыты. <strong>Функциональный состав почти дословно совпадает с нашим концептом</strong> минус трекинг, плюс маркетплейс</td><td>17.08.2026</td></tr>
+      <tr><td><strong>«Мой питомец»</strong><br>mos.ru</td><td>Госсервис Москвы: электронная амбулаторная карта, автозаполнение из 26 госветклиник, запись, прививки</td><td><span class="dat">данные</span> >700 тыс. обращений за 3 года, 577 тыс.+ питомцев, ~90 тыс. новых в год, >1 млн записей на приём, онлайн-ветконсультации с 01.2026. <strong>Бесплатно</strong></td><td>13.08.2026</td></tr>
+      <tr><td><strong>Kaspersky PetKa</strong></td><td>Bluetooth-метка 3 990 ₽ + бесплатное приложение, краудпоиск</td><td>Дальность 30–120 м. 70% поисков — собаки. Москва 25% пользователей. iOS-версия с 04.2026. Оценка рынка BLE-трекеров РФ+СНГ 8,7 млрд ₽ — <span class="est">внутренняя оценка компании</span></td><td>08.04.2026</td></tr>
+      <tr><td><strong>AnimalFace</strong></td><td>База чипированных животных с 2012, интеграция с EuroPetNet, в реестре российского ПО</td><td><span class="dat">данные</span> 453 418 животных в базе. Владелец и тарифы <span class="nc">не подтверждено</span></td><td>25.08.2026</td></tr>
+      <tr><td><strong>findmypet.4lapy.ru</strong></td><td>QR-адресник «Четыре Лапы»</td><td>Жетон 319 ₽, регистрация бесплатна. <strong>Прямой конкурент нашему каналу привлечения</strong></td><td>25.08.2026</td></tr>
+      <tr><td><strong>Petstory</strong> (Mars)</td><td>Телеветеринария и страхование</td><td>499 ₽/консультация, полис от 3 499 ₽/год. Метрики <span class="nc">не подтверждено</span></td><td>25.08.2026</td></tr>
+      <tr><td><strong>«Айда гулять»</strong></td><td>Соцсеть владельцев собак</td><td>Google Play: рейтинг 2,9, 82 отзыва, последнее обновление 29.07.2024. <strong>Признаков жизни нет</strong></td><td>25.08.2026</td></tr>
+      <tr><td><strong>«Буп», «Друг»</strong></td><td>Соцсеть питомцев с ИИ; платформа системной адопции</td><td>Запуски 03.2025 и 04.2026. Метрики не раскрыты, новостей после августа 2026 нет</td><td>27.09.2026</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2><span class="num">05</span>Конкуренты: мир, и что из них следует</h2>
+  <div class="tw"><table>
+    <thead><tr><th style="width:130px">Игрок</th><th style="width:210px">Модель</th><th>Ключевые цифры</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Tractive</strong></td><td>Устройство $49–79 + подписка $9–10/мес</td><td>1,4 млн активных, ARR >€100 млн (2024). Churn <2%/мес — заявление CEO, не аудировано. Купил Whistle 07.2025. <strong>Продан Bending Spoons за ~$900 млн, сделка закрыта 18.05.2026</strong></td></tr>
+      <tr><td><strong>Fi</strong></td><td>Устройство $0 + обязательная подписка $99/6 мес</td><td>Series B $30 млн. Рейтинг 3,3 из 5 при 464 отзывах, 49% единиц, 117 жалоб в BBB</td></tr>
+      <tr><td><strong>Whistle</strong></td><td>Куплен Mars за $117 млн (2016)</td><td><strong>Закрыт 31.08.2025</strong> — через месяц после продажи Tractive. Оплаченные устройства перестали работать</td></tr>
+      <tr><td><strong>Weenect</strong></td><td>Пакет €135–155 + подписка €4–14/мес</td><td>>250 000 владельцев (05.2026). Чистая прибыль €627 тыс. за 2024</td></tr>
+      <tr><td><strong>«Где мои дети»</strong><br><span class="nc">российский прокси</span></td><td>Подписка 249 ₽/мес</td><td>Выручка 578 млн ₽, чистая прибыль 251 млн ₽ за 2023. <strong>Единственная работающая подписочная модель трекинга в РФ</strong></td></tr>
+    </tbody>
+  </table></div>
+  <div class="note bad">
+    <span class="lbl">Чем категория проигрывает, судя по отзывам</span>
+    <p>Разбор отзывов конкурентов дал три вывода, каждый из которых противоречит интуиции.</p>
+    <p><strong>Категория теряет людей не на инженерии, а на обещаниях и на обращении с клиентом.</strong> Fi с рейтингом 3,3 и 117 жалобами; Kippy, берущий деньги через два года после смерти кошки; Whistle, выключивший серверы 31.08.2025 и превративший оплаченное железо в пластик.</p>
+    <p><strong>Отказ крепления — самый воспроизводимый дефект во всех брендах</strong>, но упоминается лишь в 15% отзывов: люди жалуются на то, что замечают ежедневно, а не на то, что ломает продукт.</p>
+    <p><strong>IP67 и IP68 неразличимы по числу жалоб.</strong> Вода убивает устройства через механическое повреждение корпуса или залитый порт зарядки. При этом лишь один отзыв во всём корпусе назвал влагозащиту избыточной — как функцию её вырезать нельзя.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">06</span>Где щель и где лобовое столкновение</h2>
+  <div class="two">
+    <div class="note a">
+      <span class="lbl">Незанятое</span>
+      <p><strong>Ежедневный цикл без железа.</strong> Petsee не пускает в приложение без трекера. «Зверолэнд» строит справочник и маркетплейс, а не ежедневный ритуал. Никто в РФ не продаёт ответ на вопрос «достаточно ли сегодня».</p>
+      <p><strong>Поведение.</strong> 28% сдач в приют — поведение; спрос на кинологов растёт вдвое быстрее предложения. Ни Petsee, ни «Зверолэнд» сюда не идут.</p>
+      <p><strong>Кошки.</strong> Теряются в 1,5 раза чаще, а трекеры у владельцев кошек вдвое реже. Сегмент недообслужен вдвое.</p>
+      <p><strong>Совместный уход.</strong> Четыре роли и синхронизация между членами семьи не реализованы ни у кого из перечисленных.</p>
+    </div>
+    <div class="note bad">
+      <span class="lbl">Занятое и опасное</span>
+      <p><strong>Трекинг.</strong> Лобовое столкновение с Petsee, у которого годы в канале и 112 млн ₽ выручки на железе.</p>
+      <p><strong>Медкарта питомца.</strong> В Москве это уже делает город — бесплатно, с автозаполнением из 26 госветклиник и 577 тысячами питомцев. Конкурировать с бесплатным госсервисом в его городе нельзя.</p>
+      <p><strong>QR-адресник.</strong> «Четыре Лапы» продают жетон за 319 ₽ с бесплатной регистрацией. Наш жетон должен быть дешевле или давать больше, иначе канал не работает.</p>
+      <p><strong>Телемедицина и маркетплейс.</strong> Petstory от Mars и «Зверолэнд» уже там.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">07</span>Регуляторика: что ограничивает продукт</h2>
+  <div class="tw"><table>
+    <thead><tr><th style="width:200px">Норма</th><th>Состояние на 27.09.2026</th><th style="width:220px">Следствие для продукта</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Обязательный учёт домашних животных</strong></td><td><strong>Закона нет.</strong> Действует прямое исключение: учёту не подлежат животные граждан, не относящиеся к сельскохозяйственным. Законопроект внесён 29.09.2025, положительное заключение Правительства с замечаниями 23.12.2025, альтернативный проект № 1219068-8 внесён 28.04.2026. Рассмотрение отложено на период после выборов в Госдуму 18–20.09.2026. Сведений о принятии нет</td><td>Слово «верифицированный» нельзя использовать в позиционировании без доступа к ВетИС. Моат на интеграции с «Хорриотом» пока не существует</td></tr>
+      <tr><td><strong>ВетИС «Хорриот»</strong></td><td>Универсальный компонент учёта, в промышленной эксплуатации. Домашние животные граждан в нём не обязательны; регионы вводят учёт самостоятельно</td><td>Доступ надо запрашивать в первую неделю: цикл согласования долгий, ответ бинарный</td></tr>
+      <tr><td><strong>376-ФЗ, с 01.03.2026</strong></td><td>Запрещено списывать по реквизитам, от использования которых потребитель отказался; отказ принимается в электронной форме</td><td>Кнопка «отвязать карту» и проверка перед каждым списанием — в биллинг с первого дня</td></tr>
+      <tr><td><strong>152-ФЗ</strong></td><td>Действует</td><td>Пока на зарубежном хостинге — только выдуманные данные. Перед первой настоящей когортой: юрлицо, уведомление РКН, база на территории РФ</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2><span class="num">08</span>Как обновлять этот документ</h2>
+  <p class="intro">«Динамично обновляемый» означает не то, что документ переписывается заново, а то, что у каждого числа есть срок годности и владелец процедуры.</p>
+  <div class="tw"><table>
+    <thead><tr><th style="width:230px">Что</th><th style="width:130px">Как часто</th><th>Откуда брать</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Объём рынка зоотоваров</strong></td><td>Раз в год, февраль–март</td><td>Ромир + НАЗ; дублирующая публикация в Коммерсанте и New Retail</td></tr>
+      <tr><td><strong>Поголовье и доля владельцев</strong></td><td>По выходу новой волны</td><td>Mars Petcare/Ipsos (последняя волна 2023), Ромир, ВЦИОМ</td></tr>
+      <tr><td><strong>Отчётность Petsee</strong></td><td>Раз в год, апрель–май</td><td>ИНН 6658573516, Saby или РБК Компании</td></tr>
+      <tr><td><strong>Цены конкурентов</strong></td><td>Раз в квартал</td><td>petsee.ru, kaspersky.ru, findmypet.4lapy.ru</td></tr>
+      <tr><td><strong>Новые игроки и закрытия</strong></td><td>Раз в месяц</td><td>cnews.ru, comnews.ru, zooinform.ru, rb.ru</td></tr>
+      <tr><td><strong>Статус закона об учёте</strong></td><td>Раз в месяц, пока не принят</td><td>sozd.duma.gov.ru, «Ветеринария и жизнь», Коммерсантъ</td></tr>
+      <tr><td><strong>TAM/SAM/SOM</strong></td><td>После любого изменения выше</td><td>Правка <code>INPUTS</code> в <code>market_model.py</code> и повторный запуск. Руками не пересчитывается</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note c">
+    <span class="lbl">Правило обновления</span>
+    <p>При обновлении числа <strong>старое значение не стирается, а помечается датой</strong>. Ряд из трёх точек важнее одной свежей точки: рынок, выросший на 15,8%, и рынок, выросший на 5–8% за полугодие, — это разные сигналы, и увидеть их можно только в динамике.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">09</span>Чего мы не знаем</h2>
+  <ul class="plain">
+    <li><strong>Свежего поголовья.</strong> Последняя перепись домашних животных — волна 2023 года. Новой за 2025–2026 не опубликовано.</li>
+    <li><strong>Объёма рынка зооуслуг.</strong> Сводной оценки за 2025–2026 нет. Доступны разрозненные: груминг 35–36 млрд ₽ (2025), ветуслуги 45–46 млрд ₽ (2023), зоогостиницы 3,2 млрд ₽ (2023).</li>
+    <li><strong>Доли россиян, платящих именно за мобильные приложения.</strong> Есть только доля с любой платной подпиской — 49%. Наш фильтр SAM построен на ней и потому завышает базу.</li>
+    <li><strong>Метрик «Зверолэнда».</strong> Ни установок, ни выручки, ни инвестиций. Самый близкий конкурент — и о нём известно меньше всего.</li>
+    <li><strong>Первоисточника оценки pet-tech 10,63 млрд ₽.</strong> Deep Market Insights — прогнозная контора, отчёт платный, методика не раскрыта. Цифра используется только как порядок величины.</li>
+    <li><strong>Реальной готовности платить за нашу категорию.</strong> Это H1, и она не проверена. Всё построение SOM держится на ней.</li>
+  </ul>
+</section>
+
+<footer>
+  <h3>Источники</h3>
+  <ul>
+    <li>Рынок зоотоваров 590 млрд ₽ за 2025, +15,8%: Ромир + НАЗ, через <a href="https://new-retail.ru/novosti/retail/rynok_zootovarov_vyros_do_590_mlrd_rubley_analitika/">New Retail, 26.08.2026</a>; дублируется <a href="https://www.kommersant.ru/doc/8478015">Коммерсантом, 02.03.2026</a>.</li>
+    <li>Домохозяйства: ВПН-2021, Росстат, через <a href="https://www.vedomosti.ru/economics/articles/2023/01/18/959432-kak-izmenilis-zhilischnie-usloviya-rossiyan">Ведомости, 18.01.2023</a>.</li>
+    <li>Подписки: <a href="https://yoomoney.ru/document/za-chto-rossiyane-platyat-po-podpiske">ЮMoney, опрос декабря 2025</a>, n>1000 пользователей кошелька.</li>
+    <li>Траты на питомца: Avito Товары + Avito Реклама, n=10 000, через <a href="https://zooinform.ru/rossiyane-vydelyayut-na-domashnih-zhivotnyh-ne-bolee-5-svoego-ezhemesyachnogo-dohoda/">Зооинформ, 03.03.2026</a>.</li>
+    <li>Владельцы: <a href="https://wciom.ru/analytical-reviews/analiticheskii-obzor/koshki-sobaki-i-vse-vse-vse">ВЦИОМ, 26.11.2025</a>; <a href="https://www.levada.ru/en/2024/02/21/russians-about-keeping-pets/">Левада, 11.2023</a>; <a href="https://romir.ru/feed/v-rossii-kolichestvo-pitomtsev-za-7-let-vyroslo-na-tret">Ромир, 14.10.2025</a>.</li>
+    <li>Petsee: бухгалтерская отчётность ООО «ПЕТСИ» ИНН 6658573516, <a href="https://saby.ru/profile/6658573516-665801001">Saby</a>, доступ 27.09.2026; цены с petsee.ru.</li>
+    <li>«Зверолэнд»: <a href="https://www.comnews.ru/digital-economy/content/246923/2026-08-17/2026-w34/1012/zverolend-zapuskaet-ekosistemu-dlya-vladelcev-domashnikh-zhivotnykh">ComNews, 17.08.2026</a>.</li>
+    <li>«Мой питомец»: <a href="https://www.m24.ru/news/13082026/930161">Москва 24, 13.08.2026</a>.</li>
+    <li>Pet-tech РФ: Deep Market Insights, через <a href="https://zooinform.ru/treker-dlya-sobak-umnyj-lotok-avtomaticheskaya-kormushka-kak-pet-tech-stanovitsya-sistemoj-dannyh/">Зооинформ, 17.08.2026</a>.</li>
+    <li>Статус законопроектов об учёте: <a href="https://vetandlife.ru/zakons/novyj-zakonoproekt-ob-uchete-domashnih-zhivotnyh-vnesen-v-gosdumu">Ветеринария и жизнь, 28.04.2026</a>; <a href="https://www.kommersant.ru/doc/8314662">Коммерсантъ, 23.12.2025</a>; <a href="https://fsvps.gov.ru/news/zakon-ob-objazatelnoj-markirovke-zhivotnyh-sroki-i-pravila/">Россельхознадзор</a>.</li>
+    <li>Юнит-экономика, конкурентные отзывы и расчёты LTV/CAC — документы проекта «id zoo: анализ продукта, рынка и юнит-экономики» (25.08.2026) и «Конкуренты: разбор отзывов».</li>
+  </ul>
+  <p>Расчёт TAM/SAM/SOM выполнен файлом <code>market_model.py</code>; числа в разделе 03 подставлены в документ из результата его работы. Диапазоны SOM и цена подписки — оценка команды, не измеренные величины.</p>
+</footer>
+
+</main>
+
+</body>
+</html>
