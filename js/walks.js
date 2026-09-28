@@ -19,6 +19,8 @@ import * as db from './db.js';
 import { humanError } from './db.js';
 import { Recorder, PRIVATE_R_M, MAX_ACC_M, distance } from './track.js';
 import { makeMap, cityCenter } from './map.js';
+// Сохранить координаты города в профиль и в объект профиля этой сессии.
+const geoSave = async (lat, lon, city) => { if (S.profile && S.profile.city_geo_for === city) return; await db.saveCityGeo(lat, lon, city); if (S.profile) Object.assign(S.profile, { city_lat: lat, city_lon: lon, city_geo_for: city }); };
 import { d5, dayCard, CH } from './d5.js';
 
 const $ = s => document.querySelector(s);
@@ -600,7 +602,7 @@ async function openMap() {
 
   try {
     let center = await here(), how = 'центр — ваше местоположение (не сохраняется)';
-    if (!center) { center = await cityCenter(S.profile && S.profile.city); how = `геолокация недоступна, центр — ${S.profile && S.profile.city}`; }
+    if (!center) { center = await cityCenter(S.profile, geoSave); how = `геолокация недоступна, центр — ${S.profile && S.profile.city}`; }
     if (!center) { center = [55.7558, 37.6173]; how = 'геолокация недоступна и город из профиля не нашёлся — показан центр Москвы'; }
     note.textContent = how;
 

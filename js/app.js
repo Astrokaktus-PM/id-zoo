@@ -11,6 +11,7 @@ import * as ai from './ai.js';
 import * as ex from './extras.js';
 import * as pr from './proto.js';
 import * as cr from './care.js';
+import { weekCoverage, addDays as gAdd } from './gstat.js';
 
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
@@ -27,7 +28,7 @@ const TITLES = {
   'v-feed': 'Сообщество', 'v-expert': 'Экспертный совет', 'v-question': 'Вопрос', 'v-heroes': 'Команда Героев', 'v-alertform': 'Питомец пропал',
   'v-ai': 'Помощник', 'v-aichat': 'Помощник', 'v-kb': 'База знаний', 'v-kbdomains': 'Пять доменов', 'v-status': 'Статусы', 'v-course': 'Курс новичка',
   'v-support': 'Поддержка', 'v-referral': 'Пригласить друга', 'v-paywall': 'Premium', 'v-notracker': 'Без трекера', 'v-partners': 'Партнёры', 'v-demo': 'Демо',
-  'v-demotour': 'Демо-режим', 'v-proto': 'Прототип', 'v-owner': 'Профиль', 'v-planedit': 'Свой режим', 'v-gallery': 'Фото', 'v-photo': 'Фото', 'v-nutrition': 'Питание'
+  'v-demotour': 'Демо-режим', 'v-proto': 'Прототип', 'v-owner': 'Профиль', 'v-planedit': 'Свой режим', 'v-schedule': 'Распорядок', 'v-survey': 'Пара вопросов', 'v-away': 'Отпуск', 'v-gallery': 'Фото', 'v-photo': 'Фото', 'v-nutrition': 'Питание'
 };
 const BACK = { 'v-newpet': 'v-pets', 'v-pet': 'v-pets', 'v-day': 'v-pet', 'v-calc': 'v-day', 'v-how': 'v-day',
   'v-walks': 'v-pet', 'v-wstart': 'v-walks', 'v-walk': 'v-walks', 'v-map': 'v-walks',
@@ -35,7 +36,7 @@ const BACK = { 'v-newpet': 'v-pets', 'v-pet': 'v-pets', 'v-day': 'v-pet', 'v-cal
   'v-evform': 'x', 'v-calset': 'x', 'v-money': 'v-pet', 'v-qr': 'v-pet', 'v-moneyadd': 'x', 'v-tco': 'x',
   'v-feed': 'v-pets', 'v-expert': 'v-pets', 'v-question': 'x', 'v-heroes': 'v-pets', 'v-alertform': 'x', 'v-ai': 'v-back', 'v-aichat': 'x',
   'v-kb': 'v-pets', 'v-kbdomains': 'x', 'v-status': 'v-pet', 'v-course': 'v-pets', 'v-support': 'v-pets', 'v-referral': 'v-pets',
-  'v-paywall': 'v-pets', 'v-notracker': 'v-pets', 'v-partners': 'v-pets', 'v-demo': 'x', 'v-demotour': 'v-pets', 'v-proto': 'x', 'v-owner': 'v-pets', 'v-planedit': 'x', 'v-gallery': 'v-pet', 'v-photo': 'x', 'v-nutrition': 'v-pet' };
+  'v-paywall': 'v-pets', 'v-notracker': 'v-pets', 'v-partners': 'v-pets', 'v-demo': 'x', 'v-demotour': 'v-pets', 'v-proto': 'x', 'v-owner': 'v-pets', 'v-planedit': 'x', 'v-schedule': 'x', 'v-survey': 'x', 'v-away': 'v-pet', 'v-gallery': 'v-pet', 'v-photo': 'x', 'v-nutrition': 'v-pet' };
 
 const state = { view: 'v-boot', profile: null, pet: null, mode: 'in', members: [], role: null };
 
@@ -206,9 +207,15 @@ async function openPets() {
       if (pet.sex) bits.push(SEX[pet.sex]);
       mid.append(el('span', null, bits.join(' · ')));
       if (unseen[pet.id]) mid.append(el('em', 'found-badge', `Нашли: ${unseen[pet.id]} ${(n => { const a = n % 10, b = n % 100; return b > 4 && b < 21 ? 'новых сообщений' : a === 1 ? 'новое сообщение' : a > 1 && a < 5 ? 'новых сообщения' : 'новых сообщений'; })(unseen[pet.id])} — откройте жетон`));
+      const cov = el('em', 'cov-line'); mid.append(cov);
       b.append(av, mid, el('div', 'chev', '›'));
       b.onclick = () => openPet(pet);
       box.append(b);
+      // Полнота недели — факт, без похвалы и упрёка (ТЗ П12, раздел 5).
+      const T = new Date(); const Ti = `${T.getFullYear()}-${String(T.getMonth() + 1).padStart(2, '0')}-${String(T.getDate()).padStart(2, '0')}`;
+      Promise.all([db.entriesRange(pet.id, gAdd(Ti, -12), Ti), db.absences(pet.id).catch(() => [])])
+        .then(([en, ab]) => { const n = weekCoverage(pet.species, en, ab, Ti); if (n != null) cov.textContent = `Про эту неделю знаем на ${n}%`; })
+        .catch(() => {});
     }
   } catch (err) { say('#pets-msg', humanError(err)); box.replaceChildren(); }
 }
@@ -225,7 +232,8 @@ $('#form-pet').onsubmit = async e => {
       breed: $('#p-breed').value.trim(),
       birth_date: $('#p-bd').value
     });
-    await openPet(pet);
+    // П12: сразу после заведения — анкета ограничителей; её можно пропустить.
+    await cr.openSurvey(pet, 'owner', () => openPet(pet), { first: true });
   } catch (err) { say('#newpet-msg', humanError(err)); }
 };
 
@@ -247,6 +255,7 @@ function renderPetCard(pet) {
 async function openPet(pet) {
   state.pet = pet; state.members = []; state.role = null;
   $('#open-walks').hidden = pet.species !== 'dog';
+  $('#open-sched').hidden = pet.species !== 'dog';
   show('v-pet');
   $('#title').textContent = pet.name;
 
@@ -386,6 +395,8 @@ document.querySelectorAll('#sections [data-go]').forEach(b => b.onclick = () => 
 $('#open-status').onclick = () => go('status');
 $('#open-food').onclick = () => cr.openNutrition(state.pet, state.role);
 $('#open-photos').onclick = () => cr.openGallery(state.pet, state.role);
+$('#open-away').onclick = () => cr.openAway(state.pet, state.role);
+$('#open-sched').onclick = () => cr.openSchedule(state.pet, state.role, () => openPet(state.pet));
 $('#open-ai').onclick = () => { state.aiFrom = 'pet'; go('ai'); };
 
 $('#back').onclick = () => {

@@ -532,3 +532,17 @@ input[type=date],input[type=time]{min-width:0; max-width:100%}
 .seg.one{flex-wrap:wrap}
 .seg.one button{flex:1 1 auto; padding:6px 8px}
 input[type=file]{max-width:100%; font-size:13px}
+
+/* ── П12: 320 px — плитки разделов в карточке питомца ─────── */
+.row.entries > .entry{flex:1 1 0; min-width:0}
+.entry > span:not(.ic):not(.chev){min-width:0; overflow-wrap:anywhere}
+@media (max-width:359px){
+  .entry.sm{padding:10px; gap:8px}
+  .entry.sm .ic{width:28px; height:28px; font-size:15px}
+  .entry.sm b{font-size:13.5px}
+}
+.dbar i.away{height:84px; border-radius:6px; background:repeating-linear-gradient(135deg, var(--line) 0 4px, transparent 4px 9px); border:1px solid var(--line)}
+.pet em.cov-line{display:block; font-style:normal; font-size:12px; color:var(--sub); margin-top:2px}
+.pet em.cov-line:empty{display:none}
+.attn .row{flex-wrap:wrap}
+.row .btn.sm{min-width:0; white-space:normal}

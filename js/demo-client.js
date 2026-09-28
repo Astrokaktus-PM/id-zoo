@@ -14,7 +14,7 @@ const REX = '00000000-0000-4000-8000-0000000000a1', MUSYA = '00000000-0000-4000-
 
 function seed() {
   const DB = {
-    profiles: [{ id: ME, login: 'demo', display_name: 'Вы (демо)', city: 'Москва', district: 'Динамо' }],
+    profiles: [{ id: ME, login: 'demo', display_name: 'Вы (демо)', city: 'Москва', district: 'Динамо', city_lat: 55.7558, city_lon: 37.6173, city_geo_for: 'Москва' }],
     pets: [
       { id: REX, name: 'Рекс', species: 'dog', breed: 'бордер-колли', sex: 'm', birth_date: day(-880), owner_id: ME, created_at: at(-200, 10) },
       { id: MUSYA, name: 'Муся', species: 'cat', breed: null, sex: 'f', birth_date: day(-1500), owner_id: ME, created_at: at(-200, 11) },
@@ -25,6 +25,7 @@ function seed() {
     posts: [], post_likes: [], follows: [], questions: [], answers: [], expert_optin: [], lost_alerts: [], hero_responses: [],
     hero_settings: [], pet_statuses: [], interest_events: [], referrals: [], support_requests: [], course_progress: [], content_reports: [],
     custom_modes: [], pet_photos: [], diets: [], food_exclusions: [],
+    pet_schedules: [], pet_surveys: [], pet_absences: [], pet_achievements: [],
   };
   const E = (pet, d, channel, value, extra = {}) => DB.domain_entries.push({ id: uid(), pet_id: pet, day: day(d), channel, value, source: 'manual', plan_item: null, walk_id: null, created_by: ME, created_at: at(d, 19), ...extra });
   // Две недели Рекса: разные дни, в середине — хромота, степень C.
@@ -103,7 +104,7 @@ class Q {
   delete() { this.op = 'delete'; return this; }
   maybeSingle() { this.one = 'maybe'; return this; }
   single() { this.one = 'single'; return this; }
-  _keys() { return { reminder_rules: ['pet_id', 'kind'], pet_statuses: ['pet_id'], expert_optin: ['user_id'], hero_settings: ['user_id'], course_progress: ['user_id', 'lesson_id'], pet_tags: ['pet_id'] }[this.t] || ['id']; }
+  _keys() { return { reminder_rules: ['pet_id', 'kind'], pet_statuses: ['pet_id'], expert_optin: ['user_id'], hero_settings: ['user_id'], course_progress: ['user_id', 'lesson_id'], pet_tags: ['pet_id'], pet_schedules: ['pet_id'] }[this.t] || ['id']; }
   run() {
     const T = DB[this.t] = DB[this.t] || [];
     const now = new Date().toISOString();
@@ -116,6 +117,8 @@ class Q {
         if (this.t === 'lost_alerts') { const p = DB.pets.find(x => x.id === r.pet_id); Object.assign(r, { author_id: ME, pet_name: p ? p.name : '?', species: p ? p.species : 'dog', hidden: false, resolved_at: null }); }
         if (this.t === 'hero_responses') Object.assign(r, { user_id: ME, user_login: 'demo' });
         if (this.t === 'answers') Object.assign(r, { author_id: ME, author_login: 'demo' });
+        // Как триггер on_pet_created в базе: создатель — владелец.
+        if (this.t === 'pets') DB.pet_members.push({ pet_id: r.id, user_id: ME, role: 'owner' });
         if (this.op === 'upsert') {
           const k = this._keys(); const ex = T.find(x => k.every(c => x[c] === r[c]));
           if (ex) { Object.assign(ex, r0); out.push(ex); continue; }

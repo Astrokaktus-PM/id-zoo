@@ -3,9 +3,12 @@
 import * as db from './db.js';
 import { humanError } from './db.js';
 import { CH, GATES, GRADE, d5, dayCard, pyRound, weekText } from './d5.js';
-import { MODES, defaultMode, findMode } from './modes.js';
+import { MODES, defaultMode, findMode, resolveItems, anchors } from './modes.js';
 import { autoHealth, worse, dueOf } from './hstatus.js';
-import { openModeEdit } from './care.js';
+import { openModeEdit, openSchedule, openSurvey } from './care.js';
+import { surveyDue } from './surveyq.js';
+import { saveSurvey } from './db.js';
+import { weekCoverage, achievementsDue, weekFact, ACH } from './gstat.js';
 
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
@@ -13,7 +16,7 @@ const fmt = x => String(x).replace('.', ',');
 
 let ui = null;          // { show, say }
 const S = {
-  custom: [],
+  custom: [], sched: null, absences: [],
   pet: null, role: null, me: null, members: {}, day: null,
   entries: [], gates: [], modes: [], walks: {}, health: [], skip: new Set(), answering: null,
 };
@@ -82,7 +85,7 @@ function modeFor(X) {
   const wdX = new Date(X + 'T12:00:00').getDay();
   const byDay = S.custom.find(c => (c.weekdays || []).includes(wdX));
   if (byDay) return { id: byDay.code, auto: true, byDay: true };
-  const id = defaultMode(S.pet.species, X);
+  const id = defaultMode(S.pet.species, X, S.sched);
   return id ? { id, auto: true } : null;
 }
 
@@ -129,6 +132,13 @@ async function reload() {
   S.entries = entries; S.gates = gates; S.modes = modes;
   // Нет таблицы (010 не выполнен) — просто без своих режимов.
   S.custom = await db.customModes(S.pet.id).catch(() => []);
+  // Распорядок (012): нет — время по умолчанию.
+  S.sched = await db.schedule(S.pet.id).catch(() => null);
+  // Анкета ограничителей (012): null — таблицы нет, карточку не показываем.
+  S.surveys = await db.surveys(S.pet.id).catch(() => null);
+  // Отпуск (012): дни периодов с counted = false не входят в недельное среднее.
+  S.absences = await db.absences(S.pet.id).catch(() => []);
+  await loadAchievements(walks);
   S.walks = Object.fromEntries(walks.map(w => [w.id, w]));
   S.health = health;
 }
@@ -205,8 +215,27 @@ function renderDay() {
     box.append(b);
   }
 
+  // 1б. Возвращение из отпуска: не «что вы пропустили», а «с возвращением».
+  const back = X === T && (S.absences || []).find(a => a.ends_on < T && addDays(a.ends_on, 3) >= T && !seenBack(a.id));
+  if (back) box.append(renderWelcome(back));
+  const awayNow = awayOn(S.absences, X);
+  if (awayNow) {
+    const n = el('div', 'card'); n.append(el('b', 'ct', 'Вас нет — день не оценивается'), el('p', 'hint', `Отпуск с ${dmy(awayNow.starts_on)} по ${dmy(awayNow.ends_on)}. Эти дни не входят в недельное среднее и не занижают его.`));
+    box.append(n);
+  }
+
+  // 1а. Анкета: раз в две недели одним вопросом, не каждый день (ТЗ П12, раздел 6).
+  // Одна просьба за раз: при «с возвращением» анкета уже предложена.
+  if (X === T && canWrite() && S.surveys && !back) {
+    const st = surveyDue(S.surveys, T);
+    if (st.due) box.append(renderSurveyAsk(st));
+  }
+
   // 2. Неделя — крупное число.
   box.append(renderWeek(X, !!severe.length));
+
+  // 2а. Наблюдения: факт недели от питомца и достижения, которые нельзя потерять.
+  if (S.ach) box.append(renderObservations(X));
 
   // 3. День — без вердикта: чего не хватило и одно действие.
   box.append(el('div', 'sec', X === T ? 'Сегодня' : `${wd(X)}, ${X.slice(8)}.${X.slice(5, 7)}`));
@@ -230,19 +259,91 @@ function renderDay() {
   }
   const how = el('button', 'btn ghost', 'Как это посчитано');
   how.onclick = openCalc;
-  const why = el('button', 'linkbtn', 'Четыре правила модели');
+  const why = el('button', 'linkbtn', 'Как мы считаем');
   why.onclick = openHow;
   box.append(how, why);
   if (!canWrite()) box.append(el('p', 'hint center', 'У вас роль «гость»: смотреть можно, отмечать нельзя.'));
 }
 
+const dmy = x => `${x.slice(8)}.${x.slice(5, 7)}`;
+function seenBack(id) { try { return localStorage.getItem('petid.back.' + id) === '1'; } catch (_) { return false; } }
+function renderWelcome(a) {
+  const c = el('div', 'attn'); const h = el('div', 'attn-h'); h.append(el('span', null, 'С возвращением')); c.append(h);
+  c.append(el('p', null, 'Если после поездки что-то изменилось — сон, аппетит, страхи, — ответьте на анкету: степени ограничителей обновятся с сегодняшнего дня.'));
+  const row = el('div', 'row');
+  const same = el('button', 'btn ghost sm', 'Всё как раньше');
+  same.onclick = () => { try { localStorage.setItem('petid.back.' + a.id, '1'); } catch (_) { /* приватный режим */ } renderDay(); };
+  row.append(same);
+  if (canWrite()) { const open = el('button', 'btn sm', 'Открыть анкету'); open.onclick = () => { try { localStorage.setItem('petid.back.' + a.id, '1'); } catch (_) { /* */ } openSurvey(S.pet, S.role, () => openDay()); }; row.append(open); }
+  c.append(row);
+  return c;
+}
+
+// Достижения (012): считаем, вносим недостающие, показываем внесённые. Таблицы нет — S.ach = null.
+async function loadAchievements(walks) {
+  try {
+    const have = await db.achievements(S.pet.id);
+    const T = todayIso();
+    const [firstDay, walksTotal] = await Promise.all([db.firstEntryDay(S.pet.id), S.pet.species === 'dog' ? db.walksCount(S.pet.id).catch(() => 0) : 0]);
+    const due = canWrite() ? achievementsDue({ species: S.pet.species, entries: S.entries, absences: S.absences, T, firstDay, walksTotal, have }) : [];
+    if (due.length) { await db.addAchievements(S.pet.id, due); have.push(...due); }
+    S.ach = have;
+    S.walksWeek = walks.filter(w => w.day >= addDays(T, -6)).length;
+  } catch (_) { S.ach = null; }
+}
+
+function renderObservations(X) {
+  const c = el('div', 'card');
+  const fact = weekFact(S.pet, S.entries.filter(e => e.day <= X), S.walksWeek || 0, X);
+  if (fact) c.append(el('p', 'lead', fact));
+  if (S.ach.length) {
+    c.append(el('div', 'mini', 'Наблюдения'));
+    for (const a of S.ach) {
+      const m = ACH[a.code]; if (!m) continue;
+      const r = el('div', 'hrow static'); const x = el('div'); x.append(el('b', null, m[1]), el('span', null, `${m[2]} · ${dmy(a.earned_on)}`));
+      r.append(el('span', 'hic', m[0]), x); c.append(r);
+    }
+  }
+  if (!fact && !S.ach.length) return el('div');
+  return c;
+}
+
+function renderSurveyAsk(st) {
+  const c = el('div', 'attn');
+  const h = el('div', 'attn-h');
+  const row = el('div', 'row');
+  const open = el('button', 'btn sm', st.never ? 'Ответить на 6 вопросов' : 'Открыть анкету');
+  open.onclick = () => openSurvey(S.pet, S.role, () => openDay());
+  if (st.never) {
+    h.append(el('span', null, 'Что сейчас ограничивает её день?')); c.append(h);
+    c.append(el('p', null, 'Анкета не заполнена, поэтому все ограничители — A, пока вы их не отметите. Шесть вопросов обычными словами.'));
+    const later = el('button', 'btn ghost sm', 'Потом');
+    later.onclick = () => act(() => saveSurvey(S.pet.id, todayIso(), {}, [], true));
+    row.append(open, later);
+  } else {
+    const d = st.lastAnswered.answered_on;
+    h.append(el('span', null, `С ${d.slice(8)}.${d.slice(5, 7)} что-то изменилось?`)); c.append(h);
+    c.append(el('p', null, 'Вода, еда со стола, спокойное место, боль, страхи. Спрашиваем раз в две недели.'));
+    const same = el('button', 'btn ghost sm', 'Нет, всё так же');
+    same.onclick = () => act(() => saveSurvey(S.pet.id, todayIso(), st.lastAnswered.answers || {}, []));
+    row.append(same, open);
+  }
+  c.append(row);
+  return c;
+}
+
+/** Период отсутствия, который исключает день из среднего (ТЗ П12, раздел 4). */
+export const awayOn = (list, d) => (list || []).find(a => !a.counted && a.starts_on <= d && a.ends_on >= d) || null;
+
 function renderWeek(X, severe) {
   const days = [];
   for (let i = 6; i >= 0; i--) {
-    const d = addDays(X, -i), r = dayScore(d);
-    days.push({ d, r, ok: r.cov >= 50 });
+    const d = addDays(X, -i), r = dayScore(d), away = awayOn(S.absences, d);
+    days.push({ d, r, away, ok: !away && r.cov >= 50 });
   }
   const valid = days.filter(x => x.ok);
+  const nAway = days.filter(x => x.away).length;
+  const wcov = weekCoverage(S.pet.species, S.entries, S.absences, X);
   const card = el('div', 'card week' + (severe ? ' dim' : ''));
   const head = el('div', 'wk-head');
   if (valid.length) {
@@ -266,15 +367,18 @@ function renderWeek(X, severe) {
   for (const x of days) {
     const col = el('button', 'dbar' + (x.d === X ? ' cur' : ''));
     const fill = el('i');
-    if (x.ok) {
+    if (x.away) fill.className = 'away';
+    else if (x.ok) {
       fill.style.height = Math.max(4, x.r.score) + '%';
       if (x.r.ceil < 100) fill.className = 'capped';
     } else fill.className = 'none';
-    col.append(fill, el('span', null, x.ok ? String(Math.round(x.r.score)) : '—'), el('em', null, wd(x.d)));
-    col.title = x.ok ? `${x.d}: ${fmt(x.r.score)}` : `${x.d}: данных меньше половины`;
+    col.append(fill, el('span', null, x.away ? 'нет' : x.ok ? String(Math.round(x.r.score)) : '—'), el('em', null, wd(x.d)));
+    col.title = x.away ? `${x.d}: вас не было — в среднее не входит` : x.ok ? `${x.d}: ${fmt(x.r.score)}` : `${x.d}: данных меньше половины`;
     bars.append(col);
   }
   card.append(bars);
+  if (nAway) card.append(el('p', 'hint', `${nAway} ${nAway === 1 ? 'день' : nAway < 5 ? 'дня' : 'дней'} вас не было — они не входят в среднее и показаны штриховкой.`));
+  if (wcov != null) card.append(el('p', 'hint', `Про эту неделю знаем на ${wcov}%.`));
   return card;
 }
 
@@ -317,6 +421,9 @@ function renderDayCard({ r, gap, unknown, acts }) {
   }
   if (unknown.length) {
     c.append(el('p', 'hint', 'Не знаем: ' + unknown.map(u => u.name.toLowerCase()).join(', ') + '. Это не «не было» — просто нет отметки.'));
+    // Один следующий шаг, а не список (ТЗ П12, раздел 5).
+    const q = unknown.filter(u => !S.skip.has(u.key)).sort((a, b) => b.w - a.w)[0];
+    if (q && canWrite()) { c.append(el('div', 'mini', 'Чего мы ещё не знаем про сегодня')); c.append(renderQuestion(q)); }
   }
 
   if (acts.length) {
@@ -390,19 +497,21 @@ function renderMode(X) {
     c.append(ed);
   }
 
+  // Пункты по распорядку питомца: непоместившиеся не показываются.
+  const items = resolveItems(mode, S.sched);
   // Что даст план по той же модели — чтобы режим был выполнимым, а не идеальным.
   const t = {}, wk = {};
-  for (const it of mode.items) for (const [k, v] of Object.entries(it.ch)) {
+  for (const it of items) for (const [k, v] of Object.entries(it.ch)) {
     const per = CH[sp].find(x => x[0] === k)[4];
     const tgt = per === 'week' ? wk : t; tgt[k] = (tgt[k] || 0) + v;
   }
   const plan = d5(sp, t, wk, {});
-  const mins = mode.items.reduce((a, it) => a + it.min, 0);
+  const mins = items.reduce((a, it) => a + it.min, 0);
   c.append(el('p', 'hint', `${mode.about}. ${mins} мин вашего участия. ` +
     `Если выполнить весь план, по модели выйдет ${fmt(plan.exp)} при полноте ${plan.cov}%` +
-    (cur.byDay ? ' · включён сам: свой режим на этот день недели.' : cur.auto ? ' · выбран автоматически: будни — «Работаю из дома», выходные — «Выходной».' : '.')));
+    (cur.byDay ? ' · включён сам: свой режим на этот день недели.' : cur.auto ? ` · выбран автоматически: будни — «${(S.sched && S.sched.weekday_mode) === 'someone' ? 'Будни, дома кто-то есть' : 'Будни, дома никого'}», выходные — «Выходной».` : '.')));
 
-  for (const it of mode.items) {
+  for (const it of items) {
     const tag = `${mode.id}:${it.id}`;
     const mine = S.entries.filter(e => e.day === X && e.plan_item === tag);
     const done = mine.length > 0;
@@ -428,6 +537,13 @@ function renderMode(X) {
     });
     c.append(row);
   }
+  const hidden = mode.items.length - items.length;
+  const A = anchors(S.sched), hm = m => m == null ? null : `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+  c.append(el('p', 'hint', `Время — от распорядка${S.sched ? '' : ' по умолчанию'}: утро ${hm(A.morning)}, ${A.midday != null ? 'днём ' + hm(A.midday) + ', ' : 'без дневного выхода, '}вечер ${hm(A.evening)}.` +
+    (hidden ? ` ${hidden} ${hidden === 1 ? 'пункт не помещается' : 'пункта не помещаются'} в распорядок и сегодня не показаны.` : '')));
+  const sb = el('button', 'linkbtn sm', canManage() ? 'Изменить распорядок' : 'Распорядок');
+  sb.onclick = () => openSchedule(S.pet, S.role, () => openDay());
+  c.append(sb);
   c.append(el('p', 'hint', 'Вклад пунктов в каналы — наша калибровка, не измерение.'));
   out.push(c);
   return out;
@@ -505,7 +621,8 @@ function renderGates(r) {
     }
     if (src && src.grade !== 'A') {
       const who = S.members[src.created_by];
-      line.append(el('p', 'hint', `Отмечено ${src.day === X ? 'сегодня' : src.day.slice(8) + '.' + src.day.slice(5, 7)} в ${hhmm(src.created_at)}${who ? ' · @' + who.login : ''}`));
+      const when = `${src.day === X ? 'сегодня' : src.day.slice(8) + '.' + src.day.slice(5, 7)} в ${hhmm(src.created_at)}${who ? ' · @' + who.login : ''}`;
+      line.append(el('p', 'hint', src.source === 'survey' ? `Из анкеты${src.reason ? ': ' + src.reason : ''} · ${when}` : `Отмечено ${when}`));
     }
     c.append(line);
   }
@@ -537,7 +654,11 @@ function openCalc() {
   }
   const tot = (a, b, cls) => { const tr = el('tr', cls); tr.append(el('td', null, a)); const td = el('td', null, b); td.colSpan = 4; tr.append(td); return tr; };
   t.append(tot('Опыт', fmt(r.exp), 'sum'));
-  for (const g of r.gates) if (g.grade !== 'A') t.append(tot(`потолок ← ${g.name}`, `${g.label} [${g.grade}] = ${g.k}%`, 'sub'));
+  for (const g of r.gates) if (g.grade !== 'A') {
+    const src = gateSource(X, g.key);
+    const why = src && src.grade === g.grade && src.reason ? ` · ${src.source === 'survey' ? 'анкета: ' : ''}${src.reason}` : '';
+    t.append(tot(`потолок ← ${g.name}`, `${g.label} [${g.grade}] = ${g.k}%${why}`, 'sub'));
+  }
   t.append(tot('Потолок', r.ceil + '%', 'sum'));
   t.append(tot('Итог = опыт × потолок', `${fmt(r.exp)} × ${fmt(r.ceil / 100)} = ${fmt(r.score)}`, 'sum big'));
   t.append(tot('Полнота данных', r.cov + '%' + (r.cov < 50 ? ' — ниже 50%, суждения нет' : ''), 'sub'));

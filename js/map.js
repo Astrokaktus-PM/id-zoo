@@ -34,20 +34,40 @@ export async function makeMap(node, center, zoom = 15) {
   return { L, map };
 }
 
-/** Центр города по названию из профиля. Nominatim (OSM), результат кешируется
- *  в браузере, чтобы не бить сервис на каждом открытии: у него лимит 1 запрос/с.
- *  Не ответил — null, вызывающий берёт запасной центр. */
-export async function cityCenter(city) {
-  if (!city) return null;
-  const key = 'petid.city.' + city.trim().toLowerCase();
-  try { const c = JSON.parse(localStorage.getItem(key) || 'null'); if (c) return c; } catch (_) { /* нет хранилища */ }
-  try {
-    const u = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=ru&q=' + encodeURIComponent(city);
-    const r = await fetch(u, { headers: { 'Accept': 'application/json' } });
-    const j = await r.json();
-    if (!j.length) return null;
-    const c = [Number(j[0].lat), Number(j[0].lon)];
-    try { localStorage.setItem(key, JSON.stringify(c)); } catch (_) { /* нет хранилища */ }
-    return c;
-  } catch (_) { return null; }
+/** Центр города для карты. Порядок (политика Nominatim: не больше 1 запроса в секунду,
+ *  результаты обязаны кэшироваться):
+ *   1) координаты, сохранённые в профиле для этого же написания города (sql/012);
+ *   2) кэш браузера;
+ *   3) один запрос к Nominatim — результат пишется в профиль и больше не запрашивается.
+ *  Геокодер не ответил — последние известные координаты профиля (даже для прежнего
+ *  города) или null: вызывающий берёт запасной центр, экран не ломается.
+ *  save(lat, lon, city) — запись в профиль; ошибки записи не мешают карте. */
+let lastCall = 0, inflight = null;
+export async function cityCenter(profile, save) {
+  const city = profile && profile.city ? profile.city.trim() : '';
+  const known = profile && profile.city_lat != null && profile.city_lon != null ? [Number(profile.city_lat), Number(profile.city_lon)] : null;
+  if (!city) return known;
+  const norm = city.toLowerCase();
+  if (known && (profile.city_geo_for || '').trim().toLowerCase() === norm) return known;
+  const key = 'petid.city.' + norm;
+  try { const c = JSON.parse(localStorage.getItem(key) || 'null'); if (c) { if (save) save(c[0], c[1], city).catch(() => {}); return c; } } catch (_) { /* нет хранилища */ }
+  if (inflight && inflight.city === norm) return inflight.p;
+  const p = (async () => {
+    const wait = lastCall + 1100 - Date.now();
+    if (wait > 0) await new Promise(r => setTimeout(r, wait));
+    lastCall = Date.now();
+    try {
+      const u = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=ru&q=' + encodeURIComponent(city);
+      const r = await fetch(u, { headers: { 'Accept': 'application/json' } });
+      if (!r.ok) return known;
+      const j = await r.json();
+      if (!j.length) return known;
+      const c = [Number(j[0].lat), Number(j[0].lon)];
+      try { localStorage.setItem(key, JSON.stringify(c)); } catch (_) { /* нет хранилища */ }
+      if (save) { try { await save(c[0], c[1], city); } catch (_) { /* 012 не выполнен — хватит кэша */ } }
+      return c;
+    } catch (_) { return known; }
+  })();
+  inflight = { city: norm, p };
+  try { return await p; } finally { inflight = null; }
 }

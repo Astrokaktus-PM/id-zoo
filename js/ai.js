@@ -6,7 +6,7 @@ import { humanError } from './db.js';
 import { RED_FLAGS, COMPLAINTS, decide, LEVEL_TEXT, SRC, suggestMode } from './triage.js';
 import { whyDropped, addDays } from './why.js';
 import { CH, GRADE } from './d5.js';
-import { MODES, findMode } from './modes.js';
+import { MODES, findMode, resolveItems } from './modes.js';
 import { autoHealth, worse } from './hstatus.js';
 
 const $ = s => document.querySelector(s);
@@ -181,15 +181,17 @@ async function startMode() {
   const T = todayIso();
   let grade = 'A';
   try { const inp = await loadInputs(T); grade = inp(T).gates.health || 'A'; } catch (_) { /* без потолка */ }
+  S.sched = await db.schedule(S.pet.id).catch(() => null);
   bot('Сколько у вас сегодня времени на питомца — вашего участия, не считая кормушки-головоломки?');
   ask([{ id: 30, text: 'до 45 минут' }, { id: 50, text: 'около часа' }, { id: 90, text: '1,5–2 часа' }, { id: 200, text: '3 часа и больше' }], minutes => {
     const wd = new Date().getDay();
     const s = suggestMode({ healthGrade: grade, minutes, weekend: wd === 0 || wd === 6 });
     const m = findMode('dog', s.mode);
-    const mins = m.items.reduce((a, i) => a + i.min, 0);
+    const items = resolveItems(m, S.sched);
+    const mins = items.reduce((a, i) => a + i.min, 0);
     const body = [el('b', null, `${m.icon} ${m.name}`), el('p', null, `${m.about}. ${mins} мин вашего участия.`), el('p', 'hint', 'Почему: ' + s.why + '.')];
     if (grade !== 'A') body.push(el('p', 'hint', `Сейчас потолок по здоровью — ${grade}.`));
-    const ul = el('ul', 'reasons'); for (const it of m.items) ul.append(el('li', null, `${it.at} · ${it.text}${it.min ? ` · ${it.min} мин` : ''}`)); body.push(ul);
+    const ul = el('ul', 'reasons'); for (const it of items) ul.append(el('li', null, `${it.at} · ${it.text}${it.min ? ` · ${it.min} мин` : ''}`)); body.push(ul);
     body.push(el('p', 'src-line', 'Источник: режимы дня из макета v1.5, вклад пунктов в каналы — калибровка команды. Погоду не учитываем — нет погодного сервиса.'));
     bot(body, 'res watch');
     const c = S.chat.ctl; c.replaceChildren();

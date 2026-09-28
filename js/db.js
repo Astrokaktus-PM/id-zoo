@@ -65,11 +65,21 @@ export async function getSession() {
 export async function myProfile() {
   const { data: u } = await sb.auth.getUser();
   if (!u.user) return null;
-  const { data, error } = await sb.from('profiles')
-    .select('id, login, display_name, city, district')
+  let { data, error } = await sb.from('profiles')
+    .select('id, login, display_name, city, district, city_lat, city_lon, city_geo_for')
     .eq('id', u.user.id).maybeSingle();
+  // 012 не выполнен — колонок координат нет; профиль без них.
+  if (error && /city_lat|column/i.test(error.message || '')) ({ data, error } = await sb.from('profiles')
+    .select('id, login, display_name, city, district').eq('id', u.user.id).maybeSingle());
   if (error) throw error;
   return data;
+}
+
+/** Координаты города — один раз после успешного ответа геокодера (sql/012). */
+export async function saveCityGeo(lat, lon, city) {
+  const { data: u } = await sb.auth.getUser();
+  const { error } = await sb.from('profiles').update({ city_lat: lat, city_lon: lon, city_geo_for: city }).eq('id', u.user.id);
+  if (error) throw error;
 }
 
 export async function saveProfile(patch) {
@@ -157,10 +167,11 @@ export async function deleteEntries(ids) {
 
 /** Все степени ограничителей до дня включительно: действуют до следующей отметки. */
 export async function gateMarks(petId, to) {
-  const { data, error } = await sb.from('gate_marks')
-    .select('id, day, gate, grade, created_by, created_at')
-    .eq('pet_id', petId).lte('day', to)
+  const q = cols => sb.from('gate_marks').select(cols).eq('pet_id', petId).lte('day', to)
     .order('day', { ascending: true }).order('created_at', { ascending: true });
+  let { data, error } = await q('id, day, gate, grade, source, reason, created_by, created_at');
+  // 012 не выполнен — колонок source/reason нет.
+  if (error && /source|reason|column/i.test(error.message || '')) ({ data, error } = await q('id, day, gate, grade, created_by, created_at'));
   if (error) throw error;
   return data;
 }
@@ -658,4 +669,96 @@ export async function deleteExclusion(id) {
   const { data, error } = await sb.from('food_exclusions').delete().eq('id', id).select('id');
   if (error) throw error;
   if (!data.length) throw new Error('Удалить не получилось: удалять может автор записи или владелец');
+}
+
+/* ── П12 (sql/012) ────────────────────────────────────── */
+
+/** Распорядок питомца или null (не задан или 012 не выполнен). */
+export async function schedule(petId) {
+  const { data, error } = await sb.from('pet_schedules')
+    .select('wake_at, morning_at, midday_at, evening_at, feeds, weekday_mode, updated_at')
+    .eq('pet_id', petId).maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const hm = t => t ? String(t).slice(0, 5) : null;
+  return { ...data, wake_at: hm(data.wake_at), morning_at: hm(data.morning_at), midday_at: hm(data.midday_at), evening_at: hm(data.evening_at), feeds: (data.feeds || []).map(hm) };
+}
+
+export async function saveSchedule(petId, s, exists) {
+  const me = await myId();
+  const body = { wake_at: s.wake_at, morning_at: s.morning_at, midday_at: s.midday_at || null, evening_at: s.evening_at, feeds: s.feeds, weekday_mode: s.weekday_mode, updated_by: me, updated_at: new Date().toISOString() };
+  const q = exists ? sb.from('pet_schedules').update(body).eq('pet_id', petId).select('pet_id')
+    : sb.from('pet_schedules').insert({ pet_id: petId, ...body }).select('pet_id');
+  const { data, error } = await q;
+  if (error) throw error;
+  if (!data.length) throw new Error('Сохранить не получилось: распорядок меняют владелец и совладелец');
+}
+
+export async function surveys(petId) {
+  const { data, error } = await sb.from('pet_surveys')
+    .select('id, answered_on, answers, skipped, created_by, created_at')
+    .eq('pet_id', petId).order('created_at', { ascending: false }).limit(20);
+  if (error) throw error;
+  return data;
+}
+
+/** Анкета: строка журнала + степени ограничителей из неё (gate_marks, source = 'survey'). */
+export async function saveSurvey(petId, day, answers, marks, skipped = false) {
+  const { error } = await sb.from('pet_surveys').insert({ pet_id: petId, answered_on: day, answers, skipped });
+  if (error) throw error;
+  if (marks && marks.length) {
+    const { error: e } = await sb.from('gate_marks').insert(marks.map(m => ({ pet_id: petId, day, gate: m.gate, grade: m.grade, source: 'survey', reason: m.reason })));
+    if (e) throw e;
+  }
+}
+
+export async function absences(petId) {
+  const { data, error } = await sb.from('pet_absences')
+    .select('id, starts_on, ends_on, kind, counted, carer_id, note, created_by, created_at')
+    .eq('pet_id', petId).order('starts_on', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function addAbsence(a) {
+  const { error } = await sb.from('pet_absences').insert(a);
+  if (error) throw error;
+}
+
+export async function deleteAbsence(id) {
+  const { data, error } = await sb.from('pet_absences').delete().eq('id', id).select('id');
+  if (error) throw error;
+  if (!data.length) throw new Error('Удалить не получилось: отпуск отмечают и снимают владелец и совладелец');
+}
+
+export async function removeMember(petId, userId) {
+  const { data, error } = await sb.from('pet_members').delete().eq('pet_id', petId).eq('user_id', userId).select('user_id');
+  if (error) throw error;
+  if (!data.length) throw new Error('Снять доступ может только владелец');
+}
+
+export async function achievements(petId) {
+  const { data, error } = await sb.from('pet_achievements').select('code, earned_on').eq('pet_id', petId).order('earned_on', { ascending: true });
+  if (error) throw error;
+  return data;
+}
+
+/** Вносит только недостающие: полученное не отбирается и не переписывается. */
+export async function addAchievements(petId, list) {
+  if (!list.length) return;
+  const { error } = await sb.from('pet_achievements').insert(list.map(a => ({ pet_id: petId, code: a.code, earned_on: a.earned_on })));
+  if (error && !/duplicate|23505/i.test(error.message || '' + error.code)) throw error;
+}
+
+/** Первая отметка питомца — для «первого месяца наблюдений». */
+export async function firstEntryDay(petId) {
+  const { data, error } = await sb.from('domain_entries').select('day').eq('pet_id', petId).order('day', { ascending: true }).limit(1);
+  if (error) throw error;
+  return data.length ? data[0].day : null;
+}
+
+export async function walksCount(petId) {
+  const { data, error } = await sb.from('walks').select('id').eq('pet_id', petId);
+  if (error) throw error;
+  return data.length;
 }

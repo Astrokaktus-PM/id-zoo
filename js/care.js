@@ -11,9 +11,10 @@
 import * as db from './db.js';
 import { humanError } from './db.js';
 import { CH, d5 } from './d5.js';
-import { MODES } from './modes.js';
+import { MODES, resolveItems, DEFAULT_SCHEDULE, findMode, defaultMode } from './modes.js';
 import { compress } from './health.js';
-import { planResult, checkMode, currentDiet, packLeft } from './carestat.js';
+import { planResult, checkMode, currentDiet, packLeft, checkSchedule } from './carestat.js';
+import { QUESTIONS, gradesFrom, adviceFrom, weekdayFrom } from './surveyq.js';
 
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
@@ -118,7 +119,7 @@ export function openModeEdit(pet, role, mode, done) {
 
 function libraryItems(sp) {
   const out = [];
-  for (const m of MODES[sp] || []) for (const it of m.items) if (!out.some(x => x.text === it.text)) out.push({ at: it.at, text: it.text, min: it.min, ch: { ...it.ch } });
+  for (const m of MODES[sp] || []) for (const it of resolveItems(m, DEFAULT_SCHEDULE)) if (!out.some(x => x.text === it.text)) out.push({ at: it.at, text: it.text, min: it.min, ch: { ...it.ch } });
   return out;
 }
 
@@ -140,6 +141,216 @@ function itemCard(sp, d, it, i, render) {
   c.append(g);
   const rm = el('button', 'linkbtn', 'Убрать пункт'); rm.type = 'button'; rm.onclick = () => { d.items.splice(i, 1); render(); }; c.append(rm);
   return c;
+}
+
+
+/* ════════ распорядок питомца (П12, раздел 3) ═══════════ */
+
+/** Время ключевых действий хранится у питомца, а не в режиме: завтрак не зависит
+ *  от того, завал сегодня или выходной. Остальные пункты режимов ставятся от них. */
+let schedDone = null;
+export async function openSchedule(pet, role, done) {
+  setPet(pet, role); schedDone = done;
+  ui.show('v-schedule'); title('Распорядок');
+  const box = $('#schedule-body'); box.replaceChildren(el('div', 'load', 'Загрузка…'));
+  let saved = null;
+  try { saved = await db.schedule(S.pet.id); } catch (e) { box.replaceChildren(); ui.say('#schedule-msg', humanError(e)); return; }
+  const d = { ...DEFAULT_SCHEDULE, ...(saved || {}) };
+  d.feeds = [...d.feeds];
+  const render = () => {
+    box.replaceChildren();
+    box.append(el('p', 'lede', 'Задайте время того, что у вас бывает каждый день. Остальные пункты режимов встанут относительно него: «через два часа после утренней прогулки», «между дневным выходом и вечером».'));
+    const ro = !canManage();
+    const t = (id, label, key) => { const i = inp(id, 'time', { value: d[key] || '', disabled: ro }); i.onchange = () => { d[key] = i.value || null; render(); }; return field(label, i); };
+    const r1 = el('div', 'row'); r1.append(t('sc-wake', 'Подъём', 'wake_at'), t('sc-morning', 'Утренняя прогулка', 'morning_at')); box.append(r1);
+    const r2 = el('div', 'row'); r2.append(t('sc-evening', 'Вечерняя прогулка', 'evening_at')); box.append(r2);
+    const mid = el('div', 'card');
+    const cb = el('label', 'check'); const c = inp('sc-nomid', 'checkbox', { checked: !d.midday_at, disabled: ro });
+    c.onchange = () => { d.midday_at = c.checked ? null : (saved && saved.midday_at) || '13:00'; render(); };
+    cb.append(c, el('span', null, 'Дневного выхода нет — пункт пропадёт из всех режимов')); mid.append(cb);
+    if (d.midday_at) mid.append(t('sc-midday', 'Дневной выход', 'midday_at'));
+    box.append(mid);
+    box.append(el('div', 'sec', `Кормления · ${d.feeds.length}`));
+    const fr = el('div', 'row');
+    d.feeds.forEach((f, i) => { const x = inp(`sc-feed-${i}`, 'time', { value: f, disabled: ro }); x.onchange = () => { d.feeds[i] = x.value; }; fr.append(field(`${i + 1}-е`, x)); });
+    box.append(fr);
+    if (!ro) {
+      const fb = el('button', 'linkbtn sm', d.feeds.length === 2 ? '+ третье кормление' : 'Два кормления'); fb.type = 'button';
+      fb.onclick = () => { if (d.feeds.length === 2) d.feeds.push('13:30'); else d.feeds = d.feeds.slice(0, 2); render(); }; box.append(fb);
+    }
+    if (S.pet.species === 'dog') {
+      box.append(el('div', 'sec', 'Обычный будний день'));
+      box.append(segPick([['alone', 'Дома никого'], ['someone', 'Дома кто-то есть']], d.weekday_mode, k => { if (!ro) { d.weekday_mode = k; render(); } }));
+      box.append(el('p', 'hint', 'Будни по умолчанию получают этот режим, суббота и воскресенье — «Выходной». Выбранный на день вручную режим сильнее. Одиночество меняет пункты и подсказки, но не снижает потолок: за то, что вы на работе, баллы не снимаются.'));
+      // Предпросмотр: сегодняшний режим по этому распорядку.
+      const today = iso(new Date());
+      const m = findMode('dog', defaultMode('dog', today, d));
+      const items = resolveItems(m, d);
+      const pv = el('div', 'card'); pv.append(el('b', 'ct', `Сегодня по умолчанию: ${m.icon} ${m.name}`));
+      for (const it of items) pv.append(el('p', 'hint', `${it.at} · ${it.text}`));
+      const miss = m.items.length - items.length;
+      if (miss) pv.append(el('p', 'hint', `${miss} ${miss === 1 ? 'пункт не помещается' : 'пункта не помещаются'} и не показывается.`));
+      box.append(pv);
+    }
+    const msg = el('div', 'msg err'); box.append(msg);
+    if (ro) { box.append(el('p', 'hint', 'Распорядок меняют владелец и совладелец.')); return; }
+    const save = el('button', 'btn', 'Сохранить распорядок'); save.type = 'button';
+    save.onclick = async () => {
+      const err = checkSchedule(d);
+      if (err) { msg.textContent = err; msg.className = 'msg err on'; return; }
+      save.disabled = true;
+      try { await db.saveSchedule(S.pet.id, d, !!saved); done(); }
+      catch (e) { save.disabled = false; msg.textContent = humanError(e); msg.className = 'msg err on'; }
+    };
+    box.append(save);
+  };
+  render();
+}
+
+
+/* ════════ анкета ограничителей (П12, разделы 1 и 6) ════ */
+
+const GR = { A: 'в порядке', B: 'лёгкая проблема · потолок 85%', C: 'умеренная · потолок 65%', D: 'выраженная · потолок 40%', E: 'тяжёлая · потолок 20%' };
+const GATE_NAME = { food: 'Еда и вода', env: 'Среда и покой', health: 'Здоровье и боль', fear: 'Страх и стресс' };
+
+/** Анкета обычными словами. first — сразу после заведения питомца. done() — куда дальше. */
+let surveyDone = null;
+export async function openSurvey(pet, role, done, opts = {}) {
+  setPet(pet, role); surveyDone = done;
+  ui.show('v-survey'); title('Пара вопросов');
+  const box = $('#survey-body'); box.replaceChildren(el('div', 'load', 'Загрузка…'));
+  let prev = {};
+  try { const l = await db.surveys(S.pet.id); const a = l.find(x => !x.skipped); if (a) prev = a.answers || {}; }
+  catch (e) { box.replaceChildren(); ui.say('#survey-msg', humanError(e)); return; }
+  const ans = { ...prev };
+  const render = () => {
+    box.replaceChildren();
+    box.append(el('p', 'lede', opts.first
+      ? `Шесть вопросов про ${S.pet.name}. Ответы станут начальным состоянием: что сейчас ограничивает её день. Это не диагноз — поменяете в любой момент.`
+      : 'Ответы обновят степени ограничителей с сегодняшнего дня. Прежние отметки остаются в истории.'));
+    for (const q of QUESTIONS) {
+      const c = el('div', 'card');
+      c.append(el('b', 'ct', q.text));
+      const ch = el('div', 'chk-list');
+      for (const [k, lab] of q.opts) {
+        const l = el('label', 'check'); const r = inp(`sq-${q.id}-${k}`, 'radio', { name: 'sq-' + q.id, checked: ans[q.id] === k });
+        r.onchange = () => { ans[q.id] = k; render(); };
+        l.append(r, el('span', null, lab)); ch.append(l);
+      }
+      c.append(ch);
+      if (q.note) c.append(el('p', 'hint', q.note));
+      box.append(c);
+    }
+    box.append(el('p', 'hint', 'Возраст и просроченные прививки и обработки мы не спрашиваем — они берутся из профиля и карты здоровья.'));
+    const msg = el('div', 'msg err'); box.append(msg);
+    const save = el('button', 'btn', 'Сохранить'); save.type = 'button';
+    save.onclick = async () => {
+      if (!Object.keys(ans).length) { msg.textContent = 'Ответьте хотя бы на один вопрос или нажмите «Заполню потом»'; msg.className = 'msg err on'; return; }
+      save.disabled = true;
+      try {
+        const marks = gradesFrom(ans);
+        await db.saveSurvey(S.pet.id, iso(new Date()), ans, marks);
+        const wm = weekdayFrom(ans.alone);
+        if (wm && canManage() && S.pet.species === 'dog') {
+          try { const sc = await db.schedule(S.pet.id); await db.saveSchedule(S.pet.id, { ...DEFAULT_SCHEDULE, ...(sc || {}), weekday_mode: wm }, !!sc); } catch (_) { /* распорядок не обязателен */ }
+        }
+        result(marks, adviceFrom(ans), wm);
+      } catch (e) { save.disabled = false; msg.textContent = humanError(e); msg.className = 'msg err on'; }
+    };
+    const later = el('button', 'btn ghost', 'Заполню потом'); later.type = 'button';
+    later.onclick = async () => {
+      later.disabled = true;
+      try { await db.saveSurvey(S.pet.id, iso(new Date()), {}, [], true); } catch (_) { /* без 012 просто идём дальше */ }
+      done();
+    };
+    box.append(save, later);
+    box.append(el('p', 'hint', 'Без анкеты всё работает: ограничители остаются A, пока вы не отметите их вручную на экране благополучия.'));
+  };
+  const result = (marks, advice, wm) => {
+    box.replaceChildren();
+    const c = el('div', 'card'); c.append(el('b', 'ct', 'Начальное состояние'));
+    for (const m of marks) { const r = el('div', 'kv'); r.append(el('span', null, GATE_NAME[m.gate]), el('b', null, `${m.grade} · ${GR[m.grade]}`)); c.append(r); }
+    box.append(c);
+    for (const a of advice) { const b = el('div', 'attn'); b.append(el('p', null, a)); box.append(b); }
+    if (wm) box.append(el('p', 'hint', `Будний режим по умолчанию: «${wm === 'someone' ? 'Будни, дома кто-то есть' : 'Будни, дома никого'}». Потолок от этого не меняется.`));
+    box.append(el('p', 'hint', 'Спросим «что-то изменилось?» через две недели одним вопросом. Каждый день не спрашиваем.'));
+    const go = el('button', 'btn', 'Дальше'); go.type = 'button'; go.onclick = () => done(); box.append(go);
+  };
+  render();
+}
+
+
+/* ════════ отпуск (П12, раздел 4) ═══════════════════════ */
+
+const AWAY = {
+  sitter: ['🤝', 'Остался с другим человеком', 'Передержка, ситтер, родственник. Если этот человек отмечает в приложении — дни считаются как обычно; если нет — не входят в среднее.'],
+  with_owner: ['🧳', 'Уехал вместе с вами', 'Уход продолжается, меняется только место. Дни считаются как обычно — отмечайте, как дома.'],
+  hotel: ['🏨', 'В зоогостинице', 'Вы не отмечаете вовсе. Дни не входят в недельное среднее и не занижают его.'],
+};
+
+export async function openAway(pet, role) {
+  setPet(pet, role);
+  ui.show('v-away'); title('Отпуск');
+  const box = $('#away-body'); box.replaceChildren(el('div', 'load', 'Загрузка…'));
+  let list, members;
+  try { S.me = await db.myId(); [list, members] = await Promise.all([db.absences(S.pet.id), db.petMembers(S.pet.id)]); }
+  catch (e) { box.replaceChildren(); ui.say('#away-msg', humanError(e)); return; }
+  const who = id => { const m = members.find(x => x.user_id === id); return m ? '@' + m.login : 'бывший участник'; };
+  const T = todayIso();
+  box.replaceChildren();
+  box.append(el('p', 'lede', 'Когда вас нет, пропуски отметок не должны выглядеть как провал. Отметьте период — и эти дни не будут занижать недельную оценку.'));
+  if (canManage()) box.append(awayForm(members));
+  else box.append(el('p', 'hint', 'Отпуск отмечают владелец и совладелец.'));
+  if (list.length) box.append(el('div', 'sec', 'Периоды'));
+  for (const a of list) {
+    const c = el('div', 'card');
+    const [ic, name] = AWAY[a.kind];
+    c.append(el('b', 'ct', `${ic} ${name}`));
+    c.append(el('p', 'hint', `${dmy(a.starts_on)} — ${dmy(a.ends_on)} · ${a.counted ? 'дни считаются как обычно' : 'дни не входят в среднее'}` +
+      (a.carer_id ? ` · отмечает ${who(a.carer_id)}` : '') + (a.note ? ` · ${a.note}` : '')));
+    const role0 = a.carer_id && (members.find(m => m.user_id === a.carer_id) || {}).role;
+    if (a.carer_id && a.ends_on < T && role0 && role0 !== 'owner' && S.role === 'owner') {
+      const rm = el('button', 'btn ghost sm', `Вы вернулись — снять доступ ${who(a.carer_id)}`);
+      rm.onclick = async () => { rm.disabled = true; try { await db.removeMember(S.pet.id, a.carer_id); await openAway(); ui.say('#away-ok', 'Доступ снят, управление у вас', 'ok'); } catch (e) { rm.disabled = false; ui.say('#away-msg', humanError(e)); } };
+      c.append(rm);
+    }
+    if (canManage()) c.append(delBtn('Удалить период', async () => { try { await db.deleteAbsence(a.id); await openAway(); } catch (e) { ui.say('#away-msg', humanError(e)); } }));
+    box.append(c);
+  }
+}
+
+function awayForm(members) {
+  const d = { kind: 'hotel', from: addDays(todayIso(), 1), to: addDays(todayIso(), 7), carer: '' };
+  const f = el('details', 'faq'); f.append(el('summary', null, '+ Отметить отсутствие'));
+  const body = el('div'); f.append(body);
+  const draw = () => {
+    body.replaceChildren();
+    body.append(segPick(Object.entries(AWAY).map(([k, v]) => [k, v[1]]), d.kind, k => { d.kind = k; draw(); }));
+    body.append(el('p', 'hint', AWAY[d.kind][2]));
+    const row = el('div', 'row');
+    const a = inp('aw-from', 'date', { value: d.from }); a.onchange = () => { d.from = a.value; };
+    const b = inp('aw-to', 'date', { value: d.to }); b.onchange = () => { d.to = b.value; };
+    row.append(field('С', a), field('По', b)); body.append(row);
+    if (d.kind === 'sitter') {
+      const sel = el('select'); sel.id = 'aw-carer';
+      sel.append(new Option('Не пользуется приложением', ''));
+      for (const m of members.filter(m => m.user_id !== S.me)) sel.append(new Option(`@${m.login} · ${m.role === 'helper' ? 'помощник' : m.role === 'co_owner' ? 'совладелец' : m.role === 'guest' ? 'гость' : 'владелец'}`, m.user_id));
+      sel.value = d.carer; sel.onchange = () => { d.carer = sel.value; };
+      body.append(field('Кто отмечает', sel));
+      body.append(el('p', 'hint', 'Нужного человека нет в списке — пригласите его помощником в карточке питомца: он увидит план дня и сможет отмечать. По возвращении доступ снимается здесь одной кнопкой.'));
+    }
+    const go = el('button', 'btn sm', 'Отметить'); go.type = 'button';
+    go.onclick = async () => {
+      if (!d.from || !d.to || d.to < d.from) return ui.say('#away-msg', 'Конец периода не раньше начала');
+      go.disabled = true;
+      const counted = d.kind === 'with_owner' || (d.kind === 'sitter' && !!d.carer);
+      try { await db.addAbsence({ pet_id: S.pet.id, starts_on: d.from, ends_on: d.to, kind: d.kind, counted, carer_id: d.kind === 'sitter' && d.carer ? d.carer : null }); await openAway(); ui.say('#away-ok', 'Период отмечен', 'ok'); }
+      catch (e) { go.disabled = false; ui.say('#away-msg', humanError(e)); }
+    };
+    body.append(go);
+  };
+  draw();
+  return f;
 }
 
 /* ════════ фото (gallery) ═══════════════════════════════ */
@@ -339,6 +550,7 @@ function renderNutrition() {
   box.append(card(el('b', 'ct', 'Питание в пятом домене'),
     el('p', 'hint', `Степень питания сейчас: ${N.food ? GRADE_TXT[N.food.grade] + ' (с ' + dmy(N.food.day) + ')' : 'не ставилась — считается A'}. ` +
       'Питание в модели не добавляет баллы, а ставит потолок. Степень ставите вы на экране благополучия; из рациона она не вычисляется — для этого нужны нормы с источником.')));
+  if (canWrite()) { const q = el('button', 'btn ghost', 'Вода и еда со стола — ответить'); q.onclick = () => openSurvey(S.pet, S.role, () => openNutrition()); box.append(q); }
   const b = el('button', 'btn ghost', 'К благополучию'); b.onclick = () => ui.openDay(); box.append(b);
 }
 
@@ -447,5 +659,7 @@ function weightChart(pts) {
 
 export function back(view) {
   if (view === 'v-photo') { openGallery(); return true; }
+  if (view === 'v-survey' && surveyDone) { surveyDone(); return true; }
+  if (view === 'v-schedule' && schedDone) { schedDone(); return true; }
   return false;
 }

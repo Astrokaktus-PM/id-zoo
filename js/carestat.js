@@ -40,3 +40,14 @@ export function packLeft(d, T) {
   return { grams: Math.max(0, left), days, ends: addDays(T, Math.max(0, days)) };
 }
 
+
+/** Проверка распорядка — те же условия, что CHECK в sql/012. null — всё верно. */
+export function checkSchedule(d) {
+  const m = t => { if (!t) return null; const [h, mi] = t.split(':').map(Number); return h * 60 + mi; };
+  if (!d.wake_at || !d.morning_at || !d.evening_at) return 'Заполните подъём, утреннюю и вечернюю прогулки';
+  if (m(d.wake_at) > m(d.morning_at)) return 'Утренняя прогулка не может быть раньше подъёма';
+  if (m(d.morning_at) >= m(d.evening_at)) return 'Вечерняя прогулка должна быть позже утренней';
+  if (d.midday_at && !(m(d.midday_at) > m(d.morning_at) && m(d.midday_at) < m(d.evening_at))) return 'Дневной выход — между утренней и вечерней прогулками';
+  if (!Array.isArray(d.feeds) || d.feeds.length < 2 || d.feeds.length > 3 || d.feeds.some(f => !f)) return 'Кормлений — два или три, у каждого время';
+  return null;
+}

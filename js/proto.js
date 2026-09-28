@@ -11,6 +11,8 @@
 import * as db from './db.js';
 import { humanError } from './db.js';
 import { makeMap, cityCenter } from './map.js';
+// Сохранить координаты города в профиль и в объект профиля этой сессии.
+const geoSave = async (lat, lon, city) => { if (S.profile && S.profile.city_geo_for === city) return; await db.saveCityGeo(lat, lon, city); if (S.profile) Object.assign(S.profile, { city_lat: lat, city_lon: lon, city_geo_for: city }); };
 import { RED_FLAGS } from './triage.js';
 
 const $ = s => document.querySelector(s);
@@ -109,7 +111,7 @@ export function openHub(ctx) { open('hub', ctx); }
 
 async function demoMap(node, draw) {
   try {
-    let center = await cityCenter(S.profile && S.profile.city), how = S.profile && S.profile.city ? `Центр — ${S.profile.city}, метки выдуманы.` : '';
+    let center = await cityCenter(S.profile, geoSave), how = S.profile && S.profile.city ? `Центр — ${S.profile.city}, метки выдуманы.` : '';
     if (!center) { center = [55.7558, 37.6173]; how = 'Город из профиля не нашёлся — показан центр Москвы, метки выдуманы.'; }
     const { L, map } = await makeMap(node, center, 15);
     S.maps.push(map);
