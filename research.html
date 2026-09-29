@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Анкета интервью</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="research.css">
+</head>
+<body>
+<div id="app" class="rs">
+  <header class="bar">
+    <button class="back" id="back" hidden aria-label="Назад">←</button>
+    <h1 id="title">Анкета интервью</h1>
+    <button class="act" id="logout" hidden>Выйти</button>
+  </header>
+  <main>
+    <!-- Вход -->
+    <section class="view" id="v-login">
+      <p class="lede">Внутренний инструмент исследовательской группы. Вход — тем же логином, что в приложении.</p>
+      <div class="msg err" id="login-msg"></div>
+      <form id="login-form" class="card">
+        <div class="f"><label for="l-login">Логин</label><input type="text" id="l-login" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
+        <div class="f"><label for="l-pass">Пароль</label><input type="password" id="l-pass" autocomplete="current-password"></div>
+        <button class="btn" type="submit">Войти</button>
+      </form>
+    </section>
+
+    <!-- Нет доступа -->
+    <section class="view" id="v-denied">
+      <div class="card">
+        <p><b>Анкета доступна только исследовательской группе.</b></p>
+        <p id="denied-who"></p>
+        <p class="hint">Участника добавляет владелец проекта в SQL Editor Supabase — пример в конце <code>sql/014_research.sql</code>.</p>
+      </div>
+      <div class="msg err" id="denied-msg"></div>
+    </section>
+
+    <!-- Список -->
+    <section class="view" id="v-list">
+      <div class="msg err" id="list-msg"></div>
+      <div class="rs-top">
+        <button class="btn sm" id="new-iv" type="button">Начать опрос</button>
+        <button class="btn ghost sm" id="csv" type="button">Выгрузить CSV</button>
+      </div>
+      <p class="hint">CSV — все интервью, одна строка на интервью; разделитель «;», UTF-8 с BOM. Доли по гипотезам считаются кодом по этому файлу.</p>
+      <div class="rs-filters">
+        <div class="f"><label for="f-int">Интервьюер</label><select id="f-int"><option value="">все</option></select></div>
+        <div class="f"><label for="f-seg">Сегмент</label><select id="f-seg"><option value="">все</option></select></div>
+        <div class="f"><label for="f-st">Статус</label><select id="f-st"><option value="">все</option></select></div>
+      </div>
+      <table class="rs-table">
+        <thead><tr><th>Код</th><th>Дата</th><th>Интервьюер</th><th>Сегмент</th><th>Статус</th><th>Гипотез</th><th></th></tr></thead>
+        <tbody id="iv-rows"></tbody>
+      </table>
+      <p class="empty" id="iv-empty" hidden>Интервью пока нет.</p>
+    </section>
+
+    <!-- Форма -->
+    <section class="view" id="v-form">
+      <div class="msg" id="restore" role="status"></div>
+      <nav class="rs-toc" id="toc"></nav>
+      <form id="iv-form" novalidate></form>
+    </section>
+  </main>
+  <!-- Вне .view: у видов анимация с transform, внутри неё position:fixed считался бы от вида -->
+  <div class="rs-save" id="save-bar" hidden>
+    <div class="msg" id="form-msg"></div>
+    <div class="row">
+      <button class="btn" id="save" type="button">Сохранить</button>
+      <button class="btn danger sm" id="del" type="button" hidden>Удалить черновик</button>
+    </div>
+  </div>
+</div>
+<script type="module" src="js/research.js"></script>
+</body>
+</html>
