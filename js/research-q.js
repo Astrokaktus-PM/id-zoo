@@ -19,7 +19,7 @@ export const STATUSES = [['draft', 'черновик'], ['final', 'заверш�
 export const YESNO = [['yes', 'да'], ['no', 'нет']];
 
 export const RESPONDENT = [
-  { k: 'name', label: 'Как обращаться', type: 'text', hint: 'Необязательно. Только имя — ФИО не вводить.' },
+  { k: 'name', label: 'Как обращаться', type: 'text', hint: 'Необязательно. Одно слово, без фамилии.' },
   { k: 'sex', label: 'Пол', type: 'select', opts: [['f', 'женский'], ['m', 'мужской'], ['na', 'не указан']] },
   { k: 'age', label: 'Возраст', type: 'select', opts: [['18-24', '18–24'], ['25-34', '25–34'], ['35-44', '35–44'], ['45-54', '45–54'], ['55-64', '55–64'], ['65+', '65+']] },
   { k: 'city', label: 'Город', type: 'text' },
@@ -126,7 +126,7 @@ export function piiProblems(data) {
   };
   walk(data, '');
   const name = ((data.respondent || {}).name || '').trim();
-  if (name && name.split(/\s+/).length > 2) out.push({ path: 'respondent.name', what: 'ФИО — нужно только имя' });
+  if (name && name.split(/\s+/).length > 1) out.push({ path: 'respondent.name', what: 'нужно одно слово — только имя, без фамилии и отчества' });
   return out;
 }
 

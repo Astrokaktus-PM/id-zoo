@@ -25,7 +25,8 @@ for (const [label, patch] of [
   ['телеграм', { commitments: { text: 'tg @ivanpetrov' } }],
   ['ФИО', { respondent: { name: 'Иванов Иван Иванович' } }],
 ]) ok('ловит: ' + label, Q.piiProblems({ ...d, ...patch }).length === 1, JSON.stringify(Q.piiProblems({ ...d, ...patch })));
-ok('имя с отчеством — можно', !Q.piiProblems({ ...d, respondent: { name: 'Анна Петровна' } }).length);
+ok('имя с отчеством — нельзя', Q.piiProblems({ ...d, respondent: { name: 'Анна Петровна' } }).length === 1);
+ok('двойное имя через дефис — можно', !Q.piiProblems({ ...d, respondent: { name: 'Анна-Мария' } }).length);
 ok('суммы и годы не ловятся', !Q.piiProblems({ ...d, money: { spend_year: 85000, big_bill: 120000 }, discrepancies: 'в 2023 году 3 раза по 1500 ₽, 88005553' }).length);
 ok('путь к полю указан', Q.piiProblems({ ...d, blocks: { b7: { quote: 'a@b.ru' } } })[0].path === 'blocks.b7.quote');
 
