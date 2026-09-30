@@ -73,3 +73,12 @@
 .rs-save .row{align-items:stretch}
 .rs-save .btn{margin-top:0}
 .rs-save .btn.sm{flex:0 0 auto}
+
+/* sql/015: код команды на списке */
+.rs-team{padding:12px 14px; margin-bottom:12px}
+.rs-team .f{margin-bottom:8px}
+.rs-team .btn{margin-top:0}
+.rs-team .hint{margin:8px 0 0}
+.rs-team #team-on{font-size:14px}
+.rs-team .msg{margin:8px 0 0}
+.rs .lede{max-width:none}

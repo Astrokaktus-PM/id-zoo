@@ -14,32 +14,20 @@
   <header class="bar">
     <button class="back" id="back" hidden aria-label="Назад">←</button>
     <h1 id="title">Анкета интервью</h1>
-    <button class="act" id="logout" hidden>Выйти</button>
   </header>
   <main>
-    <!-- Вход -->
-    <section class="view" id="v-login">
-      <p class="lede">Внутренний инструмент исследовательской группы. Вход — тем же логином, что в приложении.</p>
-      <div class="msg err" id="login-msg"></div>
-      <form id="login-form" class="card">
-        <div class="f"><label for="l-login">Логин</label><input type="text" id="l-login" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
-        <div class="f"><label for="l-pass">Пароль</label><input type="password" id="l-pass" autocomplete="current-password"></div>
-        <button class="btn" type="submit">Войти</button>
-      </form>
-    </section>
-
-    <!-- Нет доступа -->
-    <section class="view" id="v-denied">
-      <div class="card">
-        <p><b>Анкета доступна только исследовательской группе.</b></p>
-        <p id="denied-who"></p>
-        <p class="hint">Участника добавляет владелец проекта в SQL Editor Supabase — пример в конце <code>sql/014_research.sql</code>.</p>
-      </div>
-      <div class="msg err" id="denied-msg"></div>
-    </section>
-
     <!-- Список -->
     <section class="view" id="v-list">
+      <p class="lede">Анкету заполняет любой без входа, список и ответы видны всем, кто открыл эту страницу. Править и удалять — с кодом команды; черновик можно дописывать в том браузере, где его начали.</p>
+      <div class="card rs-team" id="team-box">
+        <div id="team-off">
+          <div class="f"><label for="team-code">Код команды</label><input type="password" id="team-code" autocomplete="off"></div>
+          <button class="btn ghost sm" id="team-save" type="button">Ввести код</button>
+          <p class="hint">Код вводится один раз на этом устройстве. Без кода — заполнение новых анкет и чтение.</p>
+        </div>
+        <div id="team-on" hidden><span>Код команды введён — можно править и удалять черновики.</span> <button class="linkbtn sm" id="team-forget" type="button">Забыть код</button></div>
+        <div class="msg" id="team-msg"></div>
+      </div>
       <div class="msg err" id="list-msg"></div>
       <div class="rs-top">
         <button class="btn sm" id="new-iv" type="button">Начать опрос</button>
@@ -61,6 +49,7 @@
     <!-- Форма -->
     <section class="view" id="v-form">
       <div class="msg" id="restore" role="status"></div>
+      <div class="msg warn" id="ro-note" role="status"></div>
       <nav class="rs-toc" id="toc"></nav>
       <form id="iv-form" novalidate></form>
     </section>

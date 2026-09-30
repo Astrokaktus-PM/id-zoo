@@ -183,7 +183,7 @@ GitHub Pages — выкладка. Ничего устанавливать не 
 ## П14: веб-анкета интервью (ТЗ `claude/id-zoo-p14-anketa-intervyu-tz.md`)
 
 `research.html` — внутренний инструмент исследовательской группы, к приложению не относится (нет в демо, карте экранов, обходе, `sw.js` SHELL). Файлы: `js/research.js` (интерфейс), `js/research-db.js` (база), `js/research-q.js` (поля, тексты, CSV — менять здесь, база хранит ответы в `jsonb`), `research.css`.
-Нужен `sql/014_research.sql` и участники в `research_members` (добавляются в SQL Editor). ФИО и контакты не хранятся. Тест: `node test/research_check.mjs`.
+Нужны `sql/014_research.sql` и `sql/015_research_open.sql`. С 015 входа нет (решение 30.09.2026): заполняет и читает любой, правит и удаляет — тот, кто ввёл код команды (задаётся `select public.research_set_team_code('…')` в SQL Editor); черновик дописывает браузер, где его начали. Содержимое интервью открыто на чтение любому, кто знает адрес. ФИО и контакты не хранятся. Тест: `node test/research_check.mjs`.
 
 ## Чего ещё нет
 

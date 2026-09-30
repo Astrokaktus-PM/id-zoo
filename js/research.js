@@ -11,7 +11,7 @@ const dmy = s => (s ? s.slice(0, 10).split('-').reverse().join('.') : '');
 const hm = t => new Date(t).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 const lab = (opts, v) => (opts.find(o => o[0] === v) || [, v || '—'])[1];
 
-const S = { me: null, rows: [], rec: null, dirty: false, timer: null };
+const S = { rows: [], rec: null, dirty: false, timer: null, loading: false, ro: false };
 const DRAFT = id => `petid.research.draft.${id || 'new'}`;
 const store = {
   get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (_) { return null; } },
@@ -24,33 +24,38 @@ function show(id, title) {
   $('#title').textContent = title;
   $('#back').hidden = id !== 'v-form';
   $('#save-bar').hidden = id !== 'v-form';
-  $('#logout').hidden = !S.me;
   window.scrollTo(0, 0);
 }
 
-// ── Вход и доступ ───────────────────────────────────────────
-async function boot() {
-  S.me = await db.me();
-  if (!S.me) return show('v-login', 'Анкета интервью');
-  let member = false;
-  try { member = await db.isMember(S.me.id); }
-  catch (e) { show('v-denied', 'Нет доступа'); $('#denied-who').textContent = `Вы вошли как @${S.me.login}.`; return say('#denied-msg', db.humanError(e)); }
-  if (!member) { show('v-denied', 'Нет доступа'); $('#denied-who').textContent = `Вы вошли как @${S.me.login}. Этого логина нет в группе.`; return; }
-  route();
-}
+// ── Доступ: код команды и ключи черновиков (sql/015) ─────────
+// Код команды хранится в браузере этого устройства. Ключ записи выдаёт база при создании
+// анкеты — по нему этот браузер дописывает свой черновик без кода.
+const TEAM = 'petid.research.team', KEYS = 'petid.research.keys';
+const team = () => store.get(TEAM) || '';
+const keyOf = id => (store.get(KEYS) || {})[id] || '';
+const setKey = (id, k) => { const m = store.get(KEYS) || {}; m[id] = k; store.set(KEYS, m); };
+const canEdit = r => !r || !!team() || (r.status === 'draft' && !!keyOf(r.id));
 
-$('#login-form').addEventListener('submit', async e => {
-  e.preventDefault();
-  const login = $('#l-login').value.trim().toLowerCase(), pass = $('#l-pass').value;
-  if (!db.LOGIN_RE.test(login)) return say('#login-msg', 'Логин: латиница, цифры и «_», от 3 до 20 символов');
-  try { await db.signIn(login, pass); say('#login-msg', ''); await boot(); }
-  catch (err) { say('#login-msg', db.humanError(err)); }
-});
-$('#logout').onclick = async () => { saveDraft(); await db.signOut(); S.me = null; location.hash = ''; show('v-login', 'Анкета интервью'); };
+function paintTeam() {
+  const on = !!team();
+  $('#team-off').hidden = on; $('#team-on').hidden = !on;
+}
+$('#team-save').onclick = async () => {
+  const c = $('#team-code').value.trim(); if (!c) return say('#team-msg', 'Введите код');
+  const b = $('#team-save'); b.disabled = true;
+  try {
+    if (!(await db.checkCode(c))) return say('#team-msg', 'Код не подошёл');
+    store.set(TEAM, c); $('#team-code').value = ''; say('#team-msg', 'Код принят', 'ok'); paintTeam();
+  } catch (e) { say('#team-msg', db.humanError(e)); }
+  finally { b.disabled = false; }
+};
+$('#team-forget').onclick = () => { store.del(TEAM); say('#team-msg', ''); paintTeam(); };
+
+function boot() { paintTeam(); route(); }
+
 $('#back').onclick = () => { location.hash = '#list'; };
 
 function route() {
-  if (!S.me) return;
   const h = location.hash;
   stopDraftTimer();
   if (h === '#new') return openForm(null);
@@ -329,7 +334,11 @@ function paintMeta() {
   const st = $('#c-status');
   st.querySelector('option[value="draft"]').disabled = !!(r && r.status === 'final');
   const del = $('#del');
-  del.hidden = !(r && r.status === 'draft' && r.created_by === S.me.id);
+  del.hidden = !(r && r.status === 'draft' && team());
+  S.ro = !canEdit(r);
+  document.querySelectorAll('#iv-form input, #iv-form select, #iv-form textarea, #iv-form button').forEach(x => { x.disabled = S.ro; });
+  $('#save').hidden = S.ro;
+  say('#ro-note', S.ro ? (r.status === 'final' ? 'Только чтение: интервью завершено. Править можно с кодом команды — введите его на странице списка.' : 'Только чтение. Править может браузер, где этот черновик начали, или любой с кодом команды — код вводится на странице списка.') : '', 'warn');
   del.textContent = 'Удалить черновик'; delete del.dataset.armed;
 }
 
@@ -363,7 +372,7 @@ function stopDraftTimer() { if (S.timer) clearInterval(S.timer); S.timer = null;
 
 function offerRestore() {
   const key = DRAFT(S.rec && S.rec.id), d = store.get(key);
-  if (!d) return;
+  if (!d || S.ro) return;
   const older = S.rec && d.at <= Date.parse(S.rec.updated_at);
   const box = $('#restore');
   box.className = 'msg on warn'; box.replaceChildren();
@@ -377,7 +386,7 @@ function offerRestore() {
 }
 
 $('#save').onclick = async () => {
-  if (S.loading) return;
+  if (S.loading || S.ro) return;
   const st = collect();
   if (!st.cols.interviewer) { say('#form-msg', 'Укажите имя интервьюера'); $('#c-interviewer').focus(); return; }
   const pii = Q.piiProblems(st.data);
@@ -386,8 +395,8 @@ $('#save').onclick = async () => {
   saveDraft();
   try {
     const was = S.rec;
-    const row = was ? await db.update(was.id, st.cols, st.data, was.updated_at) : await db.create(st.cols, st.data);
-    await db.setCodes(row.id, st.codes, was ? was.codes : {});
+    const row = await db.save(was && was.id, was && was.updated_at, st.cols, st.data, st.codes, team(), was && keyOf(was.id));
+    if (row.key) setKey(row.id, row.key);
     store.del(DRAFT(was && was.id)); store.del(DRAFT(row.id));
     S.rec = { ...row, data: st.data, codes: st.codes }; S.dirty = false;
     paintMeta();
@@ -410,7 +419,7 @@ $('#del').onclick = async () => {
   if (S.loading || !S.rec) return;
   if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Точно удалить?'; return; }
   b.disabled = true;
-  try { await db.remove(S.rec.id); store.del(DRAFT(S.rec.id)); S.dirty = false; location.hash = '#list'; }
+  try { await db.remove(S.rec.id, team()); store.del(DRAFT(S.rec.id)); S.dirty = false; location.hash = '#list'; }
   catch (e) { say('#form-msg', db.humanError(e)); }
   finally { b.disabled = false; }
 };
