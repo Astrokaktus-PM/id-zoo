@@ -80,6 +80,7 @@ a.doc:focus-visible{outline:2px solid var(--c); outline-offset:2px}
 [data-t="log"]{--c:var(--t-log); --cs:var(--t-log-s)}
 
 footer{margin-top:auto; padding-top:18px; font-size:12.5px; color:var(--sub)}
+@media (min-width:861px){ .grid:has(> a.doc:nth-child(4)){grid-template-columns:repeat(4,minmax(0,1fr))} }
 @media (max-width:860px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
 /* Телефон: вкладка помещается в экран без прокрутки — описание в три строки,
    метки и подпись «Открыть» скрыты (открывается вся карточка). */
@@ -93,6 +94,7 @@ footer{margin-top:auto; padding-top:18px; font-size:12.5px; color:var(--sub)}
   .doc p{font-size:13px; line-height:1.45; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
   .ic{width:28px; height:28px; font-size:15px; border-radius:8px}
   .meta,.go{display:none}
+  .grid:has(> a.doc:nth-child(4)) .doc p{-webkit-line-clamp:2}
 }
 </style>
 </head>
@@ -107,11 +109,11 @@ footer{margin-top:auto; padding-top:18px; font-size:12.5px; color:var(--sub)}
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Темы">
-    <button class="tab" role="tab" id="tab-prod" data-t="prod" aria-controls="p-prod"><i class="dot"></i>Продукт<span class="n">3</span></button>
-    <button class="tab" role="tab" id="tab-model" data-t="model" aria-controls="p-model"><i class="dot"></i>Модель благополучия<span class="n">2</span></button>
-    <button class="tab" role="tab" id="tab-res" data-t="res" aria-controls="p-res"><i class="dot"></i>Исследования<span class="n">3</span></button>
-    <button class="tab" role="tab" id="tab-web" data-t="web" aria-controls="p-web"><i class="dot"></i>Веб-макет<span class="n">1</span></button>
-    <button class="tab" role="tab" id="tab-log" data-t="log" aria-controls="p-log"><i class="dot"></i>Журнал<span class="n">1</span></button>
+    <button class="tab" role="tab" id="tab-prod" data-t="prod" aria-controls="p-prod"><i class="dot"></i>Продукт<span class="n"></span></button>
+    <button class="tab" role="tab" id="tab-model" data-t="model" aria-controls="p-model"><i class="dot"></i>Модель благополучия<span class="n"></span></button>
+    <button class="tab" role="tab" id="tab-res" data-t="res" aria-controls="p-res"><i class="dot"></i>Исследования<span class="n"></span></button>
+    <button class="tab" role="tab" id="tab-web" data-t="web" aria-controls="p-web"><i class="dot"></i>Веб-макет<span class="n"></span></button>
+    <button class="tab" role="tab" id="tab-log" data-t="log" aria-controls="p-log"><i class="dot"></i>Журнал<span class="n"></span></button>
   </nav>
 
   <section class="panel" role="tabpanel" id="p-prod" aria-labelledby="tab-prod" data-t="prod">
@@ -157,7 +159,7 @@ footer{margin-top:auto; padding-top:18px; font-size:12.5px; color:var(--sub)}
   </section>
 
   <section class="panel" role="tabpanel" id="p-res" aria-labelledby="tab-res" data-t="res">
-    <p class="lead">Рынок, конкуренты и как разговаривать с владельцами.</p>
+    <p class="lead">Рынок, конкуренты, как разговаривать с владельцами и куда записывать интервью.</p>
     <div class="grid">
       <a class="doc" href="rynok-pet-id.html" target="_blank" rel="noopener">
         <span class="top"><span class="ic" aria-hidden="true">▤</span><b>Рынок, конкуренты и объём</b></span>
@@ -177,22 +179,22 @@ footer{margin-top:auto; padding-top:18px; font-size:12.5px; color:var(--sub)}
         <span class="meta"><span>13 гипотез</span><span>60 минут</span></span>
         <span class="go">Открыть ↗</span>
       </a>
+      <a class="doc" href="../research.html" target="_blank" rel="noopener">
+        <span class="top"><span class="ic" aria-hidden="true">☑</span><b>Анкета интервью</b></span>
+        <p>Только для исследовательской группы. Запись интервью по коду респондента без ФИО и контактов, кодирование И1–И13, выгрузка CSV.</p>
+        <span class="meta"><span>вход по логину</span><span>участники группы</span></span>
+        <span class="go">Открыть ↗</span>
+      </a>
     </div>
   </section>
 
   <section class="panel" role="tabpanel" id="p-web" aria-labelledby="tab-web" data-t="web">
-    <p class="lead">Рабочие страницы на живой базе: приложение и анкета интервью.</p>
+    <p class="lead">Рабочий макет приложения на живой базе.</p>
     <div class="grid">
       <a class="doc" href="../index.html" target="_blank" rel="noopener">
         <span class="top"><span class="ic" aria-hidden="true">⌂</span><b>Вход и регистрация</b></span>
         <p>Регистрация по логину без почты, вход, демо-режим без регистрации.</p>
         <span class="meta"><span>astrokaktus-pm.github.io/id-zoo</span></span>
-        <span class="go">Открыть ↗</span>
-      </a>
-      <a class="doc" href="../research.html" target="_blank" rel="noopener">
-        <span class="top"><span class="ic" aria-hidden="true">☑</span><b>Анкета интервью</b></span>
-        <p>Только для исследовательской группы. Запись интервью по коду респондента без ФИО и контактов, кодирование И1–И13, выгрузка CSV.</p>
-        <span class="meta"><span>вход по логину</span><span>участники группы</span></span>
         <span class="go">Открыть ↗</span>
       </a>
     </div>
@@ -217,6 +219,8 @@ footer{margin-top:auto; padding-top:18px; font-size:12.5px; color:var(--sub)}
 // Вкладки: выбор помнится в адресе (#model) и в браузере; стрелки ←/→ переключают.
 (() => {
   const tabs = [...document.querySelectorAll('.tab')];
+  // Число на вкладке — сколько карточек в её разделе; считается, а не пишется руками.
+  for (const t of tabs) t.querySelector('.n').textContent = document.getElementById(t.getAttribute('aria-controls')).querySelectorAll('a.doc').length;
   const pick = (t, focus) => {
     for (const x of tabs) {
       const on = x === t;
