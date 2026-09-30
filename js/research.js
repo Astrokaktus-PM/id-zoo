@@ -337,10 +337,12 @@ async function openForm(id) {
   show('v-form', id ? 'Интервью' : 'Новое интервью');
   say('#form-msg', ''); say('#restore', '');
   buildForm();
-  S.rec = null; S.dirty = false;
+  S.rec = null; S.dirty = false; S.loading = !!id;
+  paintMeta(); $('#save').disabled = S.loading;
   if (id) {
     try { S.rec = await db.get(id); }
-    catch (e) { return say('#form-msg', db.humanError(e)); }
+    catch (e) { S.loading = false; return say('#form-msg', db.humanError(e)); }
+    S.loading = false; $('#save').disabled = false;
     fill({ cols: S.rec, data: S.rec.data, codes: S.rec.codes });
   } else {
     fill({ cols: { held_on: today(), status: 'draft' } });
@@ -375,6 +377,7 @@ function offerRestore() {
 }
 
 $('#save').onclick = async () => {
+  if (S.loading) return;
   const st = collect();
   if (!st.cols.interviewer) { say('#form-msg', 'Укажите имя интервьюера'); $('#c-interviewer').focus(); return; }
   const pii = Q.piiProblems(st.data);
@@ -391,7 +394,7 @@ $('#save').onclick = async () => {
     say('#form-msg', `Сохранено в ${hm(Date.now())} · ${row.code}`, 'ok');
     if (!was) history.replaceState(null, '', '#iv=' + row.id);
   } catch (e) { say('#form-msg', db.humanError(e)); }
-  finally { b.disabled = false; }
+  finally { b.disabled = S.loading; }
 };
 
 function fieldName(path) {
@@ -404,6 +407,7 @@ function fieldName(path) {
 
 $('#del').onclick = async () => {
   const b = $('#del');
+  if (S.loading || !S.rec) return;
   if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Точно удалить?'; return; }
   b.disabled = true;
   try { await db.remove(S.rec.id); store.del(DRAFT(S.rec.id)); S.dirty = false; location.hash = '#list'; }
