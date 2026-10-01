@@ -34,6 +34,11 @@
         <button class="btn ghost sm" id="csv" type="button">Выгрузить CSV</button>
       </div>
       <p class="hint">CSV — все интервью, одна строка на интервью; разделитель «;», UTF-8 с BOM. Доли по гипотезам считаются кодом по этому файлу.</p>
+      <div class="card rs-team" id="os-box">
+        <p><b>Опрос владельцев</b> — ответы со страницы <a href="survey.html" target="_blank" rel="noopener">survey.html</a>. Выгрузка — только с кодом команды.</p>
+        <button class="btn ghost sm" id="os-csv" type="button">Опрос владельцев: CSV</button>
+        <div class="msg" id="os-msg"></div>
+      </div>
       <div class="rs-filters">
         <div class="f"><label for="f-int">Интервьюер</label><select id="f-int"><option value="">все</option></select></div>
         <div class="f"><label for="f-seg">Сегмент</label><select id="f-seg"><option value="">все</option></select></div>

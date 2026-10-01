@@ -2,6 +2,7 @@
 // к приложению владельца не относится: нет в демо-режиме, карте экранов и обходе.
 import * as db from './research-db.js';
 import * as Q from './research-q.js';
+import { toCsv as ownerCsv } from './owner-survey-q.js';
 
 const $ = s => document.querySelector(s);
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -108,6 +109,21 @@ function renderRows() {
 }
 
 $('#new-iv').onclick = () => { location.hash = '#new'; };
+
+$('#os-csv').onclick = async () => {
+  if (!team()) return say('#os-msg', 'Сначала введите код команды выше');
+  const b = $('#os-csv'); b.disabled = true;
+  try {
+    const rows = await db.ownerSurveys(team());
+    if (!rows.length) return say('#os-msg', 'Ответов пока нет', 'ok');
+    const blob = new Blob([ownerCsv(rows)], { type: 'text/csv;charset=utf-8' });
+    const a = el('a'); a.href = URL.createObjectURL(blob); a.download = `owner-survey-${today()}.csv`;
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    say('#os-msg', `Выгружено ответов: ${rows.length}`, 'ok');
+  } catch (e) { say('#os-msg', /owner_survey/.test(e.message || '') ? 'База не обновлена: выполните sql/016_owner_survey.sql' : db.humanError(e)); }
+  finally { b.disabled = false; }
+};
 
 $('#csv').onclick = async () => {
   const b = $('#csv'); b.disabled = true;

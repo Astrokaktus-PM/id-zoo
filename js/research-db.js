@@ -54,6 +54,10 @@ export async function save(id, seenUpdatedAt, cols, data, codes, team, key) {
 export async function remove(id, team) {
   must(await sb.rpc('research_delete', { p_id: id, p_team: team || null }));
 }
+/** Ответы опроса владельцев (sql/016) — только с кодом команды. */
+export async function ownerSurveys(team) {
+  return must(await sb.rpc('owner_survey_export', { p_team: team || null }));
+}
 export async function checkCode(code) {
   return must(await sb.rpc('research_check_code', { p_code: code })) === true;
 }
