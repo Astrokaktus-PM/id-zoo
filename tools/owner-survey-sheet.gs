@@ -9,6 +9,10 @@
  * owner_survey_export(код команды) и дописывает те, которых ещё нет (ключ — время отправки).
  * Код команды хранится в «Свойствах скрипта» (TEAM_CODE), в коде его нет.
  *
+ * Установка: Настройки проекта (шестерёнка) → Свойства скрипта → Добавить свойство
+ * TEAM_CODE = код команды → Сохранить. Затем выбрать функцию setup и нажать «Выполнить».
+ * Результат — в журнале выполнения внизу редактора.
+ *
  * Файл собран из js/owner-survey-q.js (тексты вопросов дословно). Не править вопросы здесь —
  * поменяли опрос → node tools/build-owner-survey-gs.mjs и заменить код в Apps Script.
  */
@@ -18,6 +22,9 @@ var SUPABASE_KEY = 'sb_publishable_rA1BJ6bGoHlbCkaHbA8wxw_HZlj0erW'; // publisha
 var SHEET_ANSWERS = 'Ответы';
 var SHEET_QUESTIONS = 'Вопросы';
 var TZ = 'Europe/Moscow';
+var SHEET_ID = '1Ain4ya1uJBS2P0JNd4lMSYibgxprbI-28sREOeFGeAE'; // таблица команды; нужен, если скрипт создан не из таблицы
+
+function book_() { return SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openById(SHEET_ID); }
 
 var QUESTIONS = [
  {
@@ -380,17 +387,16 @@ function onOpen() {
     .addToUi();
 }
 
-/** Первый запуск: код команды, листы, синхронизация каждые 5 минут. */
+/** Первый запуск: листы, синхронизация каждые 5 минут. Код команды — заранее в свойствах скрипта. */
 function setup() {
-  var ui = SpreadsheetApp.getUi();
-  var r = ui.prompt('Код команды', 'Тот же код, что для анкеты интервью. Хранится в свойствах скрипта, в таблицу не пишется.', ui.ButtonSet.OK_CANCEL);
-  if (r.getSelectedButton() !== ui.Button.OK || !r.getResponseText().trim()) return;
-  PropertiesService.getScriptProperties().setProperty('TEAM_CODE', r.getResponseText().trim());
+  var code = PropertiesService.getScriptProperties().getProperty('TEAM_CODE');
+  if (!code) throw new Error('Нет кода команды. Настройки проекта (шестерёнка слева) → Свойства скрипта → Добавить свойство: TEAM_CODE = код команды → Сохранить. Потом снова запустите setup.');
   setupSheets();
   ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'sync') ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('sync').timeBased().everyMinutes(5).create();
   var n = sync();
-  ui.alert('Готово', 'Листы оформлены, синхронизация — каждые 5 минут. Сейчас перенесено ответов: ' + n + '.', ui.ButtonSet.OK);
+  console.log('Готово: листы оформлены, синхронизация каждые 5 минут. Перенесено ответов: ' + n);
+  return n;
 }
 
 function headers_() {
@@ -401,7 +407,7 @@ function headers_() {
 
 /** Оформление: шапка, ширины, перенос, закрепление, фильтр; лист «Вопросы». Данные не трогает. */
 function setupSheets() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = book_();
   var sh = ss.getSheetByName(SHEET_ANSWERS) || ss.insertSheet(SHEET_ANSWERS, 0);
   var h = headers_(), cols = h.length;
   if (sh.getMaxColumns() < cols) sh.insertColumnsAfter(sh.getMaxColumns(), cols - sh.getMaxColumns());
@@ -440,7 +446,7 @@ function setupSheets() {
 /** Перенос новых ответов. Возвращает, сколько строк добавлено. */
 function sync() {
   var code = PropertiesService.getScriptProperties().getProperty('TEAM_CODE');
-  if (!code) throw new Error('Не задан код команды: запустите setup()');
+  if (!code) throw new Error('Нет кода команды в свойствах скрипта (TEAM_CODE) — см. начало файла');
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(30000)) return 0;
   try {
@@ -449,10 +455,11 @@ function sync() {
       headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY },
       payload: JSON.stringify({ p_team: code })
     });
+    if (res.getResponseCode() !== 200 && /нужен код/.test(res.getContentText())) throw new Error('Код команды не подошёл — проверьте свойство TEAM_CODE');
     if (res.getResponseCode() !== 200) throw new Error('База ответила ' + res.getResponseCode() + ': ' + res.getContentText().slice(0, 300));
     var rows = JSON.parse(res.getContentText());
-    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ANSWERS);
-    if (!sh) { setupSheets(); sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ANSWERS); }
+    var sh = book_().getSheetByName(SHEET_ANSWERS);
+    if (!sh) { setupSheets(); sh = book_().getSheetByName(SHEET_ANSWERS); }
     var cols = headers_().length, last = sh.getLastRow();
     var seen = {};
     if (last > 1) sh.getRange(2, cols, last - 1, 1).getDisplayValues().forEach(function (r) { seen[r[0]] = true; });
